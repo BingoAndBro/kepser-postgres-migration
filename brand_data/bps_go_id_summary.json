@@ -1,0 +1,68 @@
+{
+  "slug": "bps_go_id",
+  "url": "https://www.bps.go.id/id",
+  "site_title": "Badan Pusat Statistik Indonesia",
+  "scraped_at": "2026-04-02 00:12",
+  "color_scheme": "light",
+  "colors": {
+    "primary": "#003B73",
+    "secondary": "#0096D9",
+    "accent": "#7ABF3C",
+    "background": "#FFFFFF",
+    "textPrimary": "#333333",
+    "textSecondary": "#666666",
+    "link": "#0096D9",
+    "success": "#7ABF3C",
+    "warning": "#F39200",
+    "error": "#DC3545"
+  },
+  "typography": {
+    "fontPrimary": "Inter",
+    "fontHeading": "Inter",
+    "fontCode": "Roboto Mono",
+    "allFonts": ["Inter"],
+    "sizes": {
+      "h1": "36px",
+      "h2": "28px",
+      "h3": "22px",
+      "body": "16px",
+      "small": "14px"
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "bold": 700
+    }
+  },
+  "spacing": {
+    "baseUnit": 8,
+    "borderRadius": "6px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#003B73",
+      "textColor": "#FFFFFF",
+      "borderRadius": "6px"
+    },
+    "buttonSecondary": {
+      "background": "transparent",
+      "textColor": "#003B73",
+      "borderColor": "#003B73",
+      "borderRadius": "6px"
+    }
+  },
+  "assets": {
+    "logo": "https://www.bps.go.id/assets/logo-bps.png",
+    "favicon": "https://www.bps.go.id/favicon.ico",
+    "ogImage": "https://www.bps.go.id/images/og-image.jpg",
+    "screenshot": "N/A",
+    "downloaded": ["logo", "favicon"]
+  },
+  "personality": {
+    "tone": "Formal, authoritative, informative",
+    "energy": "Calm, structured, data-driven",
+    "targetAudience": "Government officials, researchers, public, media"
+  },
+  "source": "browser-extracted",
+  "notes": "Firecrawl timed out for this site. Data extracted via browser DOM inspection."
+}
