@@ -10,6 +10,9 @@
 
 ## 🏗️ 1. Tech Stack
 
+> [!IMPORTANT]
+> **Package Manager Eksklusif:** Seluruh instalasi library, penambahan modul, dan eksekusi command operasi project (seperti menjalankan aplikasi) **WAJIB menggunakan `pnpm`**. Hindari penggunaan `npm` atau `yarn`.
+
 ### 🔵 Versi MVP (Deploy Cepat, Supabase-Only)
 
 | Layer | Teknologi | Alasan |
@@ -23,6 +26,7 @@
 | **UI Components** | shadcn/ui | Headless + styled, copy-paste, tidak lock-in |
 | **Validation** | Zod | Schema validation end-to-end (form → API → DB) |
 | **Hosting** | Vercel atau Netlify | Deploy mudah untuk TanStack Start di MVP |
+| **Package Manager**| pnpm | Wajib digunakan untuk semua instalasi dan command eksekusi proyek |
 
 > [!NOTE]
 > Di MVP, **semua I/O** (database, auth, file lampiran PDF) melewati satu platform: **Supabase**. Sangat sederhana untuk di-debug dan dikelola.
@@ -42,6 +46,7 @@
 | **UI Components** | shadcn/ui | Sama seperti MVP |
 | **Validation** | Zod | Sama seperti MVP |
 | **Hosting** | **Cloudflare Workers** | Edge computing, low latency, satu ekosistem dengan R2 |
+| **Package Manager**| pnpm | Sama seperti MVP |
 | **CDN & Cache** | Cloudflare CDN | Otomatis bawaan Cloudflare Workers |
 
 > [!TIP]
@@ -61,7 +66,7 @@
 #### ✅ Versi MVP
 > **Setiap pegawai tahu persis apa yang harus mereka lakukan hari ini, dan setiap dokumen bisa dilacak statusnya secara real-time oleh siapapun yang berwenang.**
 
-Pada MVP, North Star-nya adalah: **menghapus kebingungan**. Tidak ada lagi "dokumen ini sudah sampai mana?", "siapa yang belum approve?", atau "form ini diisi apa saja?". Semua digantikan oleh satu Inbox yang jelas dan satu status yang terpusat.
+Pada MVP, North Star-nya adalah: **menghapus kebingungan**. Tidak ada lagi "dokumen ini sudah sampai mana?" atau "siapa yang belum approve?". Semua digantikan oleh satu Inbox yang jelas dan satu status yang terpusat.
 
 ---
 
@@ -142,11 +147,11 @@ Semua data — dari desain form, konfigurasi workflow, transaksi dokumen, hingga
 **Tabel Inti MVP:**
 
 ```
-master_templates       → Desain form (field definitions dalam JSONB)
+master_templates       → Kategori dan jenis dokumen
 workflow_definitions   → Konfigurasi alur & tahapan
 workflow_steps         → Detail setiap langkah (aksi, role, revisi target)
 kegiatan              → "Folder" kegiatan / project container
-dokumen_transaksi     → Isian form aktual pengguna (data dalam JSONB)
+dokumen_transaksi     → Transaksi dokumen berjalan (dengan file lampiran)
 log_aktivitas         → Audit trail (append-only, tidak bisa dihapus)
 roles                 → Daftar peran dinamis
 user_roles            → Mapping user ke role
@@ -277,10 +282,10 @@ Semua aturan MVP berlaku, **ditambah:**
 
 ### Fase 1 — Fondasi (MVP Sprint 1)
 - [ ] Auth: Login/Logout via Supabase Auth
-- [ ] CRUD Master Template (form builder dengan antarmuka tabel)
+- [ ] CRUD Kategori Dokumen (Master Template sederhana)
 - [ ] CRUD Workflow Builder (+ step configuration, role assignment, revisi target)
 - [ ] Inbox Tugas — tampilkan tugas sesuai Role user
-- [ ] Eksekusi dokumen: isi form → simpan ke `dokumen_transaksi.data` (JSONB)
+- [ ] Eksekusi dokumen: Upload File Lampiran → simpan URL ke `dokumen_transaksi.lampiran_urls`
 - [ ] Transisi status tahapan (FSM dasar)
 
 ### Fase 2 — Siklus Hidup (MVP Sprint 2)

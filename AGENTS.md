@@ -23,6 +23,7 @@
 | **UI Components** | shadcn/ui | Headless + styled, copy-paste |
 | **Validation** | Zod | Schema validation: form → API → DB |
 | **Hosting** | Vercel | Deploy TanStack Start MVP |
+| **Package Manager**| pnpm | Wajib digunakan untuk semua instalasi dan command eksekusi proyek |
 
 > **Catatan Migrasi Post-MVP:** File Storage akan dipindah ke Cloudflare R2, hosting ke Cloudflare Workers.
 
@@ -38,7 +39,7 @@ type StatusDokumen = 'DRAFT' | 'IN_REVIEW' | 'NEED_REVISION' | 'COMPLETED' | 'AR
 
 ### Enum: Tipe Step Workflow
 ```typescript
-type TipeStep = 'FILL' | 'APPROVE' | 'REVIEW'
+type TipeStep = 'UPLOAD' | 'APPROVE' | 'REVIEW'
 ```
 
 ---
@@ -69,15 +70,13 @@ user_roles: {
 ```
 
 ### Tabel 3: `master_templates`
-> Desain form (field definitions disimpan dalam JSONB).
+> Kategori dan jenis dokumen (tanpa field dinamis, hanya definisi alur).
 
 ```typescript
 master_templates: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL,                 // e.g., "Surat Permohonan Cuti"
+  nama: text NOT NULL,                 // e.g., "Surat Permohonan Cuti", "Proposal"
   deskripsi: text,
-  field_definitions: jsonb NOT NULL,   // Array of FieldDefinition
-  // FieldDefinition: { id, label, type: 'text'|'number'|'date'|'file'|'textarea', required: boolean }
   is_active: boolean DEFAULT true,
   created_by: uuid REFERENCES auth.users(id),
   created_at: timestamp DEFAULT now(),
@@ -109,8 +108,8 @@ workflow_steps: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   workflow_id: uuid NOT NULL REFERENCES workflow_definitions(id) ON DELETE CASCADE,
   urutan: integer NOT NULL,            // 1, 2, 3, ... (sequential mandatory)
-  nama_step: text NOT NULL,            // e.g., "Pengisian Form", "Review Atasan"
-  tipe: TipeStep NOT NULL,             // 'FILL' | 'APPROVE' | 'REVIEW'
+  nama_step: text NOT NULL,            // e.g., "Upload Dokumen", "Review Atasan"
+  tipe: TipeStep NOT NULL,             // 'UPLOAD' | 'APPROVE' | 'REVIEW'
   role_id: uuid NOT NULL REFERENCES roles(id),  // Role yang mengerjakan step ini
   revisi_target_step: integer,         // Jika APPROVE menolak, kembali ke step urutan ini
   // null berarti tidak bisa menolak
@@ -132,7 +131,7 @@ kegiatan: {
 ```
 
 ### Tabel 7: `dokumen_transaksi`
-> Isian form aktual per dokumen yang sedang berjalan. Data form disimpan di JSONB.
+> Transaksi dokumen yang sedang berjalan.
 
 ```typescript
 dokumen_transaksi: {
@@ -144,7 +143,6 @@ dokumen_transaksi: {
   status: StatusDokumen NOT NULL DEFAULT 'DRAFT',
   current_step_urutan: integer NOT NULL DEFAULT 1,
   current_assignee_role_id: uuid REFERENCES roles(id),  // Role yang harus action sekarang
-  data: jsonb NOT NULL DEFAULT '{}',   // { [field_id]: value } — isian form user
   lampiran_urls: jsonb DEFAULT '[]',   // Array of { nama, url, tipe, ukuran }
   created_by: uuid NOT NULL REFERENCES auth.users(id),
   created_at: timestamp DEFAULT now(),
