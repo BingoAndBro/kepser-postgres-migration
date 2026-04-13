@@ -27,19 +27,61 @@
 
 > **Catatan Migrasi Post-MVP:** File Storage akan dipindah ke Cloudflare R2, hosting ke Cloudflare Workers.
 
+### Perintah Package Manager
+
+> **WAJIB: Gunakan `pnpm` untuk SEMUA operasi package manager.**
+
+```bash
+# Install semua dependencies (setelah clone / setelah lockfile berubah)
+pnpm install
+
+# Menambah paket BARU ke project
+pnpm add <nama-paket>    # dependency regular
+pnpm add -D <nama-paket> # devDependency (contoh: pnpm add -D vitest)
+pnpm add -g <nama-paket> # global install (jarang — contoh: pnpm add -g supabase)
+
+# Menghapus paket
+pnpm remove <nama-paket>
+
+# Menjalankan script
+pnpm dev      # development server
+pnpm build    # production build
+pnpm test     # run tests
+```
+
+- ❌ **Jangan** gunakan `npm install` atau `yarn add` — selalu `pnpm`
+- ✅ Selalu commit `pnpm-lock.yaml` ke git (BUKAN `package-lock.json`)
+- ✅ Reference lengkap: `docs/pnpm-best-practices.md`
+
 ---
 
 ## 🗂️ Data Schema (MVP — 9 Tabel Inti)
 
-### Enum: Status Dokumen (FSM)
+### Enum: Status Dokumen (FSM) — MVP Hardcoded Flow
 ```typescript
-// Status hanya bisa maju ke kanan, bukan mundur (kecuali NEED_REVISION)
-type StatusDokumen = 'DRAFT' | 'IN_REVIEW' | 'NEED_REVISION' | 'COMPLETED' | 'ARCHIVED'
+// Status dokumen: alur berjenjang PPK → Bendahara → Arsiparis
+type StatusDokumen =
+  | 'DRAFT'                        // Belum diajukan
+  | 'IN_PPK_VALIDATION'            // Sedang divalidasi PPK
+  | 'IN_BENDAHARA_APPROVAL'        // Sedang disetujui Bendahara
+  | 'NEED_REVISION'                // Ditolak — ada target di bawah
+  | 'COMPLETED'                    // Selesai semua persetujuan
+  | 'ARCHIVED'                     // Sudah diarsipkan Arsiparis
+
+// Sub-status untuk tracking posisi NEED_REVISION
+type RevisionTarget = 'USER' | 'PPK'
 ```
 
-### Enum: Tipe Step Workflow
+### Enum: Role Static (MVP — Tidak Perlu Workflow Builder)
 ```typescript
-type TipeStep = 'UPLOAD' | 'APPROVE' | 'REVIEW'
+// Role di-hardcode, tidak bisa diedit admin di MVP
+type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'ARSIPARIS' | 'ADMIN'
+```
+
+### Enum: Step Approval Berjenjang
+```typescript
+// Track step saat ini (untuk membedakan IN_PPK_VALIDATION vs IN_BENDAHARA_APPROVAL)
+type CurrentStep = 'PPK' | 'BENDAHARA'
 ```
 
 ---
@@ -84,40 +126,49 @@ master_templates: {
 }
 ```
 
-### Tabel 4: `workflow_definitions`
-> Konfigurasi alur kerja (terhubung ke master_template).
+### Tabel 4: `master_fungsi`
+> Fungsi / Departemen dalam organisasi (BPS).
 
 ```typescript
-workflow_definitions: {
+master_fungsi: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL,                 // e.g., "Alur Permohonan Cuti"
-  template_id: uuid NOT NULL REFERENCES master_templates(id),
+  nama: text NOT NULL UNIQUE,   // e.g., "Sosial", "Distribusi", "Neraca", "Produksi", "Umum", "IPDS"
   deskripsi: text,
   is_active: boolean DEFAULT true,
-  created_by: uuid REFERENCES auth.users(id),
-  created_at: timestamp DEFAULT now(),
-  updated_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 5: `workflow_steps`
-> Detail setiap langkah dalam workflow (urutan, tipe aksi, role yang bertanggung jawab).
-
-```typescript
-workflow_steps: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  workflow_id: uuid NOT NULL REFERENCES workflow_definitions(id) ON DELETE CASCADE,
-  urutan: integer NOT NULL,            // 1, 2, 3, ... (sequential mandatory)
-  nama_step: text NOT NULL,            // e.g., "Upload Dokumen", "Review Atasan"
-  tipe: TipeStep NOT NULL,             // 'UPLOAD' | 'APPROVE' | 'REVIEW'
-  role_id: uuid NOT NULL REFERENCES roles(id),  // Role yang mengerjakan step ini
-  revisi_target_step: integer,         // Jika APPROVE menolak, kembali ke step urutan ini
-  // null berarti tidak bisa menolak
   created_at: timestamp DEFAULT now()
 }
 ```
 
-### Tabel 6: `kegiatan`
+### Tabel 6b: `master_kegiatan`
+> Jenis kegiatan per fungsi.
+
+```typescript
+master_kegiatan: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  fungsi_id: uuid NOT NULL REFERENCES master_fungsi(id),
+  nama: text NOT NULL,          // e.g., "SAKERNAS", "SUSENAS", "PODES"
+  deskripsi: text,
+  is_active: boolean DEFAULT true,
+  created_at: timestamp DEFAULT now()
+}
+```
+
+### Tabel 6c: `master_kelengkapan_dokumen`
+> Kelengkapan dokumen yang dibutuhkan per kegiatan × role (Ketua Tim vs Anggota).
+
+```typescript
+master_kelengkapan_dokumen: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  kegiatan_id: uuid NOT NULL REFERENCES master_kegiatan(id),
+  is_ketua_tim: boolean NOT NULL,   // true = untuk Ketua Tim, false = untuk Anggota
+  nama_dokumen: text NOT NULL,       // e.g., "Laporan", "Form Permintaan", "KAK"
+  required: boolean DEFAULT true,
+  created_at: timestamp DEFAULT now()
+}
+```
+
+### Tabel 6d: `kegiatan`
+> "Folder" / project container untuk dokumen-dokumen terkait (legacy — dipertahankan untuk grouping).
 > "Folder" / project container untuk dokumen-dokumen terkait.
 
 ```typescript
@@ -137,12 +188,14 @@ kegiatan: {
 dokumen_transaksi: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   kegiatan_id: uuid REFERENCES kegiatan(id),
-  workflow_id: uuid NOT NULL REFERENCES workflow_definitions(id),
-  template_id: uuid NOT NULL REFERENCES master_templates(id),
+  template_id: uuid REFERENCES master_templates(id),       // nullable di MVP
   judul: text NOT NULL,
+  fungsi_id: uuid REFERENCES master_fungsi(id),            // Fungsi/departemen pengaju
+  kegiatan_jenis_id: uuid REFERENCES master_kegiatan(id),  // Jenis kegiatan
+  is_ketua_tim: boolean NOT NULL DEFAULT false,            // Apakah submitter Ketua Tim
   status: StatusDokumen NOT NULL DEFAULT 'DRAFT',
-  current_step_urutan: integer NOT NULL DEFAULT 1,
-  current_assignee_role_id: uuid REFERENCES roles(id),  // Role yang harus action sekarang
+  current_step: CurrentStep DEFAULT null,   // 'PPK' | 'BENDAHARA' — null saat DRAFT/COMPLETED/ARCHIVED
+  revision_target: RevisionTarget DEFAULT null,  // 'USER' | 'PPK' — hanya saat NEED_REVISION
   lampiran_urls: jsonb DEFAULT '[]',   // Array of { nama, url, tipe, ukuran }
   created_by: uuid NOT NULL REFERENCES auth.users(id),
   created_at: timestamp DEFAULT now(),
@@ -204,18 +257,28 @@ arsip: {
 
 ### 1. RBAC — Role-Based Access Control
 - Setiap user memiliki satu atau lebih Role (via tabel `user_roles`)
+- **Setiap user BARU otomatis punya role PEGAWAI** — ini role default
+- Role di-hardcode: PEGAWAI, PPK, BENDAHARA, ARSIPARIS, ADMIN
+- **Role Switcher:** Jika user punya > 1 role, ada dropdown di kanan atas (profile icon) untuk switch antar role
+- **ADMIN tidak punya dropdown role** — akun dedicated, login terpisah
+- Active role disimpan di session/client state, dipakai untuk middleware & sidebar
 - Halaman dan aksi dikunci berdasarkan Role (middleware SSR)
 - Supabase RLS = garis pertahanan kedua di level database
 
-### 2. Workflow Sequentiality
-- Tahapan N+1 **tidak bisa dibuka** sebelum tahapan N selesai
-- Status FSM: `DRAFT → IN_REVIEW → NEED_REVISION → COMPLETED`
-- Transisi status hanya bisa dilakukan oleh Role yang ditugaskan di step tersebut
+### 2. Workflow Berjenjang (PPK → Bendahara → Arsiparis)
+- Alur di-hardcode — **tidak ada workflow builder** di MVP
+- Tahapan tidak bisa diloncati:
+  - DRAFT → IN_PPK_VALIDATION (oleh PEGAWAI)
+  - IN_PPK_VALIDATION → IN_BENDAHARA_APPROVAL (oleh PPK, setelah validasi)
+  - IN_BENDAHARA_APPROVAL → COMPLETED (oleh BENDAHARA, setelah approve)
+  - COMPLETED → ARCHIVED (oleh ARSIPARIS, setelah arsip)
+- Tracking step saat ini via kolom `current_step` ('PPK' | 'BENDAHARA')
 
-### 3. Aturan Penolakan (Rejection)
-- Penolakan hanya bisa dilakukan pada step bertipe `APPROVE`
-- Approver **wajib** mengisi "Catatan Revisi" — form tidak bisa di-submit tanpa catatan
-- Target revisi (step tujuan) sudah dikonfigurasi Admin saat desain workflow (bukan pilihan Approver)
+### 3. Aturan Penolakan (Tolak Berjenjang)
+- PPK menolak → `NEED_REVISION` dengan `revision_target = 'USER'` → USER perbaiki & resubmit
+- Bendahara menolak → `NEED_REVISION` dengan `revision_target = 'PPK'` → PPK perbaiki & resubmit langsung ke Bendahara
+- Catatan revisi **wajib** diisi saat menolak — form tidak bisa di-submit tanpa catatan
+- Tolakan tidak mengubah `current_step` — tetap di step yang menolak
 
 ### 4. Audit Trail
 - Setiap aksi = satu INSERT baru ke `log_aktivitas`

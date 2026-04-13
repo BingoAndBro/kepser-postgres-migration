@@ -374,6 +374,109 @@ Kembali ke **Loop Utama** untuk section berikutnya.
 
 Setelah semua sections di `index.md` selesai diimplementasikan:
 
+### Generate Test & Verification Guide (WAJIB)
+
+Setelah semua section selesai, buat file `TEST_VERIFICATION.md` di direktori yang sama dengan spec (bukan di planning_dir). File ini adalah **guide testing manual** untuk user setelah implementasi.
+
+#### Format File: `TEST_VERIFICATION.md`
+
+```markdown
+# Test & Verification Guide: [Nama Komponen]
+
+## Overview
+[1-2 kalimat: komponen apa yang baru diimplementasikan]
+
+## Prerequisites
+- [Prasyarat sebelum testing, misal: app running di localhost:3000]
+- [Login credentials yang dibutuhkan]
+
+---
+
+## Test Cases
+
+### [TC-01] [Nama Test Case — happy path utama]
+
+**Tujuan:** [Apa yang ingin diverifikasi]
+
+**Langkah:**
+1. [Langkah 1]
+2. [Langkah 2]
+3. [Langkah N]
+
+**Ekspektasi:**
+- [Hasil yang diharapkan di UI — harus terlihat X]
+- [Data yang diharapkan tersimpan — harus ada Y di DB]
+
+**Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
+
+---
+
+### [TC-02] [Nama Test Case — edge case atau error case]
+
+**Tujuan:** [Apa yang ingin diverifikasi]
+
+**Langkah:**
+1. [Langkah 1]
+2. [Langkah 2 — termasuk kondisi error故意]
+3. [Langkah N]
+
+**Ekspektasi:**
+- [Error message yang seharusnya muncul]
+- [Data tidak tersimpan / status tetap X]
+
+**Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
+
+---
+
+[Ulangi TC-0X untuk setiap fitur yang diimplementasikan]
+
+---
+
+## Manual Verification Checklist
+
+Setelah semua test cases dijalankan, isi checklist di bawah:
+
+| # | Fitur | Tested | Pass | Fail | Catatan |
+|---|-------|--------|------|------|---------|
+| 1 | [Fitur 1] | ⬜ | ⬜ | ⬜ | [Catatan jika ada] |
+| 2 | [Fitur 2] | ⬜ | ⬜ | ⬜ | |
+| N | [Fitur N] | ⬜ | ⬜ | ⬜ | |
+
+---
+
+## Bug yang Ditemukan
+
+| # | Deskripsi Bug | Severity | Status | Link |
+|---|---------------|----------|--------|------|
+| 1 | [Deskripsi] | High/Medium/Low | Open/Fixed | — |
+
+---
+
+## Sign-off
+
+- **Tester:** _______________________
+- **Tanggal:** _______________________
+- **Hasil:** ⬜ Lolos / ⬜ Perlu Perbaikan
+```
+
+#### Cara Generate
+
+1. Baca semua section files (`sections/section-*.md`) dan spec (`spec.md`)
+2. Identifikasi setiap fitur/user flow yang diimplementasikan
+3. Buat test case untuk setiap fitur:
+   - **Happy path** — alur normal berhasil
+   - **Error/edge case** — apa yang terjadi saat gagal atau kondisi khusus
+   - **Role-specific** — tes untuk setiap role yang terlibat
+4. Tulis langkah-langkah yang spesifik dan bisa diikuti orang lain
+5. Simpan ke `[planning_dir]/TEST_VERIFICATION.md`
+
+```
+✓ TEST_VERIFICATION.md dibuat
+  → [planning_dir]/TEST_VERIFICATION.md
+```
+
+---
+
 ### Final Verification
 
 Jalankan full test suite sekali lagi untuk memastikan tidak ada regression:
@@ -423,9 +526,10 @@ Buat `[planning_dir]/implementation-notes.md`:
 ║                                                               ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║  Langkah selanjutnya:                                         ║
-║  1. Review implementation-notes.md                            ║
-║  2. Jalankan integration/e2e tests jika ada                   ║
-║  3. Code review manual jika diperlukan sebelum merge          ║
+║  1. Review TEST_VERIFICATION.md — jalankan semua test case   ║
+║  2. Review implementation-notes.md                            ║
+║  3. Jalankan integration/e2e tests jika ada                   ║
+║  4. Code review manual jika diperlukan sebelum merge          ║
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
@@ -464,3 +568,5 @@ Jangan lompat urutan. Sections yang dependen harus menunggu prerequisites-nya se
 4. **Ikuti plan, tapi jangan buta.** Section file adalah panduan, bukan kitab. Jika saat implementasi menemukan cara yang lebih baik, deviasikan — tapi catat alasannya di section documentation.
 
 5. **Stop lebih baik daripada asal jalan.** Jika ada test yang tidak bisa dipassing, atau ada ambiguitas yang tidak bisa diselesaikan sendiri, tanyakan ke user. Implementasi yang tergesa-gesa lebih mahal untuk difix daripada yang ditunda sebentar untuk klarifikasi.
+
+6. **Test verification guide WAJIB dibuat.** Setelah semua section selesai, selalu buat `TEST_VERIFICATION.md` — ini guide manual untuk user agar tahu persis apa yang harus dicoba, langkah-langkahnya, dan ekspektasi hasilnya. Jangan skip langkah ini.
