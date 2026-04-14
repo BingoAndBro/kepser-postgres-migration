@@ -166,7 +166,7 @@ type LampiranUrl = {
 ### Routes
 ```
 /dokumen                      → redirect ke /dokumen/saya
-/dokumen/saya                 → list dokumen saya
+/dokumen/saya                 → list dokumen saya (default PEGAWAI landing)
 /dokumen/aju                  → form ajukan dokumen baru
 /dokumen/[id]                 → detail dokumen
 /dokumen/[id]/edit            → edit & resubmit (jika applicable)

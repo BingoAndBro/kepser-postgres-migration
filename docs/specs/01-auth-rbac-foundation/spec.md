@@ -103,8 +103,43 @@ getSession(): Promise<Session | null>
 
 ### UI / Frontend
 - `/login` — halaman login dengan email + password
-- `AppLayout` — sidebar navigasi yang berubah sesuai role aktif
+- `AppLayout` — sidebar navigasi yang berubah sesuai role aktif (dari `NAV_CONFIG`)
+- Dashboard shell untuk semua role — aesthetic shell dengan mesh blobs, glassmorphism panels, dan framer-motion animations. Menggunakan BPS Kepulauan Seribu motto: *"Mencatat Data, Membangun Negeri"*
+- `DashboardShell` component — hero section + stats bento + role-specific CTA button
+- `StatsBento` component — role-specific stat cards dalam bento grid layout
 - Redirect logic setelah login: detect primary role → navigate ke halaman yang sesuai
+
+### Navigation Structure (NAV_CONFIG)
+
+Sidebar navigasi didefinisikan di `AppLayout.tsx` via `NAV_CONFIG: Record<RoleName, MenuGroup[]>`. Setiap role punya menu yang berbeda:
+
+**PEGAWAI:**
+- GENERAL: Dashboard (`/`)
+- MANAGEMENT: Ajukan Dokumen (`/dokumen/aju`), Dokumen Diajukan (`/dokumen/saya`), Revisi Dokumen (`/dokumen/saya?status=NEED_REVISION`), Dokumen Selesai (`/dokumen/saya?status=COMPLETED`)
+- ARSIP: Cari Arsip (`/arsip`)
+- SYSTEM: Activity Log, Settings
+
+**PPK:**
+- GENERAL: Dashboard (`/ppk`)
+- VALIDASI: Validasi Dokumen (`/ppk/inbox`), Dokumen Tervalidasi (`/ppk/tervalidasi`), Dokumen Tidak Valid (`/ppk/ditolak`), Revisi Dokumen (`/ppk/revisi`)
+- ARSIP: Cari Arsip (`/arsip`)
+- SYSTEM: Activity Log, Settings
+
+**BENDAHARA:**
+- GENERAL: Dashboard (`/bendahara`)
+- PERSETUJUAN: Persetujuan Dokumen (`/bendahara/inbox`), Dokumen Ditolak (`/bendahara/ditolak`), Dokumen Selesai (`/bendahara/selesai`)
+- ARSIP: Cari Arsip (`/arsip`)
+- SYSTEM: Activity Log, Settings
+
+**ARSIPARIS:**
+- GENERAL: Dashboard (`/arsiparis`)
+- PEMBERKASAN: Pemberkasan Arsip (`/arsiparis/inbox`), Daftar Arsip Aktif (`/arsiparis/aktif`), Daftar Arsip Inaktif (`/arsiparis/inaktif`), Usul Musnah (`/arsiparis/usul-musnah`), Master Klasifikasi (`/arsiparis/klasifikasi`)
+- SYSTEM: Activity Log, Settings
+
+**ADMIN:**
+- GENERAL: Dashboard (`/admin`)
+- MANAGEMENT: Master User (`/admin/master-data/user`), Departemen Fungsi (`/admin/master-data/fungsi`), Master Kegiatan (`/admin/master-data/kegiatan`), Kelengkapan Dokumen (`/admin/master-data/kelengkapan`)
+- SYSTEM: Activity Log, Settings
 
 ### Role Switcher (Multi-Role Dropdown)
 - **Kondisi:** User punya lebih dari satu role (misal: PEGAWAI + PPK)

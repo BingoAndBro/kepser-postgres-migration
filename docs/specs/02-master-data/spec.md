@@ -144,7 +144,8 @@ getKelengkapanByKegiatan(kegiatanId: string, isKetuaTim: boolean): Promise<Kelen
 
 ### Routes
 ```
-/admin/master-data              → redirect ke /admin/master-data/fungsi
+/admin/master-data              → redirect ke /admin/master-data/user
+/admin/master-data/user         → Master User (CRUD user + role assignment)
 /admin/master-data/fungsi       → list & CRUD fungsi
 /admin/master-data/kegiatan     → list & CRUD kegiatan (filterable per fungsi)
 /admin/master-data/kelengkapan  → configure kelengkapan per kegiatan

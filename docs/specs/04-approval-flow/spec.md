@@ -210,11 +210,18 @@ log_aktivitas: {
 
 ### Routes
 ```
-/ppk/inbox              → list dokumen PPK
-/ppk/dokumen/[id]       → detail + aksi approve/reject
+/ppk                          → Dashboard PPK (default landing)
+/ppk/inbox                    → list dokumen PPK (Dokumen Menunggu Validasi)
+/ppk/tervalidasi              → list dokumen sudah disetujui PPK
+/ppk/ditolak                  → list dokumen ditolak PPK
+/ppk/revisi                   → list dokumen perlu direvisi oleh PPK (dari Bendahara)
+/ppk/dokumen/[id]             → detail + aksi approve/reject
 
-/bendahara/inbox        → list dokumen Bendahara
-/bendahara/dokumen/[id] → detail + aksi approve/reject
+/bendahara                     → Dashboard Bendahara (default landing)
+/bendahara/inbox               → list dokumen Bendahara (Menunggu Persetujuan)
+/bendahara/ditolak            → list dokumen ditolak Bendahara
+/bendahara/selesai            → list dokumen selesai (COMPLETED)
+/bendahara/dokumen/[id]       → detail + aksi approve/reject
 ```
 
 ### PPK Pages
