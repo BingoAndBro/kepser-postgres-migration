@@ -31,17 +31,19 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | # | Komponen | Direktori | Status |
 |---|----------|-----------|--------|
 | 01 | Auth & RBAC Foundation | `docs/specs/01-auth-rbac-foundation/spec.md` | ✅ Done |
+| 01b | FSM (Document Status Transitions) | `docs/specs/01b-fsm/spec.md` | ✅ Done |
 | 02 | Master Data Management | `docs/specs/02-master-data/spec.md` | ✅ Done |
 | 03 | Submit Flow (Pegawai) | `docs/specs/03-submit-flow/spec.md` | ✅ Done |
 | 04 | Approval Flow (PPK→Bendahara) | `docs/specs/04-approval-flow/spec.md` | ✅ Done |
 | 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
+| 01b | FSM — Document Status Transitions | `docs/specs/01b-fsm/spec.md` | ✅ Done |
 
 ---
 
 ## Estimasi Urutan Pengerjaan
 ```
-01 → 02 → 03 → 04 → 05 → 06
+01 → 01b → 02 → 03 → 04 → 05 → 06
 ```
 - 01: Fondasi (auth + RBAC)
 - 02: Data master (fondasi data)
@@ -88,6 +90,13 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Arsiparis Skip
 - Pencarian arsip (semua user)
 - Download arsip (semua user)
+
+### 01b — FSM (Document Status Transitions)
+- Shared infrastructure: `src/lib/fsm.ts` transition function
+- Types: StatusDokumen, CurrentStep, RevisionTarget, FSMAction, TransitionResult
+- 9 valid transitions (SUBMIT, APPROVE, REJECT, RESUBMIT, RESUBMIT_PPK, ARCHIVE, SKIP)
+- Actor validation per action
+- stepUrutan tracking untuk audit trail
 
 ### 06 — User Management
 - Admin: Create user (email + password + nama_lengkap + nip_nrp + departemen + roles)
