@@ -111,22 +111,7 @@ user_roles: {
 }
 ```
 
-### Tabel 3: `master_templates`
-> Kategori dan jenis dokumen (tanpa field dinamis, hanya definisi alur).
-
-```typescript
-master_templates: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL,                 // e.g., "Surat Permohonan Cuti", "Proposal"
-  deskripsi: text,
-  is_active: boolean DEFAULT true,
-  created_by: uuid REFERENCES auth.users(id),
-  created_at: timestamp DEFAULT now(),
-  updated_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 4: `master_fungsi`
+### Tabel 3: `master_fungsi`
 > Fungsi / Departemen dalam organisasi (BPS).
 
 ```typescript
@@ -139,7 +124,7 @@ master_fungsi: {
 }
 ```
 
-### Tabel 6b: `master_kegiatan`
+### Tabel 4: `master_kegiatan`
 > Jenis kegiatan per fungsi.
 
 ```typescript
@@ -153,7 +138,7 @@ master_kegiatan: {
 }
 ```
 
-### Tabel 6c: `master_kelengkapan_dokumen`
+### Tabel 5: `master_kelengkapan_dokumen`
 > Kelengkapan dokumen yang dibutuhkan per kegiatan × role (Ketua Tim vs Anggota).
 
 ```typescript
@@ -167,7 +152,7 @@ master_kelengkapan_dokumen: {
 }
 ```
 
-### Tabel 6d: `kegiatan`
+### Tabel 6: `kegiatan`
 > "Folder" / project container untuk dokumen-dokumen terkait (legacy — dipertahankan untuk grouping).
 > "Folder" / project container untuk dokumen-dokumen terkait.
 
@@ -188,7 +173,7 @@ kegiatan: {
 dokumen_transaksi: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   kegiatan_id: uuid REFERENCES kegiatan(id),
-  template_id: uuid REFERENCES master_templates(id),       // nullable di MVP
+  kelengkapan_id: uuid REFERENCES master_kelengkapan_dokumen(id),
   judul: text NOT NULL,
   fungsi_id: uuid REFERENCES master_fungsi(id),            // Fungsi/departemen pengaju
   kegiatan_jenis_id: uuid REFERENCES master_kegiatan(id),  // Jenis kegiatan

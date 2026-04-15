@@ -35,12 +35,13 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 03 | Submit Flow (Pegawai) | `docs/specs/03-submit-flow/spec.md` | ✅ Done |
 | 04 | Approval Flow (PPK→Bendahara) | `docs/specs/04-approval-flow/spec.md` | ✅ Done |
 | 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
+| 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
 
 ---
 
 ## Estimasi Urutan Pengerjaan
 ```
-01 → 02 → 03 → 04 → 05
+01 → 02 → 03 → 04 → 05 → 06
 ```
 - 01: Fondasi (auth + RBAC)
 - 02: Data master (fondasi data)
@@ -87,3 +88,13 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Arsiparis Skip
 - Pencarian arsip (semua user)
 - Download arsip (semua user)
+
+### 06 — User Management
+- Admin: Create user (email + password + nama_lengkap + nip_nrp + departemen + roles)
+- Admin: Edit user metadata & roles
+- Admin: Deactivate user (disable di Supabase Auth, roles tetap)
+- Admin: Reactivate user
+- Admin: Reset password
+- User: Self-service change password
+- User: View profile
+- Master User page: real data dari auth.users + user_roles

@@ -147,7 +147,7 @@ Semua data — dari desain form, konfigurasi workflow, transaksi dokumen, hingga
 **Tabel Inti MVP:**
 
 ```
-master_templates       → Kategori dan jenis dokumen
+master_kelengkapan_dokumen → Daftar dokumen yang wajib diunggah per kegiatan
 workflow_definitions   → Konfigurasi alur & tahapan
 workflow_steps         → Detail setiap langkah (aksi, role, revisi target)
 kegiatan              → "Folder" kegiatan / project container
@@ -263,7 +263,7 @@ Semua aturan MVP berlaku, **ditambah:**
 - Server memvalidasi JWT Supabase sebelum mengeluarkan pre-signed URL R2
 
 **7. Admin Sandboxing**
-- Admin bisa mengedit `master_templates` dan `workflow_definitions` yang belum pernah digunakan
+- Admin bisa mengedit `master_kegiatan` dan `master_kelengkapan_dokumen` yang belum pernah digunakan
 - Template/Workflow yang sudah memiliki transaksi aktif **tidak bisa diedit**, hanya bisa di-deprecate dan digantikan versi baru (versioning)
 
 **8. Arsiparis Gate**
@@ -282,7 +282,7 @@ Semua aturan MVP berlaku, **ditambah:**
 
 ### Fase 1 — Fondasi (MVP Sprint 1)
 - [ ] Auth: Login/Logout via Supabase Auth
-- [ ] CRUD Kategori Dokumen (Master Template sederhana)
+- [ ] CRUD Master Kegiatan dan Kelengkapan Dokumen
 - [ ] CRUD Workflow Builder (+ step configuration, role assignment, revisi target)
 - [ ] Inbox Tugas — tampilkan tugas sesuai Role user
 - [ ] Eksekusi dokumen: Upload File Lampiran → simpan URL ke `dokumen_transaksi.lampiran_urls`
