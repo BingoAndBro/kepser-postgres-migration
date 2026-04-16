@@ -8,7 +8,7 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 
 - App running on `localhost:3000`
 - Login credentials (PEGAWAI role)
-- Storage bucket `dokumen-lampiran` created in Supabase
+- Storage bucket `dokumen-lampiran` created in Supabase (Public=OFF, File size limit=2MB)
 - Migrations `003_dokumen_transaksi.sql` and `004_storage_rls_cleanup.sql` applied to Supabase
 - Seed data: at least 1 Fungsi, 1 Kegiatan, and kelengkapan items for that kegiatan
 
@@ -29,7 +29,7 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 - Halaman list dokumen ditampilkan
 - Empty state "Belum ada dokumen" terlihat
 
-**Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
+**Status:** ❌ Gagal — redirect tidak berjalan (URL tetap `/dokumen`)
 
 ---
 
@@ -93,7 +93,7 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 1. Dari step 3, klik "Lanjut"
 2. Checklist kelengkapan tampil
 3. Klik "Unggah File" pada salah satu item WAJIB
-4. Pilih file PDF < 10MB
+4. Pilih file PDF < 2MB
 
 **Ekspektasi:**
 - Progress: uploading spinner → checkmark hijau
@@ -115,7 +115,7 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 3. Pilih file .exe
 
 **Ekspektasi:**
-- File > 10MB: Error "Ukuran file maksimal 10MB"
+- File > 2MB: Error "Ukuran file maksimal 2MB"
 - File .exe: Error "Tipe file tidak diizinkan"
 
 **Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
@@ -220,9 +220,10 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 1. Di halaman detail, klik tombol Download pada salah satu lampiran
 
 **Ekspektasi:**
-- File terbuka di tab baru (signed URL aktif 1 jam)
+- File ter-download ke laptop user (bukan buka tab baru)
+- Nama file sesuai dengan nama file asli yang diupload
 
-**Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
+**Status:** ✅ Lulus (diperbaiki — sebelumnya hanya buka tab baru, sekarang benar-benar download)
 
 ---
 
@@ -245,7 +246,7 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 - log_aktivitas entry baru dengan aksi='RESUBMIT' tercatat
 - Redirect ke `/dokumen/saya`
 
-**Status:** ⬜ Belum diuji / ✅ Lulus / ❌ Gagal
+**Status:** ⏸️ Di-skip — tidak bisa diuji karena fitur approve/reject PPK oleh role PPK belum dibuat (Spec 04 belum diimplementasi). Untuk menguji, dokumen perlu masuk status NEED_REVISION terlebih dahulu, yang saat ini belum bisa terjadi tanpa alur PPK.
 
 ---
 
@@ -263,9 +264,9 @@ Spec 03 implements the Submit Flow for PEGAWAI role: multi-step document submiss
 | 8 | Submit creates dokumen + FSM transition | ⬜ | ⬜ | ⬜ | |
 | 9 | Dokumen detail page | ⬜ | ⬜ | ⬜ | |
 | 10 | Workflow timeline | ⬜ | ⬜ | ⬜ | |
-| 11 | Download lampiran (signed URL) | ⬜ | ⬜ | ⬜ | |
+| 11 | Download lampiran (signed URL → download to laptop) | ✅ | ✅ | ⬜ | |
 | 12 | Activity log display | ⬜ | ⬜ | ⬜ | |
-| 13 | Edit/Resubmit flow | ⬜ | ⬜ | ⬜ | |
+| 13 | Edit/Resubmit flow | ⏸️ | ⏸️ | ⏸️ | Di-skip — butuh fitur approve PPK (Spec 04) untuk bisa mendapat status NEED_REVISION |
 | 14 | Double-submit prevention | ⬜ | ⬜ | ⬜ | |
 
 ---

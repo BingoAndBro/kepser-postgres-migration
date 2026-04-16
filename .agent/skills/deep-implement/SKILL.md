@@ -1,3 +1,5 @@
+
+
 ---
 name: deep-implement
 description: Mengimplementasikan kode dari section files yang dihasilkan oleh skill deep-plan, dengan metodologi TDD, code review per section, dan git workflow. Gunakan setelah deep-plan selesai dan sections sudah ada, atau kapanpun ada section file yang siap diimplementasikan. Juga bisa digunakan untuk mengimplementasikan satu section spesifik tanpa harus menjalankan semua section sekaligus.
@@ -127,6 +129,16 @@ Jika ada prerequisite section yang belum selesai, **stop dan warning**:
 Section [NN] bergantung pada [section lain] yang belum selesai.
 Selesaikan section tersebut terlebih dahulu.
 ```
+
+---
+
+### Langkah 1.5: Mandatory Domain Checks (Kewajiban Validasi)
+
+Sebelum menulis kode implementasi untuk sebuah section, identifikasi DOMAIN dari section tersebut. Anda WAJIB menjalankan perintah `view_file` untuk membaca panduan berikut SEBELUM mulai melakukan modifikasi kode:
+
+1. Jika section menyentuh UI/Frontend komponen: WAJIB baca `.agent/skills/ui-ux-pro-max/SKILL.md`
+2. Jika section menyentuh status workflow dokumen atau RLS Supabase: WAJIB baca `.agent/skills/db-fsm-guard/SKILL.md`
+3. Jika section menyentuh manipulasi data atau validasi input: WAJIB baca `.agent/skills/security-guidance/SKILL.md` dan `.agent/skills/error-handling-patterns/SKILL.md`
 
 ---
 
