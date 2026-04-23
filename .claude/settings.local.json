@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat C:/Users/BingoAndBro/.claude/ide/*.json)"
+      "Bash(cat C:/Users/BingoAndBro/.claude/ide/*.json)",
+      "Bash read",
+      "Bash write",
+      "Bash glob",
+      "Bash grep",
+      "Bash task",
+      "Bash webfetch",
+      "Bash websearch"
     ]
-  }
+  },
+  "model": "claude-opus-4-7"
 }
