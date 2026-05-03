@@ -70,6 +70,9 @@ Spec 06 menutup gap ini sehingga admin bisa mengelola seluruh user lifecycle lan
 - [ ] Login via SSO / OAuth
 - [ ] Two-factor authentication (2FA)
 - [ ] Login activity / session management per user
+- [ ] **Chairman assignment per kegiatan** — lihat SPEC 07
+- [ ] **Menu "Laporan Kegiatan" visibility** — lihat SPEC 07
+- [ ] **Badge info di Ajukan Dokumen** — lihat SPEC 07
 
 ---
 
@@ -183,10 +186,12 @@ POST   /api/users/me/change-password
    - Field: Email, Password, Konfirmasi Password, Nama Lengkap, NIP/NRP, Departemen (opsional)
    - Checkbox role(s) — PEGAWAI checked & disabled (selalu ada), PPK, BENDAHARA, ARSIPARIS
    - Validation: semua field required (kecuali departemen), password min 8 chars, konfirmasi password match, email format valid, nip_nrp format (numerik)
+   - **Catatan:** Opsi assign kegiatan chairman → lihat SPEC 07
 6. **Dialog/Modal — Edit User:**
    - Field: Nama Lengkap, NIP/NRP, Departemen
    - Checkbox role(s) — PEGAWAI disabled (tidak bisa dihapus), role lain toggleable
    - Tampilkan email (read-only)
+   - **Catatan:** Manage kegiatan chairman → lihat SPEC 07
 7. **Dialog — Reset Password:**
    - Field: Password Baru, Konfirmasi Password
    - Info text: "Password akan langsung berlaku. User harus login dengan password baru."
@@ -196,6 +201,12 @@ POST   /api/users/me/change-password
 9. **Dialog — Konfirmasi Activate:**
    - Text: "User akan bisa login kembali."
    - Tombol: "Batal", "Aktifkan"
+
+**Fitur terkait SPEC 07:**
+- Kolom "Kegiatan Ketua Tim" di tabel Master User
+- Halaman Detail User (`/admin/master-data/user/[id]`) dengan activity history
+- Popup Edit dengan manage kegiatan chairman
+- Form Tambah User dengan opsi assign kegiatan chairman
 
 #### Halaman: `/profile` (route baru)
 
@@ -231,7 +242,7 @@ POST   /api/users/me/change-password
 ## Dependensi
 
 - **Bergantung pada:** Spec 01 — Supabase Auth (`supabase` + `supabase-admin` client), session management, `requireAuth()`, `guardRole()`, RLS policies di `user_roles`
-- **Dibutuhkan oleh:** Spec 03, 04, 05 — semua alur dokumen butuh user accounts yang bisa di-manage oleh admin
+- **Dibutuhkan oleh:** Spec 03, 04, 05 — semua alur dokumen butuh user accounts yang bisa di-manage oleh admin; **Spec 07 (Chairman Assignment)** — Master User page dan Detail User page di-extend dengan kolom dan fitur baru
 
 ---
 

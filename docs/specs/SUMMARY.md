@@ -37,19 +37,21 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 04 | Approval Flow (PPK→Bendahara) | `docs/specs/04-approval-flow/spec.md` | ✅ Done |
 | 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
-| 01b | FSM — Document Status Transitions | `docs/specs/01b-fsm/spec.md` | ✅ Done |
+| 07 | Chairman Assignment | `docs/specs/07-chairman-assignment/spec.md` | 📋 Planning |
 
 ---
 
 ## Estimasi Urutan Pengerjaan
 ```
-01 → 01b → 02 → 03 → 04 → 05 → 06
+01 → 01b → 02 → 03 → 04 → 05 → 06 → 07
 ```
 - 01: Fondasi (auth + RBAC)
 - 02: Data master (fondasi data)
 - 03: Submit Flow (mulai siklus dokumen)
 - 04: Approval berjenjang (PPK → Bendahara)
 - 05: Arsip Flow (tutup siklus)
+- 06: User Management (admin + self-service)
+- 07: Chairman Assignment (ketua tim per kegiatan)
 
 ---
 
@@ -107,3 +109,11 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - User: Self-service change password
 - User: View profile
 - Master User page: real data dari auth.users + user_roles
+
+### 07 — Chairman Assignment
+- Tabel `ketua_tim_assignments` (user_id + kegiatan_id)
+- Admin: Assign/remove user sebagai chairman per kegiatan
+- Constraint: 1 kegiatan = 1 chairman
+- Badge info di Ajukan Dokumen (Ketua Tim vs Anggota)
+- Menu "Laporan Kegiatan" (hanya untuk user yang punya hak chairman)
+- Halaman Detail User dengan activity history
