@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerSupabaseClient } from '#/lib/supabase-server'
-import { getServerSession as getSession } from '#/lib/auth'
 import { createAdminClient } from '#/lib/supabase-admin'
-import { getDokumenById, userHasApproverRole } from '#/lib/dokumen-helpers'
+import { getServerSession } from '#/lib/auth'
 
 function createClient(request: Request) {
   const cookieHeader = request.headers.get('cookie')
@@ -14,80 +13,66 @@ function createClient(request: Request) {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/dokumen/[id]/download/[lampiranIndex]
-// Returns a signed URL for downloading a lampiran file
+// GET /api/dokumen/download-url?url=xxx
+// Returns a signed download URL for any dokumen-lampiran URL (used by edit page)
+// Query params:
+//   - url: storage path (required)
+//   - docId: dokumen ID for naming (required)
+//   - docDate: dokumen tanggal (optional, format YYYY-MM-DD)
+//   - lampName: nama kelengkapan lampiran (required)
+//   - lampIndex: index lampiran (optional, for uniqueness)
 // ---------------------------------------------------------------------------
 
-export const Route = createFileRoute('/api/dokumen/$id/download/$lampiranIndex')({
+export const Route = createFileRoute('/api/dokumen/download-url')({
+  ssr: false,
   server: {
     handlers: {
-      GET: async ({ request, params }: { request: Request; params: Record<string, string> }) => {
+      GET: async ({ request }: { request: Request }) => {
         const supabase = createClient(request)
-        const session = await getSession(supabase)
+        const session = await getServerSession(supabase)
 
         if (!session) {
           return Response.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const dok = await getDokumenById(supabase, params.id)
-
-        if (!dok) {
-          return Response.json({ error: 'Dokumen tidak ditemukan' }, { status: 404 })
+        const url = new URL(request.url).searchParams.get('url')
+        if (!url) {
+          return Response.json({ error: 'URL parameter required' }, { status: 400 })
         }
 
-        // Check if arsip is DIMUSNAHKAN
-        const { data: arsipRecord } = await supabase
-          .from('arsip')
-          .select('status_arsip, lampiran_snapshot')
-          .eq('dokumen_id', params.id)
-          .single()
+        const docId = new URL(request.url).searchParams.get('docId')
+        const docDate = new URL(request.url).searchParams.get('docDate')
+        const lampName = new URL(request.url).searchParams.get('lampName')
 
-        if (arsipRecord?.status_arsip === 'DIMUSNAHKAN') {
-          return Response.json({ error: 'File asli tidak tersedia — arsip telah dimusnahkan' }, { status: 410 })
+        if (!docId || !lampName) {
+          return Response.json({ error: 'docId and lampName parameters required' }, { status: 400 })
         }
 
-        // Ownership or approver role check
-        const isOwner = dok.created_by === session.user.id
-        const isApprover = await userHasApproverRole(supabase, session.user.id)
-
-        if (!isOwner && !isApprover) {
-          return Response.json({ error: 'Anda tidak memiliki akses' }, { status: 403 })
-        }
-
-        // Parse lampiran index
-        const index = parseInt(params.lampiranIndex, 10)
-        if (isNaN(index) || index < 0 || index >= dok.lampiran_urls.length) {
-          return Response.json({ error: 'Lampiran tidak ditemukan' }, { status: 404 })
-        }
-
-        const lampiran = dok.lampiran_urls[index]
-
+        // Build filename: docId_namaKelengkapan_tanggal.ext
         // Storage path format variations:
         // 1. [user_id]/[uuid]_[timestamp]_[original_filename] (underscore)
         // 2. [user_id]/[timestamp]-[random]-[original_filename] (dash)
         // Example 1: "user-id/7df5992f-be9a-4e8d-b836-7d677d7976c4_1777969605493_Penilaian_360.pdf"
         // Example 2: "user-id/1777964598700-9d5docxfisv-Penilaian_360.pdf"
-        const pathParts = lampiran.url.split('/')
+        const pathParts = url.split('/')
         const filenameWithExt = pathParts[pathParts.length - 1] || 'download'
 
         // Try to extract original filename based on format
         let originalFilename = filenameWithExt
 
         // Pattern 1: UUID_timestamp_originalName (underscore format)
-        // UUID is 36 chars with dashes, followed by underscore and 13-digit timestamp
         const underscoreMatch = filenameWithExt.match(/^[a-zA-Z0-9-]+_(\d{13})_(.+)$/)
         if (underscoreMatch) {
           originalFilename = underscoreMatch[2]
         }
 
         // Pattern 2: timestamp-randomName (dash format)
-        // Timestamp is 13 digits, followed by dash, then random chars, then dash, then filename
         const dashMatch = filenameWithExt.match(/^(\d{13})-[a-zA-Z0-9]+-(.+)$/)
         if (dashMatch) {
           originalFilename = dashMatch[2]
         }
 
-        // Extract extension from original filename
+        // Extract extension
         const lastDotIdx = originalFilename.lastIndexOf('.')
         let ext = ''
         let nameWithoutExt = originalFilename
@@ -96,12 +81,12 @@ export const Route = createFileRoute('/api/dokumen/$id/download/$lampiranIndex')
           nameWithoutExt = originalFilename.slice(0, lastDotIdx)
         }
 
-        const docIdShort = params.id.substring(0, 8)
-        const dateStr = dok.tanggal ? `_${dok.tanggal}` : ''
+        const docIdShort = docId.substring(0, 8)
+        const dateStr = docDate ? `_${docDate}` : ''
         const downloadFilename = `${docIdShort}_${nameWithoutExt}${dateStr}.${ext}`
 
-        console.log('[download] Generating download:', {
-          lampiranUrl: lampiran.url,
+        console.log('[download-url] Generating download URL:', {
+          url,
           filenameWithExt,
           underscoreMatch: underscoreMatch ? underscoreMatch[2] : null,
           dashMatch: dashMatch ? dashMatch[2] : null,
@@ -112,19 +97,17 @@ export const Route = createFileRoute('/api/dokumen/$id/download/$lampiranIndex')
           downloadFilename
         })
 
-        // Generate signed URL with download option (1 hour expiry)
         const supabaseAdmin = createAdminClient()
-
         const { data, error } = await supabaseAdmin.storage
           .from('dokumen-lampiran')
-          .createSignedUrl(lampiran.url, 3600, { download: downloadFilename })
+          .createSignedUrl(url, 900, { download: downloadFilename })
 
         if (error || !data) {
-          console.error('[download] Signed URL error:', error)
-          return Response.json({ error: 'Gagal membuat link download' }, { status: 500 })
+          console.error('[download-url] Signed URL error:', error)
+          return Response.json({ error: 'Gagal membuat link unduh' }, { status: 500 })
         }
 
-        return Response.json({ signedUrl: data.signedUrl, filename: downloadFilename })
+        return Response.json({ signedUrl: data.signedUrl })
       },
     },
   },
