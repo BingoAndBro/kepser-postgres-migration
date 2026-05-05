@@ -16,7 +16,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 ```
 
 ## Role Static (MVP)
-`PEGAWAI` | `PPK` | `BENDAHARA` | `ARSIPARIS` | `ADMIN`
+`PEGAWAI` | `PPK` | `BENDAHARA` | `ARSIPARIS` | `ADMIN` | `PENANGGUNG_JAWAB_KINERJA`
 
 ## Role Switcher
 - Semua user BARU otomatis punya role PEGAWAI (role default)
@@ -38,12 +38,17 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
 | 07 | Chairman Assignment | `docs/specs/07-chairman-assignment/spec.md` | 📋 Planning |
+| 08A | Nominal Realisasi Foundation | `docs/specs/08A-nominal-realisasi/spec.md` | 📋 Planning |
+| 08B | Penambahan Arsip (Arsiparis) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Planning |
+| 08C | Non-Material Documents | `docs/specs/08C-non-material/spec.md` | 📋 Planning |
+| 08D | Export Excel & Agregasi | `docs/specs/08D-export-excel/spec.md` | 📋 Planning |
+| 08E | Penanggung Jawab Kinerja (Role) | `docs/specs/08E-penanggung-jawab-kinerja/spec.md` | 📋 Planning |
 
 ---
 
 ## Estimasi Urutan Pengerjaan
 ```
-01 → 01b → 02 → 03 → 04 → 05 → 06 → 07
+01 → 01b → 02 → 03 → 04 → 05 → 06 → 07 → 08A → 08B → 08C → 08D → 08E
 ```
 - 01: Fondasi (auth + RBAC)
 - 02: Data master (fondasi data)
@@ -52,6 +57,11 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - 05: Arsip Flow (tutup siklus)
 - 06: User Management (admin + self-service)
 - 07: Chairman Assignment (ketua tim per kegiatan)
+- **08A: Fondasi nominal_realisasi (WAJIB selesai duluan)**
+- 08B: Arsip manual oleh Arsiparis
+- 08C: Dokumen Non-Material
+- 08D: Export Excel + Agregasi
+- 08E: Role Penanggung Jawab Kinerja
 
 ---
 
@@ -117,3 +127,39 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Badge info di Ajukan Dokumen (Ketua Tim vs Anggota)
 - Menu "Laporan Kegiatan" (hanya untuk user yang punya hak chairman)
 - Halaman Detail User dengan activity history
+
+### 08A — Nominal Realisasi Foundation
+- Tambah kolom `nominal_realisasi` ke tabel `dokumen_transaksi` (DECIMAL)
+- Tambah kolom `nominal_realisasi` ke tabel `arsip`
+- Tambah kolom `is_non_material` ke tabel `dokumen_transaksi`
+- Update API submit untuk validasi nominal WAJIB untuk Material
+- Fondasi untuk seluruh fitur 08B-08E
+
+### 08B — Penambahan Arsip (Arsiparis)
+- CRUD master kategori dokumen arsip (Pemeliharaan, Pengadaan, dll)
+- Form tambah arsip manual (kategori, nama, tanggal, keterangan WAJIB, nominal WAJIB, bukti opsional, klasifikasi)
+- Arsip langsung AKTIF tanpa approval
+- Update tabel `arsip` dengan `kategori_id` dan `is_manual_entry`
+
+### 08C — Non-Material Documents
+- Opsi "Non-MATERIAL" di dropdown Jenis Permintaan (paling atas, highlight)
+- Pilih Non-Material → tidak ada nominal_realisasi
+- Pilih Non-Material → tidak ada kelengkapan wajib, hanya upload opsional dengan judul kustom
+- Submit → langsung COMPLETED tanpa approval PPK/Bendahara
+- Non-Material TIDAK masuk inbox arsiparis, TETAPI masuk Laporan Saya, Laporan Kegiatan, Laporan Kinerja
+- Section "Dokumen Pendukung (Opsional)" untuk dokumen Material
+
+### 08D — Export Excel & Agregasi
+- Export arsip ke Excel per klasifikasi
+- Agregasi: jumlah arsip + total nominal per klasifikasi
+- Grand total semua klasifikasi
+- Preview sebelum export
+- Arsip manual (is_manual_entry) termasuk dalam agregasi
+
+### 08E — Penanggung Jawab Kinerja (Role)
+- Role baru: PENANGGUNG_JAWAB_KINERJA
+- Menu tunggal: "Laporan Kinerja"
+- Hierarki: Fungsi → Kegiatan → Detail Dokumen
+- Agregasi nominal per Fungsi dan Kegiatan
+- Filter: Fungsi, Kegiatan, Jenis, Detail, Tahun, Tanggal, Pengaju, Kategori
+- Seluruh dokumen COMPLETED, termasuk Non-Material
