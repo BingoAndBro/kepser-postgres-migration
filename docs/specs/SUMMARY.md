@@ -38,9 +38,8 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
 | 07 | Chairman Assignment | `docs/specs/07-chairman-assignment/spec.md` | 📋 Planning |
-| 08A | Nominal Realisasi Foundation | `docs/specs/08A-nominal-realisasi/spec.md` | 📋 Planning |
+| 08A | Nominal Realisasi Foundation | `docs/specs/08A-nominal-realisasi/spec.md` | ✅ Done |
 | 08B | Penambahan Arsip (Arsiparis) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Planning |
-| 08C | Non-Material Documents | `docs/specs/08C-non-material/spec.md` | 📋 Planning |
 | 08D | Export Excel & Agregasi | `docs/specs/08D-export-excel/spec.md` | 📋 Planning |
 | 08E | Penanggung Jawab Kinerja (Role) | `docs/specs/08E-penanggung-jawab-kinerja/spec.md` | 📋 Planning |
 
@@ -48,7 +47,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 
 ## Estimasi Urutan Pengerjaan
 ```
-01 → 01b → 02 → 03 → 04 → 05 → 06 → 07 → 08A → 08B → 08C → 08D → 08E
+01 → 01b → 02 → 03 → 04 → 05 → 06 → 07 → 08A → 08B → 08D → 08E
 ```
 - 01: Fondasi (auth + RBAC)
 - 02: Data master (fondasi data)
@@ -140,14 +139,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Form tambah arsip manual (kategori, nama, tanggal, keterangan WAJIB, nominal WAJIB, bukti opsional, klasifikasi)
 - Arsip langsung AKTIF tanpa approval
 - Update tabel `arsip` dengan `kategori_id` dan `is_manual_entry`
-
-### 08C — Non-Material Documents
-- Opsi "Non-MATERIAL" di dropdown Jenis Permintaan (paling atas, highlight)
-- Pilih Non-Material → tidak ada nominal_realisasi
-- Pilih Non-Material → tidak ada kelengkapan wajib, hanya upload opsional dengan judul kustom
-- Submit → langsung COMPLETED tanpa approval PPK/Bendahara
-- Non-Material TIDAK masuk inbox arsiparis, TETAPI masuk Laporan Saya, Laporan Kegiatan, Laporan Kinerja
-- Section "Dokumen Pendukung (Opsional)" untuk dokumen Material
+- **Depends on:** 08A (Nominal Realisasi)
 
 ### 08D — Export Excel & Agregasi
 - Export arsip ke Excel per klasifikasi
@@ -162,4 +154,10 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Hierarki: Fungsi → Kegiatan → Detail Dokumen
 - Agregasi nominal per Fungsi dan Kegiatan
 - Filter: Fungsi, Kegiatan, Jenis, Detail, Tahun, Tanggal, Pengaju, Kategori
-- Seluruh dokumen COMPLETED, termasuk Non-Material
+- Seluruh dokumen COMPLETED, termasuk Non-Material (dari 08C)
+- **Depends on:** 08A (Nominal Realisasi)
+
+---
+
+## Catatan
+- **08C Non-Material** → DONE (sudah diintegrasikan ke codebase, spec terpisah dihapus)

@@ -11,12 +11,12 @@ function createClient(request: Request) {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/bendahara/dokumen/[id]/preview/[lampiranIndex]
-// Returns a 15-minute signed URL for in-browser preview
+// GET /api/bendahara/dokumen/[id]/download/[lampiranIndex]
+// Returns a 1-hour signed URL for downloading a lampiran file
 // NOTE: Filename is built client-side using buildStorageFilename()
 // ---------------------------------------------------------------------------
 
-export const Route = createFileRoute('/api/bendahara/dokumen/$id/preview/$lampiranIndex')({
+export const Route = createFileRoute('/api/bendahara/dokumen/$id/download/$lampiranIndex')({
   server: {
     handlers: {
       GET: async ({ request, params }: { request: Request; params: Record<string, string> }) => {
@@ -52,13 +52,13 @@ export const Route = createFileRoute('/api/bendahara/dokumen/$id/preview/$lampir
         const lampiran = lampiranUrls[index]
         const supabaseAdmin = createAdminClient()
         const { data, error } = await supabaseAdmin.storage
-          .from('dokumen-lampiran').createSignedUrl(lampiran.url, 900) // 15 minutes
+          .from('dokumen-lampiran').createSignedUrl(lampiran.url, 3600) // 1 hour
 
         if (error || !data) {
           if (error?.message === 'Object not found') {
             return Response.json({ error: 'File tidak ditemukan' }, { status: 404 })
           }
-          return Response.json({ error: 'Gagal membuat link pratinjau' }, { status: 500 })
+          return Response.json({ error: 'Gagal membuat link download' }, { status: 500 })
         }
 
         return Response.json({ signedUrl: data.signedUrl })
