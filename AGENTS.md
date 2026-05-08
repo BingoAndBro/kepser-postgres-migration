@@ -139,7 +139,7 @@ master_kegiatan: {
 ```
 
 ### Tabel 5: `master_kelengkapan_dokumen`
-> Kelengkapan dokumen yang dibutuhkan per kegiatan × role (Ketua Tim vs Anggota).
+> Kelengkapan dokumen yang dibutuhkan per kegiatan × chain permintaan × role (Ketua Tim vs Anggota).
 
 ```typescript
 master_kelengkapan_dokumen: {
@@ -148,12 +148,15 @@ master_kelengkapan_dokumen: {
   is_ketua_tim: boolean NOT NULL,   // true = untuk Ketua Tim, false = untuk Anggota
   nama_dokumen: text NOT NULL,       // e.g., "Laporan", "Form Permintaan", "KAK"
   required: boolean DEFAULT true,
+  // Chain filters (nullable - null means applies to all)
+  jenis_permintaan_id: uuid REFERENCES master_jenis_permintaan(id),
+  kategori_permintaan_id: uuid REFERENCES master_kategori_permintaan(id),
+  detail_permintaan_id: uuid REFERENCES master_detail_permintaan(id),
   created_at: timestamp DEFAULT now()
 }
 ```
 
 ### Tabel 6: `kegiatan`
-> "Folder" / project container untuk dokumen-dokumen terkait (legacy — dipertahankan untuk grouping).
 > "Folder" / project container untuk dokumen-dokumen terkait.
 
 ```typescript
@@ -166,22 +169,89 @@ kegiatan: {
 }
 ```
 
+### Tabel 6b: `ketua_tim_assignments`
+> Mapping user ke kegiatan sebagai Ketua Tim.
+
+```typescript
+ketua_tim_assignments: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id: uuid NOT NULL REFERENCES auth.users(id),
+  kegiatan_id: uuid NOT NULL REFERENCES master_kegiatan(id),
+  created_at: timestamp DEFAULT now(),
+  UNIQUE(user_id, kegiatan_id)
+}
+```
+
+### Tabel 6c: `master_jenis_permintaan`
+> Jenis permintaan untuk dokumen Material (hierarki level 1).
+
+```typescript
+master_jenis_permintaan: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama: text NOT NULL,    // e.g., "Surat Perintah", "Kwitansi", "Daftar Gaji"
+  created_at: timestamp DEFAULT now()
+}
+```
+
+### Tabel 6d: `master_kategori_permintaan`
+> Kategori permintaan (hierarki level 2), milik satu Jenis.
+
+```typescript
+master_kategori_permintaan: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  jenis_permintaan_id: uuid NOT NULL REFERENCES master_jenis_permintaan(id),
+  nama: text NOT NULL,    // e.g., "Honorarium", "Transport"
+  created_at: timestamp DEFAULT now()
+}
+```
+
+### Tabel 6e: `master_detail_permintaan`
+> Detail permintaan (hierarki level 3), milik satu Kategori.
+
+```typescript
+master_detail_permintaan: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  kategori_permintaan_id: uuid NOT NULL REFERENCES master_kategori_permintaan(id),
+  nama: text NOT NULL,    // e.g., "Translok>8", "SBSN"
+  created_at: timestamp DEFAULT now()
+}
+```
+
+### Tabel 6f: `master_jenis_dokumen`
+> Jenis dokumen untuk Non-Material.
+
+```typescript
+master_jenis_dokumen: {
+  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nama: text NOT NULL,    // e.g., "Rapat", "Notulen", "Undangan"
+  created_at: timestamp DEFAULT now()
+}
+```
+
 ### Tabel 7: `dokumen_transaksi`
 > Transaksi dokumen yang sedang berjalan.
 
 ```typescript
 dokumen_transaksi: {
   id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  kegiatan_id: uuid REFERENCES kegiatan(id),
-  kelengkapan_id: uuid REFERENCES master_kelengkapan_dokumen(id),
   judul: text NOT NULL,
   fungsi_id: uuid REFERENCES master_fungsi(id),            // Fungsi/departemen pengaju
   kegiatan_jenis_id: uuid REFERENCES master_kegiatan(id),  // Jenis kegiatan
   is_ketua_tim: boolean NOT NULL DEFAULT false,            // Apakah submitter Ketua Tim
+  tahun: integer,
+  tanggal: text,                                          // Format: YYYY-MM-DD
   status: StatusDokumen NOT NULL DEFAULT 'DRAFT',
   current_step: CurrentStep DEFAULT null,   // 'PPK' | 'BENDAHARA' — null saat DRAFT/COMPLETED/ARCHIVED
   revision_target: RevisionTarget DEFAULT null,  // 'USER' | 'PPK' — hanya saat NEED_REVISION
-  lampiran_urls: jsonb DEFAULT '[]',   // Array of { nama, url, tipe, ukuran }
+  revision_notes: text,                       // Catatan revisi saat ditolak
+  lampiran_urls: jsonb DEFAULT '[]',           // Array of { kelengkapan_id, nama, url, uploaded_at }
+  nominal_realisasi: numeric(15,2),            // Nominal untuk dokumen Material
+  is_non_material: boolean DEFAULT false,       // true = Non-Material, false = Material
+  jenis_dokumen_id: uuid,                     // Untuk Non-Material
+  keterangan_detail: text,                     // Keterangan tambahan
+  jenis_permintaan_id: uuid,                  // Untuk Material (chain permintaan)
+  kategori_permintaan_id: uuid,
+  detail_permintaan_id: uuid,
   created_by: uuid NOT NULL REFERENCES auth.users(id),
   created_at: timestamp DEFAULT now(),
   updated_at: timestamp DEFAULT now()
@@ -290,17 +360,102 @@ d:\GitHub\mvp\
 │   ├── drizzle-schema.md
 │   └── supabase-rls.md
 ├── src/
+│   ├── routeTree.gen.ts    ← Generated TanStack route tree
+│   ├── router.tsx         ← Main router config
 │   ├── routes/            ← TanStack file-based routes & server functions
-│   ├── components/        ← Smart components (feature logic)
-│   ├── ui/                ← Dumb/presentational components (shadcn/ui)
+│   │   ├── index.tsx     ← Landing/login page
+│   │   ├── login.tsx
+│   │   ├── forbidden.tsx
+│   │   ├── profile.tsx
+│   │   ├── dokumen/       ← Public/pegawai dokumen routes
+│   │   ├── pegawai/      ← Pegawai role routes
+│   │   ├── ppk/          ← PPK role routes
+│   │   ├── bendahara/     ← Bendahara role routes
+│   │   ├── arsiparis/     ← Arsiparis role routes
+│   │   ├── admin/         ← Admin role routes (master data)
+│   │   └── api/          ← REST API endpoints
+│   │       ├── auth/       ← Auth endpoints (login, logout, session)
+│   │       ├── dokumen/   ← Dokumen CRUD & submit
+│   │       ├── ppk/       ← PPK endpoints (inbox, approve, reject)
+│   │       ├── bendahara/ ← Bendahara endpoints
+│   │       ├── arsiparis/ ← Arsiparis endpoints
+│   │       ├── master-*/  ← Master data CRUD
+│   │       └── admin/     ← Admin endpoints (cleanup, analyze)
+│   ├── components/
+│   │   ├── auth/          ← Auth components (RoleSwitcher, UserMenu)
+│   │   ├── dashboard/     ← Dashboard layout (PageLayout, StatsBento)
+│   │   ├── dokumen/       ← Document components (AttachmentEditor, AttachmentViewer, etc.)
+│   │   ├── layout/        ← Layout components (AppLayout)
+│   │   ├── laporan/       ← Laporan components (HierarchicalFilter)
+│   │   └── ui/            ← shadcn/ui components
 │   └── lib/
 │       ├── db/            ← Drizzle schema & client
-│       ├── schemas/       ← Zod schemas
+│       ├── schemas/       ← Zod schemas (dokumen.ts, auth.ts, master-data.ts)
 │       ├── fsm.ts         ← Document status FSM (SATU-SATUNYA tempat transisi status)
-│       └── supabase.ts    ← Supabase client (server & client)
+│       ├── auth.ts         ← Auth helpers (getServerSession)
+│       ├── guards.ts       ← Route guards (role-based access)
+│       ├── supabase.ts    ← Supabase client factory
+│       ├── supabase-server.ts ← Server-side Supabase client
+│       ├── supabase-browser.ts ← Browser Supabase client
+│       ├── supabase-admin.ts   ← Admin Supabase client (bypass RLS)
+│       ├── dokumen-helpers.ts  ← Dokumen CRUD & storage helpers
+│       ├── file-helpers.ts     ← File operations (legacy, ada duplikasi)
+│       ├── storage-client.ts  ← Storage operations (getSignedUrl, download)
+│       ├── master-data.ts     ← Master data helpers
+│       ├── user-helpers.ts     ← User/role helpers
+│       ├── utils.ts           ← Utility functions (cn, formatDate, etc.)
+│       ├── utils/tahun.ts     ← Tahun utilities
+│       └── types/
+│           ├── auth.ts    ← Auth types
+│           ├── fsm.ts     ← FSM types
+│           └── user.ts    ← User types
 └── .tmp/                  ← Scratch/intermediates (tidak di-commit)
 ```
 
 ---
 
-*Last updated: 2026-04-01 | Phase: Protocol 0 — Initialization Complete | Status: READY FOR PHASE 1*
+## 🔧 Key Implementation Patterns
+
+### Storage Path Pattern
+```
+PENDING files: {userId}/{timestamp}-{random}-{filename}.{ext}
+  → Format: 1778064971564-caqghvva3no-Daftar_Absensi.pdf
+  → Diproses saat upload, sebelum submit
+
+FORMAL files: {userId}/{dokId}/{uuid}.{ext}
+  → Format: 5bf798f0-d824-468f-9985-b8964f883d5a/bb6a9668-.../3c86de66.pdf
+  → Setelah submit, file di-rename dari PENDING ke formal
+```
+
+### Centralized Helpers
+```typescript
+// dokumen-helpers.ts
+syncDocumentAttachments()   ← Rename PENDING files + track old files for deletion
+deleteOrphanFiles()         ← Delete orphaned files from storage
+isStoragePathPending()       ← Check if path is PENDING format
+buildDokumenFilename()       ← Build display filename (kelengkapan_leafNode_kegiatan_tanggal)
+buildStorageFilename()       ← Build filename based on storage path type
+
+// storage-client.ts
+getSignedUrl()                ← Get signed URL from storage path
+downloadWithSignedUrl()       ← Download file with signed URL
+formatDateTime()             ← Format ISO date to Indonesian format
+```
+
+### Workflow: Submit → Resubmit
+```
+Pegawai Ajukan → PATCH /api/dokumen/submit (create)
+              → POST /api/dokumen/$id/submit (submit FSM)
+
+PPK Tolak → NEED_REVISION:USER
+Pegawai Revisi → PATCH /api/dokumen/$id (update lampiran)
+              → POST /api/dokumen/$id/submit (resubmit FSM)
+
+Bendahara Tolak → NEED_REVISION:PPK
+PPK Resubmit → PATCH /api/ppk/resubmit/$id (update lampiran)
+             → POST /api/ppk/resubmit/$id (resubmit FSM)
+```
+
+---
+
+*Last updated: 2026-05-06 | Phase: Protocol 1 — Core Features Complete | Status: ACTIVE DEVELOPMENT*

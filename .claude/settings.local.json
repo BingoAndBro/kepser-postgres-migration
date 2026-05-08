@@ -10,6 +10,5 @@
       "Bash webfetch",
       "Bash websearch"
     ]
-  },
-  "model": "claude-opus-4-7"
+  }
 }
