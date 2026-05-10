@@ -59,6 +59,42 @@ Phases 9 and 10 are intentionally optional/post-stabilization because they can c
 
 ---
 
+## Update Setelah Refactor Plan (Delta)
+
+Added after latest chairman assignment changes so the plan stays aligned with the current codebase without rewriting the existing phase structure.
+
+### Ringkasan perubahan API
+
+- Added `GET /api/ketua-tim` as the aggregate source for chairman assignment reads.
+- Added `POST /api/ketua-tim` with replace behavior by `kegiatan_id`; this is no longer a conflict-only flow.
+- Added `DELETE /api/ketua-tim` for deletion by assignment id.
+- Added supporting read endpoints:
+  - `/api/ketua-tim/user/$userId`
+  - `/api/ketua-tim/kegiatan/$kegiatanId`
+- Implementation currently lives in `src/routes/api/ketua-tim/*`.
+
+### Perubahan behavior penting
+
+- Chairman assignment changes in `src/routes/admin.master-data.user.tsx` now use staging state and are only committed on save.
+- Edit user flow now tracks dirty state and shows a cancel confirmation before discarding staged changes.
+- Kegiatan dropdown is aware of staged assignment state for the currently edited user.
+- Replace behavior is preserved at the API layer and no longer returns `409 Conflict` for an existing `kegiatan_id`.
+- Console logging for chairman assignment flows was reduced to focused diagnostic messages.
+
+### Dampak ke phase selanjutnya
+
+- Phase 5 is now partially advanced in one narrow area: `admin.master-data.user.tsx` already contains staged edit-flow behavior that should be preserved during later UI extraction.
+- Phase 7 must treat `/api/ketua-tim` as an existing stabilized API surface and must not regress its replace-on-post semantics.
+- Any future decomposition of admin user management should preserve the current staging model instead of reverting to immediate mutation on selection.
+
+### Constraint Baru
+
+- Endpoint `/api/ketua-tim` is now the source of truth for chairman assignment persistence.
+- UI uses staging state for chairman assignment changes; selecting a kegiatan must not immediately commit to the database.
+- Replace behavior on `POST /api/ketua-tim` must be preserved.
+- Dirty-state tracking and cancel-confirm behavior in the admin user editor must be preserved.
+- Dropdown filtering for kegiatan must remain aware of staged assignments for the active edit session.
+
 ## Phase 0: Baseline, Inventory, And Safety Checks
 
 Goal: Establish a measurable baseline before touching large areas.
@@ -334,6 +370,8 @@ Exit criteria:
 
 Goal: Make `AppLayout.tsx` smaller without changing the current auth model.
 
+Updated behavior: this phase should remain focused on `AppLayout`, but there is now adjacent staged UI logic in `src/routes/admin.master-data.user.tsx` for chairman assignment editing. Do not fold that work into AppLayout extraction or revert it while simplifying layout components.
+
 This phase is UI extraction only. Do not move auth to route loaders here.
 
 Create:
@@ -459,6 +497,8 @@ Exit criteria:
 ## Phase 7: API Client Standardization
 
 Goal: Standardize browser-side API calls and error handling without breaking uploads or signed URL flows.
+
+Updated behavior: `/api/ketua-tim` is now an established API family with read, staged-save, replace-on-post, and delete-by-id flows already used by the admin user page. Standardization in this phase must preserve those semantics and must not reintroduce conflict-first chairman assignment behavior.
 
 Create:
 
