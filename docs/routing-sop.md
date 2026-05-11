@@ -7,3 +7,4 @@
 - Generic document signed URL endpoints may serve a storage path only when the path belongs to the current user, or when the current user has a document workflow role (`PPK`, `BENDAHARA`, `ARSIPARIS`).
 - `rename-pending` must only formalize files for the current user and the target document must belong to that user.
 - Master data `GET` endpoints are intentionally readable by the authenticated app UX and may remain public only when marked clearly in the endpoint.
+- Role workspace parent routes (`/ppk`, `/bendahara`, `/arsiparis`, `/admin`) must add a lightweight server `beforeLoad` guard for their required role while keeping existing client-side checks as UX hints.
