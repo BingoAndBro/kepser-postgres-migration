@@ -51,11 +51,12 @@ Phase 5  AppLayout UI extraction                     no auth model change
 Phase 6  Runtime type safety and Zod output parsing
 Phase 7  API client standardization
 Phase 8  Ajukan Dokumen form decomposition
-Phase 9  Optional server-side auth/RBAC hardening
-Phase 10 Optional Drizzle schema parity and migration
+Phase 9  Mutation layer standardization
+Phase 10 Server-side auth/RBAC hardening
+Phase 11 API parsing hardening and Drizzle evaluation
 ```
 
-Phases 9 and 10 are intentionally optional/post-stabilization because they can change security and data-access behavior.
+Phases 10 and 11 are intentionally later-stage because they can change security and data-access behavior.
 
 ---
 
@@ -647,70 +648,118 @@ Exit criteria:
 
 ---
 
-## Phase 9: Optional Server-Side Auth/RBAC Hardening
+## Phase 9: Mutation Layer Standardization
 
-Goal: Align more closely with the `AGENTS.md` rule that role resolution happens server-side.
+Goal: Standardize mutation requests across the app using a safe abstraction layer.
 
-This phase is intentionally separate from UI layout refactoring because it can change security behavior.
+This phase is intentionally separate from auth hardening because it should preserve existing workflow behavior while reducing mutation inconsistency.
+
+Tasks:
+
+- Extend `apiFetch` or add a dedicated `apiMutation<T>()` helper.
+- Standardize mutation error handling, JSON body handling, and response parsing.
+- Replace raw `fetch` calls incrementally in mutation paths.
+- Preserve existing side effects and workflow behavior.
+
+Scope:
+
+- submit dokumen
+- approve / reject flows
+- update dokumen
+- user management mutations
+- ketua-tim assignment mutations
+- other existing POST / PATCH / DELETE flows
+
+Verification:
+
+- submit dokumen end-to-end
+- approve / reject flow
+- revisi flow
+- no double submit / race condition regression
+- error handling stays consistent with current UI
+
+Exit criteria:
+
+- All mutation paths use a consistent abstraction.
+- No regression in workflow or side effects.
+- Error handling is centralized enough to reduce divergence.
+
+---
+
+## Phase 10: Server-Side Auth / RBAC Hardening
+
+Goal: Move security responsibility from client-side checks to server-side enforcement.
+
+This phase should happen after mutation standardization stabilizes so that authorization changes are isolated from write-flow changes.
 
 Tasks:
 
 - Review TanStack Start SSR constraints for the current app.
 - Decide whether root route should remain `ssr: false`.
-- Move role/session loading to server functions where feasible.
-- Replace client-only role checks in role layouts with server/API guards.
-- Keep client checks only as UX hints, not security gates.
+- Move role/session resolution to server functions where feasible.
+- Replace client-only role checks with server guards and API authorization.
+- Keep client checks only as UX hints.
 
 Prerequisites:
 
 - Phase 5 complete.
-- API route authorization is stable.
-- Clear decision on SSR mode.
+- Phase 9 stable.
+- API authorization already reliable.
 
 Verification:
 
-- unauthenticated access to protected role pages redirects or blocks reliably
-- wrong-role access goes to `/forbidden`
+- unauthorized user blocked or redirected
+- wrong role goes to `/forbidden`
 - direct API access remains protected
 - role switch still works
 
 Exit criteria:
 
-- Server-side role enforcement is documented.
-- Client-side checks no longer carry security responsibility.
+- Server-side RBAC is enforced.
+- Client no longer acts as the primary security layer.
 
 ---
 
-## Phase 10: Optional Drizzle Schema Parity And Data-Layer Migration
+## Phase 11: API Parsing Hardening & Drizzle Evaluation
 
-Goal: Use Drizzle more meaningfully only after schema parity is proven.
+Goal: Continue parser hardening for risky API payloads and evaluate Drizzle safely.
 
-This is not part of the immediate refactor.
+This phase combines a practical parsing pass with a later architecture check, not a full migration.
 
-Tasks:
+Part A: API parsing hardening
 
-- Update `AGENTS.md` and `docs/drizzle-schema.md` if schema shape changes.
-- Bring `src/lib/db/schema.ts` to parity with active Supabase tables:
-  - material request chain tables
-  - `arsip` current columns
+- Replace raw `JSON.parse` in API routes gradually.
+- Reuse centralized parsers from Phase 6.
+- Add validation only to high-risk or frequently used endpoints.
+
+Do not:
+
+- aim for 100% coverage
+- over-validate every endpoint
+
+Part B: Drizzle schema parity
+
+- Update `src/lib/db/schema.ts` and `docs/drizzle-schema.md`.
+- Ensure parity for:
+  - `arsip`
+  - `dokumen_transaksi`
   - `master_klasifikasi_arsip`
   - `user_status`
-  - complete `dokumen_transaksi` fields
-  - correct `lampiran_urls` type
-- Confirm generated migrations match existing DB or explicitly mark schema as introspection-only.
-- Build a small Drizzle query proof for read-only paths first.
-- Do not migrate workflow mutations until RLS/admin-client behavior is matched.
+  - `lampiran_urls`
+- Build read-only query proof first.
+- Do not migrate workflow mutations blindly.
 
 Verification:
 
 - schema diff reviewed
-- read-only query parity checked against Supabase results
-- no workflow endpoint migrated without tests
+- read query parity checked
+- no workflow endpoint migrated blindly
 
 Exit criteria:
 
-- Drizzle can be used without losing fields or bypass behavior.
-- Migration is documented as a separate architectural decision.
+- API parsing is safer.
+- Drizzle is ready for selective use if chosen.
+- Behavior remains unchanged.
 
 ---
 
@@ -744,4 +793,4 @@ Regression risks to watch:
 
 ## Recommendation
 
-Execute Phase 2 first, then Phase 3 or Phase 5. Do not execute the original Drizzle-based document decomposition until Phase 10 readiness is complete.
+Execute Phase 2 first, then Phase 3 or Phase 5. After that, prioritize Phase 8, then Phase 9, then Phase 10. Keep Phase 11 for hardening and architecture evaluation after the write flow is stable.
