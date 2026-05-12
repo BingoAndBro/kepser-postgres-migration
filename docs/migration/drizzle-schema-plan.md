@@ -791,3 +791,101 @@ Intentionally unimplemented:
 - no UI changes
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
+
+## Phase 3E Status
+
+Phase 3E created only the dokumen namespace Drizzle table definitions required by current document workflow and audit logging.
+
+Dokumen schema files created:
+
+- `src/db/schema/dokumen/dokumen-transaksi.ts`
+- `src/db/schema/dokumen/log-aktivitas.ts`
+- `src/db/schema/dokumen/index.ts`
+
+Tables defined under PostgreSQL schema `dokumen`:
+
+- `dokumen.dokumen_transaksi`
+- `dokumen.log_aktivitas`
+
+Source evidence used:
+
+- `supabase/migrations/003_dokumen_transaksi.sql`
+  - base `dokumen_transaksi` columns: `id`, `judul`, `fungsi_id`, `kegiatan_jenis_id`, `is_ketua_tim`, `status`, `current_step`, `revision_target`, `revision_notes`, `lampiran_urls`, `tahun`, `tanggal`, `created_by`, `created_at`, `updated_at`
+  - base `log_aktivitas` columns: `id`, `dokumen_id`, `user_id`, `aksi`, `catatan`, `step_urutan`, `timestamp`
+  - `log_aktivitas.dokumen_id` has cascade delete in the current migration
+  - current log indexes exist on `dokumen_id` and `user_id`
+- `supabase/migrations/006_jenis_kategori_detail.sql`
+  - adds nullable `jenis_permintaan_id`, `kategori_permintaan_id`, and `detail_permintaan_id` to `dokumen_transaksi`
+  - does not add FK constraints for those three document-chain columns
+- `supabase/migrations/016_nominal_realisasi.sql`
+  - adds `nominal_realisasi` and `is_non_material`
+  - adds `dokumen_nominal_realisasi_positive`
+- `supabase/migrations/017_master_jenis_dokumen.sql`
+  - adds `keterangan_detail`
+  - adds `jenis_dokumen_id` FK to `master_jenis_dokumen(id)`
+- Active runtime helpers/routes:
+  - `src/lib/dokumen/queries.ts`
+  - `src/lib/dokumen/mutations.ts`
+  - `src/lib/dokumen/logs.ts`
+  - role APIs under `src/routes/api/dokumen`, `src/routes/api/ppk`, `src/routes/api/bendahara`, and `src/routes/api/laporan`
+  - these confirm filters on `created_by`, `status`, `revision_target`, `fungsi_id`, `kegiatan_jenis_id`, `created_at`, `updated_at`, and log lookups by `dokumen_id`, `aksi`, and `timestamp`
+
+Key fields modeled:
+
+- `dokumen.dokumen_transaksi`
+  - UUID primary key generated locally.
+  - FK `fungsi_id` to `master.master_fungsi.id` with restrict/no-action behavior.
+  - FK `kegiatan_jenis_id` to `master.master_kegiatan.id` with restrict/no-action behavior.
+  - FK `created_by` to `auth.users.id` with no-action delete/update behavior so user deletion cannot silently remove workflow history.
+  - FK `jenis_dokumen_id` to `master.master_jenis_dokumen.id` with no-action behavior, matching the explicit current migration FK.
+  - `lampiran_urls` modeled as JSONB with default `[]` for compatibility with the current JSON array payload shape.
+  - `status`, `current_step`, and `revision_target` remain text. Canonical values are documented in code comments only; no status/current-step/revision-target DB checks were added in Phase 3E.
+  - `tanggal` remains text because current APIs and helpers treat it as a serialized date string.
+  - `nominal_realisasi` uses numeric `(15,2)` and preserves the current non-negative check.
+- `dokumen.log_aktivitas`
+  - UUID primary key generated locally.
+  - FK `dokumen_id` to `dokumen.dokumen_transaksi.id` with cascade delete because current migration uses cascade and the current Non-Material delete flow relies on deleting the document row.
+  - FK `user_id` to `auth.users.id` with no-action delete/update behavior so audit history is not removed by user deletion.
+  - Append-only contract is documented in code; no trigger/rule is implemented in Phase 3E.
+
+Indexes added and why:
+
+- `dokumen_transaksi.created_by`: user document lists and owner lookups.
+- `dokumen_transaksi.created_by, status`: report/list filtering for a user's completed or stored documents.
+- `dokumen_transaksi.status`: role inboxes and status lists.
+- `dokumen_transaksi.status, current_step`: workflow inbox patterns.
+- `dokumen_transaksi.revision_target`: PPK/Pegawai revision lists.
+- `dokumen_transaksi.fungsi_id`: PPK/Bendahara filter and enrichment patterns.
+- `dokumen_transaksi.kegiatan_jenis_id`: Ketua Tim activity report and enrichment patterns.
+- `dokumen_transaksi.created_at`: user and role lists ordered by creation time.
+- `dokumen_transaksi.updated_at`: status/revision lists ordered by update time.
+- `dokumen_transaksi.status, updated_at`: completed/revision/status list ordering.
+- `dokumen_transaksi.created_by, tahun` and `dokumen_transaksi.kegiatan_jenis_id, tahun`: laporan filters.
+- `dokumen_transaksi.jenis_permintaan_id`, `kategori_permintaan_id`, `detail_permintaan_id`: report/filter enrichment and request-chain filtering.
+- `log_aktivitas.dokumen_id` and `log_aktivitas.user_id`: current migration indexes.
+- `log_aktivitas.dokumen_id, timestamp`: document detail log ordering.
+- `log_aktivitas.dokumen_id, aksi`: PPK/Bendahara approval/rejection and idempotency checks.
+
+Known compatibility choices:
+
+- Existing table names and snake_case column names are preserved, but moved into the target `dokumen` namespace.
+- `lampiran_urls` changes storage type from legacy text to JSONB by accepted migration decision while preserving the same JSON array response/request shape.
+- No normalized lampiran/file table was created.
+- No soft-delete fields were added to `dokumen_transaksi` or `log_aktivitas`.
+- No status enum, PostgreSQL enum, or status check constraint was added.
+- Nullable request-chain columns on `dokumen_transaksi` are intentionally not given FK constraints in Phase 3E because the current Supabase migration adds only UUID columns there. Runtime treats them as master IDs, but Phase 3E avoids adding stricter constraints not present in the source schema.
+- `log_aktivitas` remains append-only by application contract. No database trigger is added yet.
+
+Intentionally unimplemented:
+
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no API route migration
+- no auth/session behavior implementation
+- no storage implementation
+- no normalized lampiran/file table
+- no arsip or app domain tables
+- no workflow/FSM behavior changes
+- no UI changes
+
+No migrations have been generated yet and no API behavior is wired to these tables yet.
