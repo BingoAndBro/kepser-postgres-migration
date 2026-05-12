@@ -1,0 +1,206 @@
+# Storage Replacement Contract
+
+This contract defines the target behavior for replacing Supabase Storage with local filesystem storage. It is documentation only and does not implement storage.
+
+## Current Supabase Storage Behavior Summary
+
+- Bucket name: `dokumen-lampiran`.
+- `/api/upload` uploads files using Supabase admin storage and returns `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
+- `AttachmentEditor` also performs direct browser Supabase Storage upload/remove in some revision flows.
+- Submit/resubmit/update flows move pending files to formal paths.
+- Preview/download endpoints return Supabase signed URLs.
+- Archive destruction removes files and sets archive status to `DIMUSNAHKAN`.
+- Admin storage endpoints analyze and clean orphaned bucket files.
+
+## Target Local Filesystem Behavior
+
+- Storage root: `storage/`.
+- Files live outside any public/static folder.
+- Files must never be exposed as static public files.
+- All upload, preview, download, move, delete, analyze, cleanup, and destruction behavior must go through API/server code.
+- Server authorization must happen before file access.
+
+## Storage Root
+
+Accepted root:
+
+```text
+storage/
+```
+
+Recommended logical areas:
+
+```text
+storage/temp/
+storage/documents/
+```
+
+Exact internal folder structure remains an implementation detail, but API behavior and stored metadata must stay compatible.
+
+## API-Only Preview And Download
+
+All preview/download behavior must go through existing API routes:
+
+- `/api/dokumen/$id/preview/$lampiranIndex`
+- `/api/dokumen/$id/download/$lampiranIndex`
+- `/api/ppk/dokumen/$id/preview/$lampiranIndex`
+- `/api/ppk/dokumen/$id/download/$lampiranIndex`
+- `/api/bendahara/dokumen/$id/preview/$lampiranIndex`
+- `/api/bendahara/dokumen/$id/download/$lampiranIndex`
+- `/api/dokumen/preview-url`
+- `/api/dokumen/download-url`
+
+These routes must authenticate and authorize before returning or streaming file access.
+
+## Pending Upload Compatibility
+
+Current behavior to preserve:
+
+- Upload requires authenticated user.
+- Upload validates document metadata fields.
+- Upload validates MIME type and size.
+- Response includes `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
+- Pending paths are later moved/renamed into formal document paths.
+
+Current path formats to support during transition:
+
+- `{userId}/{kelengkapanId}_{timestamp}_{filename}`
+- `{userId}/{timestamp}-{random}-{filename}`
+
+Target implementation may store files internally under `storage/temp/`, but stored path references must remain compatible with existing metadata and helpers until all callers are migrated.
+
+## Formal Document File Compatibility
+
+Formal path compatibility:
+
+```text
+{userId}/{dokumenId}/{uuid}.{ext}
+```
+
+Formal paths must remain stable after submit/resubmit. Display filenames can continue to be generated from document metadata rather than physical path names.
+
+## Archive Snapshot Compatibility
+
+- `arsip.lampiran_snapshot` must preserve the attachment metadata needed for archive detail pages.
+- Snapshot paths must remain resolvable until archive destruction.
+- After destruction, preview/download must not expose original files even if a stale file exists on disk.
+
+## `DIMUSNAHKAN` Access Behavior
+
+Preserve current behavior:
+
+- If archive status is `DIMUSNAHKAN`, original file preview/download should fail.
+- Existing endpoints use 410-style behavior for destroyed archive access.
+- Destruction should clear or invalidate snapshot/file references according to current archive lifecycle behavior.
+
+## Signed URL Replacement Options
+
+Option A: Direct streaming from existing preview/download endpoints.
+
+- Simpler server-side control.
+- May require UI/helper changes if they expect `{ signedUrl }`.
+
+Option B: Preserve `{ signedUrl }` response shape with internal signed URL endpoint.
+
+- Better transition compatibility.
+- The returned URL points to an internal API route, not a public file path.
+- Token verifies action, expiry, and file reference before streaming.
+
+## Recommended Signed-Token Decision
+
+Accepted transition direction:
+
+- Preserve API response shape returning `{ signedUrl }` while current UI expects it.
+- `signedUrl` must point to an internal API route.
+- `signedUrl` must never expose a raw filesystem path.
+- Token should be short-lived.
+- Token should be signed with a server-only secret.
+- Token should include file reference/path identifier, action (`preview` or `download`), expiry, and user/session scope where practical.
+- Token may include nonce/jti if replay tracking is needed.
+
+## Path Traversal Prevention Rules
+
+Implementation must:
+
+- Never map arbitrary user input directly to filesystem paths.
+- Reject absolute paths.
+- Normalize and resolve candidate paths.
+- Verify resolved path stays under configured storage root.
+- Use server-generated canonical relative paths.
+- Treat raw `url` query endpoints as high-risk and validate strictly.
+- Avoid returning filesystem paths in client-visible responses.
+
+## MIME Validation Rules
+
+Preserve current allowed upload types unless changed by separate decision:
+
+- PDF
+- DOC
+- DOCX
+- XLS
+- XLSX
+
+Validation should check:
+
+- Declared MIME type.
+- Extension allowlist.
+- File signature where practical.
+
+## File Size Validation Rules
+
+Current `/api/upload` limit:
+
+- 2 MB per file.
+
+Target behavior:
+
+- Preserve the 2 MB limit during parity migration.
+- Later changes require an explicit decision.
+- Keep limits centralized in configuration/constants when implementation begins.
+
+## Move/Delete Failure Handling Recommendation
+
+Recommended behavior:
+
+- Treat DB metadata and file operations as a coordinated workflow.
+- For move failures, abort the request and do not persist metadata that points to missing files.
+- For delete failures after successful DB update, log warning and mark/report orphan cleanup need.
+- For destructive archive deletion, update archive state only after deletion strategy is clear, or record enough state to retry safely.
+- Build cleanup tools with dry-run first.
+
+Rationale:
+
+Supabase Storage operations are not transactional with database writes. Local filesystem replacement must make partial failure behavior explicit.
+
+## Backup Consistency Between DB And Files
+
+Backup sets must include:
+
+- PostgreSQL dump.
+- `storage/` archive.
+- Timestamp tying DB and file backup together.
+- App/migration version metadata where practical.
+
+Restore validation must include:
+
+- DB restore succeeds.
+- `storage/` restore path matches configured storage root.
+- Existing document preview/download works.
+- Destroyed archive files remain inaccessible.
+- Orphan analysis does not flag expected active files as missing.
+
+## Validation Checklist
+
+- `/api/upload` returns compatible payload.
+- Pending file path behavior is compatible.
+- Submit/resubmit moves pending files to formal references.
+- Preview endpoints return compatible `{ signedUrl }` or equivalent accepted response.
+- Download endpoints return compatible `{ signedUrl }` or equivalent accepted response.
+- Returned signed URLs point to internal API routes only.
+- Unauthorized preview/download returns 401/403 as appropriate.
+- Missing file behavior matches current user-facing errors.
+- `DIMUSNAHKAN` files return destroyed/unavailable behavior.
+- Path traversal attempts fail.
+- MIME and size validation reject invalid uploads.
+- Orphan cleanup can run safely after local storage exists.
+
