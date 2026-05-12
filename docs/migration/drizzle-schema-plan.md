@@ -703,3 +703,91 @@ Intentionally unimplemented:
 - no master, dokumen, arsip, or app domain tables
 
 Corrected UUID strategy remains confirmed: local users and seed users use fresh local UUID primary keys; UUID-based ownership and foreign-key semantics are preserved; old Supabase Auth user UUID values are not imported or preserved unless a future explicit data migration decision changes scope.
+
+## Phase 3D Status
+
+Phase 3D created only the master namespace Drizzle table definitions used by current master-data, workflow, report, and Ketua Tim references.
+
+Master schema files created:
+
+- `src/db/schema/master/fungsi.ts`
+- `src/db/schema/master/kegiatan.ts`
+- `src/db/schema/master/kelengkapan-dokumen.ts`
+- `src/db/schema/master/jenis-permintaan.ts`
+- `src/db/schema/master/kategori-permintaan.ts`
+- `src/db/schema/master/detail-permintaan.ts`
+- `src/db/schema/master/jenis-dokumen.ts`
+- `src/db/schema/master/ketua-tim-assignments.ts`
+- `src/db/schema/master/index.ts`
+
+Tables defined under PostgreSQL schema `master`:
+
+- `master.master_fungsi`
+- `master.master_kegiatan`
+- `master.master_kelengkapan_dokumen`
+- `master.master_jenis_permintaan`
+- `master.master_kategori_permintaan`
+- `master.master_detail_permintaan`
+- `master.master_jenis_dokumen`
+- `master.ketua_tim_assignments`
+
+Key constraints and indexes:
+
+- `master.master_fungsi`
+  - UUID primary key generated locally.
+  - Unique `nama`, matching the existing Supabase migration.
+  - Indexes on `is_active` and `nama`.
+- `master.master_kegiatan`
+  - FK `fungsi_id` to `master.master_fungsi.id` with restrict delete behavior.
+  - Indexes on `fungsi_id`, `is_active`, and `(fungsi_id, is_active)`.
+  - Partial unique index on active `(fungsi_id, nama)` to match current active-duplicate validation while allowing inactive historical rows.
+- `master.master_jenis_permintaan`
+  - Indexes on `is_active` and `nama`.
+  - Partial unique index on active `nama`.
+- `master.master_kategori_permintaan`
+  - FK `jenis_permintaan_id` to `master.master_jenis_permintaan.id` with restrict delete behavior.
+  - Indexes on `jenis_permintaan_id` and `(jenis_permintaan_id, is_active)`.
+  - Partial unique index on active `(jenis_permintaan_id, nama)`.
+- `master.master_detail_permintaan`
+  - FK `kategori_permintaan_id` to `master.master_kategori_permintaan.id` with restrict delete behavior.
+  - Indexes on `kategori_permintaan_id` and `(kategori_permintaan_id, is_active)`.
+  - Partial unique index on active `(kategori_permintaan_id, nama)`.
+- `master.master_jenis_dokumen`
+  - Indexes on `is_active` and `nama`.
+  - Partial unique index on active `nama`.
+- `master.master_kelengkapan_dokumen`
+  - FK `kegiatan_id` to `master.master_kegiatan.id` with cascade delete behavior.
+  - Optional FKs to `master_jenis_permintaan`, `master_kategori_permintaan`, and `master_detail_permintaan`.
+  - Indexes on `kegiatan_id`, `is_ketua_tim`, and the chain `(kegiatan_id, is_ketua_tim, jenis_permintaan_id, kategori_permintaan_id, detail_permintaan_id)`.
+  - Check constraints that require `jenis_permintaan_id` when `kategori_permintaan_id` is filled and require `kategori_permintaan_id` when `detail_permintaan_id` is filled.
+  - Full parent-child chain consistency from current migration `018_validate_kelengkapan_chain.sql` remains a later generated SQL trigger or service-validation concern.
+- `master.ketua_tim_assignments`
+  - FK `user_id` to `auth.users.id` with cascade delete behavior.
+  - FK `kegiatan_id` to `master.master_kegiatan.id` with cascade delete behavior.
+  - FK `created_by` to `auth.users.id` with set-null delete behavior.
+  - Unique `kegiatan_id`, preserving current behavior: one kegiatan has one Ketua Tim assignment, while one user can be assigned to many kegiatan.
+  - Indexes on `user_id` and `kegiatan_id`, matching the current migration lookup indexes.
+  - No `assigned_by`, `assigned_at`, or `updated_at` column is defined because the current migration/runtime does not use those fields.
+
+Known compatibility choices:
+
+- Existing table names and snake_case column names are preserved, but moved into the target `master` namespace.
+- Dynamic business-configurable names are not DB-check-limited with enums or hardcoded value lists.
+- `is_active` is present for master entities currently filtered or soft-deleted by runtime behavior: fungsi, kegiatan, jenis permintaan, kategori permintaan, detail permintaan, and jenis dokumen.
+- `master_kelengkapan_dokumen` does not add `is_active` because current runtime deletes kelengkapan rows directly and does not filter it through soft-delete semantics.
+- `updated_at` is included as a forward-compatible timestamp column on master-data tables where Phase 3D modeled it, but no trigger or API behavior is wired in Phase 3D. It is intentionally not added to `ketua_tim_assignments` because the current migration/runtime only uses `created_at` plus `created_by`.
+- Active duplicate prevention is modeled with partial unique indexes for entities where current runtime checks duplicates among active rows. `master_fungsi.nama` remains globally unique because the existing Supabase migration already uses global uniqueness.
+
+Intentionally unimplemented:
+
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no seed data
+- no master-data API migration
+- no auth/session behavior implementation
+- no storage implementation
+- no dokumen, arsip, or app domain tables
+- no route changes
+- no UI changes
+
+No migrations have been generated yet and no API behavior is wired to these tables yet.

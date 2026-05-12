@@ -85,6 +85,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - ADMIN exclusivity enforcement is documented for service/seed/admin mutation logic in Phase 3C.
   Date: 2026-05-12.
   Rationale: Cross-row "ADMIN cannot coexist with non-admin roles" is not expressible with a simple join-table check constraint. Phase 3C documents this in code and leaves trigger or stronger database enforcement for a later explicit hardening decision.
+- Master schema table structure for Phase 3D.
+  Date: 2026-05-12.
+  Rationale: `src/db/schema/master/` now defines only the active master/domain-support tables required by current master-data, workflow, report, and Ketua Tim references under PostgreSQL schema `master`: `master_fungsi`, `master_kegiatan`, `master_kelengkapan_dokumen`, `master_jenis_permintaan`, `master_kategori_permintaan`, `master_detail_permintaan`, `master_jenis_dokumen`, and `ketua_tim_assignments`. Compatibility choices preserve current table/column names, active-row filtering, kelengkapan hard-delete behavior, nullable request-chain semantics, and `ketua_tim_assignments` uniqueness per `kegiatan_id`. No migrations, seed data, API wiring, auth behavior, storage behavior, or dokumen/arsip/app tables were added.
 
 ## Still Open
 
