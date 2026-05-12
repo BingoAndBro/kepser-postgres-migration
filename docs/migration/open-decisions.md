@@ -79,6 +79,12 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Use `pg`/node-postgres as the local PostgreSQL runtime driver for Drizzle client usage.
   Date: 2026-05-12.
   Rationale: `pg` and `@types/pg` are installed, and `src/db/client.ts` now wires `Pool` from `pg` to `drizzle-orm/node-postgres`. The client remains unused by API routes until later migration phases.
+- Auth schema table structure for Phase 3C.
+  Date: 2026-05-12.
+  Rationale: `src/db/schema/auth/` now defines only `auth.users`, `auth.roles`, `auth.user_roles`, and `auth.sessions` for the future local custom auth system. The implementation uses UUID primary keys for local users and roles, first-class user profile/status fields plus JSONB metadata, hashed session-token storage, and join/session indexes. Canonical initial roles are `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`, but `auth.roles` remains dynamic and is not restricted by a DB CHECK constraint. No migrations, seed users, auth behavior, API wiring, or UI changes were added.
+- ADMIN exclusivity enforcement is documented for service/seed/admin mutation logic in Phase 3C.
+  Date: 2026-05-12.
+  Rationale: Cross-row "ADMIN cannot coexist with non-admin roles" is not expressible with a simple join-table check constraint. Phase 3C documents this in code and leaves trigger or stronger database enforcement for a later explicit hardening decision.
 
 ## Still Open
 

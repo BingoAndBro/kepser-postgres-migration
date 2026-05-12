@@ -87,7 +87,7 @@ Recommended conventions:
 - Table names: preserve existing Indonesian snake_case table names for compatibility and migration clarity, but place them under domain schemas.
 - Column names: preserve existing snake_case column names where active API/runtime behavior already depends on them.
 - Drizzle exported identifiers: camelCase, matching existing style, for example `dokumenTransaksi`, `logAktivitas`, `masterKelengkapanDokumen`.
-- Enum/check names: use domain-prefixed names such as `dokumen_status_check`, `arsip_status_arsip_check`, `auth_roles_nama_check`.
+- Enum/check names: use domain-prefixed names such as `dokumen_status_check` and `arsip_status_arsip_check`; do not add a role-name check because `auth.roles` remains dynamic.
 - Relation names: use explicit nouns, for example `createdByUser`, `roles`, `kegiatan`, `fungsi`, `arsip`, `logs`.
 - Timestamp columns: use `created_at`, `updated_at`, `archived_at`, `musnah_at`, `expires_at`, `revoked_at`, all `timestamptz` unless a current API requires date-only fields.
 - Date-only lifecycle columns: keep `masa_aktif_berakhir` and `masa_inaktif_berakhir` as `date`.
@@ -166,7 +166,7 @@ Proposed fields:
 
 Constraints:
 
-- `nama` should be limited to `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, `ADMIN` for the compatibility phase.
+- `nama` is unique but not DB-check-limited; canonical initial roles are enforced through seed, service, and admin validation.
 - Keep rows rather than a pure enum so role joins and admin behavior stay close to current runtime behavior.
 
 ### `auth.user_roles`
@@ -589,7 +589,7 @@ Remaining questions:
 
 - Which exact Supabase Auth metadata fields beyond `nama_lengkap`, `nip_nrp`, and `departemen` must be first-class columns?
 - Should `auth.users` keep a separate `metadata jsonb` field in addition to first-class columns?
-- Should ADMIN exclusivity be enforced by database trigger in Phase 3C or app service plus tests first?
+- Should ADMIN exclusivity later gain a database trigger or remain enforced by service, seed, and admin mutation logic plus tests?
 - Should `arsip.klasifikasi` remain text only, gain `klasifikasi_id`, or support both during migration?
 - What exact local scheduler replaces Supabase Edge Function plus pg_cron for archive retention?
 - Should a normalized `dokumen.lampiran` table be introduced in Phase 6 after storage compatibility, and what fields should it contain?
@@ -628,3 +628,78 @@ Intentionally unimplemented:
 - no storage implementation
 
 Corrected UUID decision remains: Use fresh local UUIDs for new local users/seeds while preserving UUID-based ownership and foreign-key semantics; old Supabase UUID values are not imported because existing Supabase data is not being migrated.
+
+## Phase 3C Status
+
+Phase 3C created only the auth namespace Drizzle table definitions for the future local custom auth system.
+
+Auth schema files created:
+
+- `src/db/schema/auth/users.ts`
+- `src/db/schema/auth/roles.ts`
+- `src/db/schema/auth/user-roles.ts`
+- `src/db/schema/auth/sessions.ts`
+- `src/db/schema/auth/index.ts`
+
+Tables defined under PostgreSQL schema `auth`:
+
+- `auth.users`
+  - UUID primary key generated locally.
+  - Unique non-null `email`.
+  - Non-null `password_hash`; plaintext passwords are not represented.
+  - `password_hash_algorithm` defaulting to `argon2id`.
+  - UI/report compatibility fields: `display_name`, `nama_lengkap`, `nip_nrp`, `departemen`.
+  - `metadata` JSONB defaulting to `{}` for Supabase metadata compatibility and future fields.
+  - Active/inactive replacement fields: `is_active`, `inactive_reason`, `deactivated_at`, `deactivated_by`.
+  - Login/password/timestamp metadata: `last_login_at`, `password_updated_at`, `created_at`, `updated_at`.
+- `auth.roles`
+  - UUID primary key generated locally.
+  - Unique non-null `nama`.
+  - `description`, `created_at`, and `updated_at`.
+  - No DB check constraint on `nama`; canonical initial roles are `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`, but `auth.roles` remains dynamic.
+- `auth.user_roles`
+  - Join table with `user_id` FK to `auth.users.id`.
+  - `role_id` FK to `auth.roles.id`.
+  - Composite primary key on `(user_id, role_id)`.
+  - Lookup indexes on `user_id` and `role_id`.
+- `auth.sessions`
+  - UUID primary key generated locally.
+  - `user_id` FK to `auth.users.id`.
+  - Unique non-null `token_hash`.
+  - `expires_at`, `created_at`, `last_used_at`, `revoked_at`, `remember_me`, `user_agent`, and `ip_address`.
+
+Important constraints and indexes added:
+
+- `auth_users_email_unique`
+- `idx_auth_users_is_active`
+- `idx_auth_users_deactivated_by`
+- `auth_roles_nama_unique`
+- `auth_user_roles_user_id_role_id_pk`
+- `idx_auth_user_roles_user_id`
+- `idx_auth_user_roles_role_id`
+- `auth_sessions_token_hash_unique`
+- `idx_auth_sessions_user_id`
+- `idx_auth_sessions_expires_at`
+- `idx_auth_sessions_revoked_at`
+
+ADMIN exclusivity note:
+
+- `ADMIN` remains a dedicated account mode.
+- Phase 3C does not add a database trigger for cross-row ADMIN exclusivity.
+- The join-table file documents that seed logic, auth services, and admin mutation logic must reject `ADMIN` combined with any non-admin role.
+- A trigger or stronger database enforcement can be added later before production hardening if chosen.
+
+Intentionally unimplemented:
+
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no seed users, seed passwords, or role seed script
+- no login/session implementation
+- no password hashing service
+- no cookie/session behavior wiring
+- no API route changes
+- no UI changes
+- no storage implementation
+- no master, dokumen, arsip, or app domain tables
+
+Corrected UUID strategy remains confirmed: local users and seed users use fresh local UUID primary keys; UUID-based ownership and foreign-key semantics are preserved; old Supabase Auth user UUID values are not imported or preserved unless a future explicit data migration decision changes scope.
