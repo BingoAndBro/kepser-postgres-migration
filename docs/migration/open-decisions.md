@@ -61,9 +61,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - For LAN deployment, app must listen on `0.0.0.0` or an equivalent LAN-reachable interface.
 - PostgreSQL should not be exposed to LAN unless explicitly needed.
 - HTTPS strategy for LAN is deferred unless required.
-- Preserve old Supabase user UUIDs during migration.
+- Use UUID primary keys for local users and seed users; do not import or preserve actual old Supabase user UUID values.
   Date: 2026-05-12.
-  Rationale: document ownership, role joins, logs, reports, archive snapshots, and storage paths may reference user IDs. Fresh UUIDs would require a high-risk mapping layer across DB rows, JSON payloads, and filesystem paths. See `docs/migration/drizzle-schema-plan.md` Section 6.
+  Rationale: this project creates a new local PostgreSQL schema from scratch with new minimal seed data, not an existing Supabase data import. UUID-based ownership and foreign-key semantics remain required, and fresh deterministic UUIDs may be used for seed data. Preserving actual old Supabase UUID values is deferred unless a future explicit data migration decision changes this. See `docs/migration/drizzle-schema-plan.md` Section 6.
 - Keep lampiran metadata embedded in `dokumen_transaksi.lampiran_urls` as JSONB during the compatibility phase.
   Date: 2026-05-12.
   Rationale: current request/response shapes, pending-to-formal storage behavior, and `arsip.lampiran_snapshot` depend on the existing JSON array shape. A normalized file metadata table can be added later as a hybrid after storage parity is proven. See `docs/migration/drizzle-schema-plan.md` Section 11.
@@ -88,7 +88,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact signed-token implementation details, including token claims, nonce/jti persistence, signing algorithm, and expiry durations.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
-  Phase 3A recommendation: preserve stored path strings during compatibility because user IDs and existing JSON snapshots are path-coupled. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
+  Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.

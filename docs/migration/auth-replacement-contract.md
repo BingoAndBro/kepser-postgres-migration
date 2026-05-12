@@ -35,9 +35,12 @@ The user model must support:
 - Created/updated timestamps.
 - Admin user-management operations currently served by Supabase Auth Admin.
 
-Open detail:
+Accepted direction:
 
-- Whether to preserve old Supabase user UUIDs exactly or generate fresh local UUIDs remains open until seed/import strategy is finalized.
+- Use UUID primary keys for local users and seed users.
+- Fresh deterministic UUIDs may be used for seed data.
+- Preserve UUID-based ownership and foreign-key semantics.
+- Do not import or preserve actual old Supabase user UUID values unless a future explicit data migration decision changes this.
 
 ## Role Table Strategy
 
@@ -204,4 +207,3 @@ Critical compatibility:
 - Server/API authorization works without client-side RBAC.
 - Direct API access with missing/invalid session returns 401.
 - Direct API access with wrong role returns 403.
-

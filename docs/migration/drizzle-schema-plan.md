@@ -99,28 +99,28 @@ Use Indonesian domain names where they already exist in the app. Keep technical 
 
 ## 6. User ID Strategy
 
-Recommendation: preserve old Supabase user UUIDs during migration.
+Recommendation: use UUID primary keys for local users and seed users. Fresh deterministic UUIDs may be used for seed data. Preserve UUID-based ownership and foreign-key semantics. Do not import or preserve actual old Supabase user UUID values unless a future explicit data migration decision changes this.
 
 Rationale:
 
-- File paths use the user ID as the first segment in pending and formal storage paths.
-- `dokumen_transaksi.created_by`, `log_aktivitas.user_id`, archive user fields, `ketua_tim_assignments`, reports, role joins, and archive snapshots may reference old user IDs.
-- Storage authorization currently sometimes infers ownership from the first path segment.
-- Keeping IDs stable reduces the number of compatibility mappings needed across documents, logs, files, reports, and archive snapshots.
+- This project is creating a new local PostgreSQL schema from scratch with new minimal seed data, not importing existing Supabase data.
+- User identity still needs stable UUID semantics because `dokumen_transaksi.created_by`, `log_aktivitas.user_id`, archive user fields, `ketua_tim_assignments`, reports, role joins, and future storage paths should reference users consistently.
+- UUID ownership semantics keep the schema compatible with current application assumptions without binding the new local database to old Supabase Auth row values.
+- Deterministic seed UUIDs make local development and tests repeatable.
 
 Tradeoffs:
 
-- Preserving UUIDs requires import/seed tooling that can insert explicit `auth.users.id` values.
-- Fresh UUIDs would produce a cleaner local identity namespace, but would require a complete user-ID mapping layer for DB rows, JSON lampiran payloads, filesystem paths, snapshots, audit logs, and reports.
-- Fresh UUIDs increase migration risk because path and JSON references are easy to miss.
+- Fresh local UUIDs are simpler because there is no existing production data import in scope.
+- If a future explicit data migration imports real Supabase data, it must separately decide whether to preserve old user IDs or build a mapping layer.
+- Seed UUIDs should be deterministic for fixtures, but normal runtime user creation can generate random UUIDs.
 
 Implementation implications:
 
-- `auth.users.id` should be a UUID primary key that permits explicit values.
+- `auth.users.id` should be a UUID primary key.
 - Dev seed can create deterministic UUIDs.
-- Any data import should preserve Supabase UUIDs when importing real users.
-- New local users can still receive generated UUIDs.
-- Filesystem paths should not be rewritten during compatibility migration unless a separate storage migration task proves it safe.
+- New local users should receive generated UUIDs.
+- No Phase 3 schema or seed work should import actual old Supabase Auth UUID values.
+- Future storage paths should continue using UUID user IDs where ownership path semantics require it.
 
 ## 7. Auth Schema Draft Plan
 
@@ -529,7 +529,7 @@ Key risks:
 - PostgREST nested select replacement must be implemented as explicit Drizzle joins/enrichment.
 - Manual enrichment response fields such as `fungsi_nama`, `kegiatan_nama`, leaf node names, user names, and archive fields must be preserved.
 - Supabase Auth Admin user metadata must become local auth columns or compatibility metadata.
-- File path user ID coupling makes fresh local UUIDs risky.
+- Future file path ownership should remain UUID-based, but Phase 3 does not import old Supabase user UUID values.
 - `lampiran_urls` JSON shape must remain stable.
 - `arsip.lampiran_snapshot` shape must remain stable.
 - App-layer authorization replaces Supabase RLS/service role behavior and must be complete.
