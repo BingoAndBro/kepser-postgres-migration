@@ -792,6 +792,131 @@ Intentionally unimplemented:
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
 
+## Phase 3F Status
+
+Phase 3F created only the arsip namespace Drizzle table definitions required by the current active archive lifecycle.
+
+Arsip schema files created:
+
+- `src/db/schema/arsip/arsip.ts`
+- `src/db/schema/arsip/klasifikasi-arsip.ts`
+- `src/db/schema/arsip/usul-musnah.ts`
+- `src/db/schema/arsip/index.ts`
+
+Tables defined under PostgreSQL schema `arsip`:
+
+- `arsip.arsip`
+- `arsip.master_klasifikasi_arsip`
+- `arsip.arsip_usul_musnah`
+
+Source evidence used:
+
+- `supabase/migrations/005_arsip.sql`
+  - base `arsip` columns: `id`, `dokumen_id`, `nomor_surat`, `klasifikasi`, `retensi_aktif`, `retensi_inaktif`, `masa_aktif_berakhir`, `masa_inaktif_berakhir`, `status_arsip`, `is_ditolak`, `catatan_arsiparis`, `archived_by`, `archived_at`, `created_at`
+  - base `master_klasifikasi_arsip` columns: `id`, `nama`, `deskripsi`, `is_active`, `created_at`
+  - base `arsip_usul_musnah` columns: `id`, `arsip_id`, `status`, `catatan`, `diusulkan_oleh`, `decided_by`, `created_at`, `decided_at`
+  - current source indexes on `arsip.status_arsip`, `arsip.dokumen_id`, retention dates, `arsip_usul_musnah.arsip_id`, and active classifications
+- `supabase/migrations/010_drop_verifikasi_penyusutan.sql`
+  - drops `arsip_verifikasi_penyusutan`
+  - removes `VERIFIKASI_PENYUSUTAN` from active `status_arsip`
+- `supabase/migrations/011_arsip_snapshot_musnah.sql`
+  - adds `lampiran_snapshot`, `musnah_at`, `musnah_by`, and `musnah_catatan`
+  - adds `DIMUSNAHKAN` to active archive lifecycle
+- `supabase/migrations/012_klasifikasi_hierarchy.sql`
+  - adds `master_klasifikasi_arsip.parent_id` and `kode`
+  - adds partial unique `kode` index and parent lookup index
+- `supabase/migrations/016_nominal_realisasi.sql`
+  - adds `arsip.nominal_realisasi`
+- Active arsiparis API/UI routes:
+  - `src/routes/api/arsiparis/dokumen.$id.archive.ts`
+  - `src/routes/api/arsiparis/aktif.ts`
+  - `src/routes/api/arsiparis/aktif.$id.ts`
+  - `src/routes/api/arsiparis/aktif.$id/pindahkan.ts`
+  - `src/routes/api/arsiparis/inaktif.ts`
+  - `src/routes/api/arsiparis/inaktif.$id.ts`
+  - `src/routes/api/arsiparis/inaktif.$id/musnahkan.ts`
+  - `src/routes/api/arsiparis/usul-musnah.ts`
+  - `src/routes/api/arsiparis/usul-musnah.$id.ts`
+  - `src/routes/api/arsiparis/search.ts`
+  - `src/routes/api/arsiparis/klasifikasi/*`
+  - `src/routes/arsiparis/*`
+
+Key fields modeled:
+
+- `arsip.arsip`
+  - UUID primary key generated locally.
+  - `dokumen_id` FK to `dokumen.dokumen_transaksi.id`.
+  - archive metadata: `nomor_surat`, `klasifikasi`, retention labels, retention end dates, `catatan_arsiparis`, `archived_by`, `archived_at`, `created_at`.
+  - lifecycle fields: `status_arsip` and `is_ditolak`.
+  - `lampiran_snapshot` as JSONB to preserve archived attachment snapshots copied from `dokumen_transaksi.lampiran_urls`.
+  - destruction fields: `musnah_at`, `musnah_by`, and `musnah_catatan`.
+  - `nominal_realisasi` as numeric `(15,2)`.
+- `arsip.master_klasifikasi_arsip`
+  - `id`, `nama`, `deskripsi`, `is_active`, `created_at`, `parent_id`, and `kode`.
+  - self-FK `parent_id` with set-null delete behavior, matching current hierarchy migration.
+  - no `updated_at` column because current migrations/runtime do not define or update one.
+- `arsip.arsip_usul_musnah`
+  - `id`, `arsip_id`, `status`, `catatan`, `diusulkan_oleh`, `decided_by`, `created_at`, and `decided_at`.
+  - status values remain text with the current queue-status check: `MENUNGGU`, `DISETUJUI`, `DITOLAK`.
+
+Indexes added and why:
+
+- `arsip.status_arsip`: active/inactive/usul-musnah/search lifecycle lists.
+- `arsip.dokumen_id`: archive lookup from document detail and duplicate archive checks.
+- partial `arsip.masa_aktif_berakhir` where `status_arsip='AKTIF'`: current retention lookup pattern.
+- partial `arsip.masa_inaktif_berakhir` where `status_arsip='INAKTIF'`: current usul-musnah retention lookup pattern.
+- `arsip.archived_at`: current archive lists and search order by archive date.
+- `arsip.musnah_by`: destruction user reference lookup support.
+- `master_klasifikasi_arsip.nama` unique: present in the original migration.
+- partial unique `master_klasifikasi_arsip.kode` where non-null: present in hierarchy migration.
+- partial `master_klasifikasi_arsip.is_active`: active classification tree queries.
+- partial `master_klasifikasi_arsip.parent_id`: tree traversal and descendant soft-delete behavior.
+- unique and lookup indexes on `arsip_usul_musnah.arsip_id`: current migration uniqueness and active duplicate prevention.
+- `arsip_usul_musnah.status`, `diusulkan_oleh`, and `created_at`: current status/user/date list/detail patterns.
+
+FK/onDelete policy:
+
+- `arsip.dokumen_id` uses no-action/restrict-compatible behavior so document deletes do not silently delete archive history.
+- archive user references (`archived_by`, `musnah_by`, `diusulkan_oleh`, `decided_by`) use no-action behavior so user deletion cannot erase lifecycle history.
+- `arsip_usul_musnah.arsip_id` uses no-action behavior so archive rows are not silently removed through queue deletion behavior.
+- `master_klasifikasi_arsip.parent_id` uses `ON DELETE SET NULL`, matching migration `012_klasifikasi_hierarchy.sql`.
+
+Status strategy:
+
+- `arsip.status_arsip` is modeled as text with documented canonical active values only: `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
+- No Drizzle lifecycle check constraint was added for `status_arsip` in Phase 3F to keep migration flexibility and avoid reviving historical states.
+- `DIMUSNAHKAN` remains a queryable archive history state. Preview/download blocking remains an API/storage authorization responsibility, not a schema behavior.
+
+Historical `VERIFIKASI_PENYUSUTAN` handling:
+
+- `arsip_verifikasi_penyusutan` is not implemented in the new Drizzle schema.
+- It was created in `005_arsip.sql`, dropped by `010_drop_verifikasi_penyusutan.sql`, and AGENTS.md states the active lifecycle now moves directly `AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN`.
+- `supabase/functions/arsip-retensi/index.ts` still references the old table and old status, so the Edge Function is treated as historical/deferred behavior to reconcile when the scheduler replacement is designed.
+
+Known compatibility choices:
+
+- Existing table names and snake_case column names are preserved, but moved into the target `arsip` namespace.
+- `klasifikasi` remains text on `arsip.arsip`; no `klasifikasi_id` field was introduced because current migrations and active archive insert/read paths store the selected classification name as text.
+- `lampiran_snapshot` remains JSONB and preserves the current archived attachment snapshot shape.
+- No soft-delete field beyond existing `master_klasifikasi_arsip.is_active` was added.
+- No `updated_at` was added to archive tables because current migrations/runtime do not define it for these tables.
+- No app/support tables were created.
+
+Intentionally unimplemented:
+
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no API route migration
+- no auth/session behavior implementation
+- no storage implementation
+- no archive scheduler/cron/Edge replacement
+- no `arsip_verifikasi_penyusutan` active table
+- no normalized archive attachment/file metadata table
+- no FSM or workflow behavior changes
+- no UI changes
+
+No migrations have been generated yet and no API behavior is wired to these tables yet.
+
 ## Phase 3E Status
 
 Phase 3E created only the dokumen namespace Drizzle table definitions required by current document workflow and audit logging.

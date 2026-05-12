@@ -91,6 +91,12 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Dokumen schema table structure for Phase 3E.
   Date: 2026-05-12.
   Rationale: `src/db/schema/dokumen/` now defines only `dokumen.dokumen_transaksi` and `dokumen.log_aktivitas` for current workflow rows and append-only audit logging. Compatibility choices preserve current column names, status/current-step/revision-target as text, `tanggal` as text, `lampiran_urls` as JSONB with the existing payload shape, explicit current FK behavior where present, no normalized lampiran table, and no API/FSM/storage behavior wiring. Request-chain columns remain nullable UUID columns without Phase 3E FK constraints because the current Supabase migration added them without FK constraints.
+- Arsip schema table structure for Phase 3F.
+  Date: 2026-05-12.
+  Rationale: `src/db/schema/arsip/` now defines only the active archive lifecycle tables under PostgreSQL schema `arsip`: `arsip`, `master_klasifikasi_arsip`, and `arsip_usul_musnah`. Compatibility choices preserve current table/column names, text `status_arsip` with documented active values, JSONB `lampiran_snapshot`, hierarchy fields `parent_id`/`kode`, destruction metadata, and no API/FSM/storage/scheduler behavior wiring. Historical `arsip_verifikasi_penyusutan` is not modeled as an active table because current migrations dropped it and AGENTS.md defines the direct active lifecycle.
+- Historical `arsip_verifikasi_penyusutan` is obsolete for the current schema.
+  Date: 2026-05-12.
+  Rationale: The table was created in `supabase/migrations/005_arsip.sql` but dropped by `supabase/migrations/010_drop_verifikasi_penyusutan.sql`; AGENTS.md states `VERIFIKASI_PENYUSUTAN` was removed from active lifecycle behavior. The old Edge Function reference remains a scheduler-replacement reconciliation issue, not an active Drizzle table decision.
 
 ## Still Open
 
@@ -110,7 +116,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Backup schedule and retention.
 - Server hostname/static IP strategy.
 - What local scheduled-job mechanism replaces Supabase Edge Function plus pg_cron for archive retention.
-- Whether obsolete-looking `arsip_verifikasi_penyusutan` Edge Function behavior should be migrated, removed, or reconciled with current archive lifecycle.
+- How the obsolete `arsip_verifikasi_penyusutan` references inside the old Supabase Edge Function should be reconciled when replacing archive retention scheduling.
 - Whether `.env.example` concrete-looking Supabase keys should be replaced with placeholders in a separate hygiene task.
 
 ## Decision Log Rules
