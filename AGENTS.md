@@ -1,461 +1,639 @@
-# AGENTS.md — Project Constitution: DMS (Dynamic Document Workflow Management System)
-> **⚠️ File ini adalah HUKUM.** Semua kode, keputusan routing, dan perubahan schema HARUS mengacu pada file ini. Update file ini SEBELUM mengupdate kode.
+# AGENTS.md - Project Constitution: DMS (Dynamic Document Workflow Management System)
+> File ini adalah hukum kerja repo. Semua perubahan schema, routing, workflow, dan boundary data harus mengacu ke file ini. Jika realita aplikasi berubah, update file ini dulu, baru update kode.
 
 ---
 
-## 🎯 North Star (MVP)
-> **Setiap pegawai tahu persis apa yang harus mereka lakukan hari ini, dan setiap dokumen bisa dilacak statusnya secara real-time oleh siapapun yang berwenang.**
->
-> MVP Goal: **Menghapus kebingungan** — tidak ada lagi "dokumen ini sudah sampai mana?", "siapa yang belum approve?". Semua digantikan satu **Inbox** yang jelas dan satu **status** yang terpusat.
+## North Star
+> Setiap pegawai tahu persis apa yang harus mereka lakukan hari ini, dan setiap dokumen bisa dilacak statusnya secara real-time oleh pihak yang berwenang.
+
+Tujuan MVP tetap sama: menghapus kebingungan status dokumen, memperjelas inbox per role, dan menjaga jejak audit dari submit sampai arsip atau pemusnahan.
 
 ---
 
-## 📐 Tech Stack (MVP — LOCKED)
+## Runtime Reality Check
 
-| Layer | Teknologi | Catatan |
+Kondisi aplikasi per 2026-05-12:
+
+- Framework tetap `TanStack Start`, tetapi root route saat ini memakai `ssr: false`.
+- Runtime aktual lebih dekat ke SPA client-heavy daripada SSR penuh.
+- Auth bootstrap utama terjadi di `src/components/layout/AppLayout.tsx` melalui Supabase browser client.
+- Enforcement akses tetap harus ada di server route/API, walaupun layout juga melakukan guard client-side.
+- Source of truth schema saat ini tersebar:
+  - `supabase/migrations/` = sumber kebenaran database yang paling lengkap
+  - `src/lib/db/schema.ts` = mirror Drizzle parsial, belum mencakup semua tabel produksi
+
+Konstitusi ini mengikuti kondisi aktual repo, bukan rencana lama.
+
+---
+
+## Tech Stack
+
+| Layer | Teknologi | Status |
 |---|---|---|
-| **Framework** | TanStack Start (SSR) | File-based routing, server functions built-in |
-| **Language** | TypeScript | Type safety di seluruh stack |
-| **Database** | Supabase (PostgreSQL) | Managed DB, RLS built-in |
-| **Auth** | Supabase Auth | JWT + RLS native |
-| **File Storage** | Supabase Storage | 1GB free tier, cukup untuk MVP |
-| **ORM** | Drizzle ORM | Type-safe query, schema-as-code |
-| **UI Components** | shadcn/ui | Headless + styled, copy-paste |
-| **Validation** | Zod | Schema validation: form → API → DB |
-| **Hosting** | Vercel | Deploy TanStack Start MVP |
-| **Package Manager**| pnpm | Wajib digunakan untuk semua instalasi dan command eksekusi proyek |
+| Framework | TanStack Start | aktif |
+| Router | TanStack React Router file-based | aktif |
+| Language | TypeScript | wajib |
+| Database | Supabase PostgreSQL | aktif |
+| Auth | Supabase Auth | aktif |
+| Storage | Supabase Storage | aktif |
+| ORM | Drizzle ORM | parsial untuk mirror schema |
+| Validation | Zod | wajib di boundary |
+| UI | React 19 + Tailwind CSS v4 + komponen UI lokal | aktif |
+| Testing | Vitest + Playwright | aktif |
+| Package Manager | pnpm | wajib |
 
-> **Catatan Migrasi Post-MVP:** File Storage akan dipindah ke Cloudflare R2, hosting ke Cloudflare Workers.
+### Package Manager Rules
 
-### Perintah Package Manager
-
-> **WAJIB: Gunakan `pnpm` untuk SEMUA operasi package manager.**
+Gunakan `pnpm` untuk semua operasi package manager.
 
 ```bash
-# Install semua dependencies (setelah clone / setelah lockfile berubah)
 pnpm install
-
-# Menambah paket BARU ke project
-pnpm add <nama-paket>    # dependency regular
-pnpm add -D <nama-paket> # devDependency (contoh: pnpm add -D vitest)
-pnpm add -g <nama-paket> # global install (jarang — contoh: pnpm add -g supabase)
-
-# Menghapus paket
-pnpm remove <nama-paket>
-
-# Menjalankan script
-pnpm dev      # development server
-pnpm build    # production build
-pnpm test     # run tests
+pnpm add <paket>
+pnpm add -D <paket>
+pnpm remove <paket>
+pnpm dev
+pnpm build
+pnpm test
 ```
 
-- ❌ **Jangan** gunakan `npm install` atau `yarn add` — selalu `pnpm`
-- ✅ Selalu commit `pnpm-lock.yaml` ke git (BUKAN `package-lock.json`)
-- ✅ Reference lengkap: `docs/pnpm-best-practices.md`
+Aturan:
+
+- jangan gunakan `npm` atau `yarn`
+- commit `pnpm-lock.yaml`
+- referensi praktik: `docs/pnpm-best-practices.md`
 
 ---
 
-## 🗂️ Data Schema (MVP — 9 Tabel Inti)
+## Canonical Domain Model
 
-### Enum: Status Dokumen (FSM) — MVP Hardcoded Flow
-```typescript
-// Status dokumen: alur berjenjang PPK → Bendahara → Arsiparis
-type StatusDokumen =
-  | 'DRAFT'                        // Belum diajukan
-  | 'IN_PPK_VALIDATION'            // Sedang divalidasi PPK
-  | 'IN_BENDAHARA_APPROVAL'        // Sedang disetujui Bendahara
-  | 'NEED_REVISION'                // Ditolak — ada target di bawah
-  | 'COMPLETED'                    // Selesai semua persetujuan
-  | 'ARCHIVED'                     // Sudah diarsipkan Arsiparis
+### Role
 
-// Sub-status untuk tracking posisi NEED_REVISION
-type RevisionTarget = 'USER' | 'PPK'
-```
+Role yang dipakai aplikasi:
 
-### Enum: Role Static (MVP — Tidak Perlu Workflow Builder)
-```typescript
-// Role di-hardcode, tidak bisa diedit admin di MVP
+```ts
 type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'ARSIPARIS' | 'ADMIN'
 ```
 
-### Enum: Step Approval Berjenjang
-```typescript
-// Track step saat ini (untuk membedakan IN_PPK_VALIDATION vs IN_BENDAHARA_APPROVAL)
-type CurrentStep = 'PPK' | 'BENDAHARA'
+Canonical constants ada di:
+
+- `src/lib/constants/roles.ts`
+- `src/lib/types/auth.ts`
+
+### Status Dokumen
+
+Status dokumen yang saat ini dikenal kode:
+
+```ts
+type StatusDokumen =
+  | 'DRAFT'
+  | 'IN_PPK_VALIDATION'
+  | 'IN_BENDAHARA_APPROVAL'
+  | 'NEED_REVISION'
+  | 'COMPLETED'
+  | 'TERSIMPAN'
+  | 'ARCHIVED'
 ```
+
+Catatan penting:
+
+- `TERSIMPAN` dipakai untuk dokumen Non-Material yang selesai disimpan tanpa masuk alur approval material.
+- Transisi FSM formal tetap dipusatkan di `src/lib/fsm.ts`.
+- `TERSIMPAN` saat ini dihasilkan oleh handler submit Non-Material, bukan oleh `transition()` FSM umum.
+
+Canonical constants ada di:
+
+- `src/lib/constants/document-status.ts`
+- `src/lib/types/fsm.ts`
+- `src/lib/fsm.ts`
+
+### Current Step
+
+```ts
+type CurrentStep = 'PPK' | 'BENDAHARA' | null
+```
+
+### Revision Target
+
+```ts
+type RevisionTarget = 'USER' | 'PPK' | null
+```
+
+### Arsip Lifecycle
+
+Lifecycle arsip setelah dokumen sudah `ARCHIVED`:
+
+```ts
+type StatusArsip = 'AKTIF' | 'INAKTIF' | 'USUL_MUSNAH' | 'DIMUSNAHKAN'
+```
+
+Catatan:
+
+- migrasi lama pernah mengenal `VERIFIKASI_PENYUSUTAN`
+- status itu sudah dihapus oleh migrasi berikutnya
+- kode dan endpoint aktif sekarang bergerak langsung:
+  - `AKTIF -> INAKTIF`
+  - `INAKTIF -> USUL_MUSNAH`
+  - `USUL_MUSNAH -> DIMUSNAHKAN` atau kembali ke `INAKTIF`
 
 ---
 
-### Tabel 1: `roles`
-> Daftar peran dinamis dalam organisasi.
+## Database Source Of Truth
 
-```typescript
-roles: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL UNIQUE,          // e.g., "Kepala Seksi", "Arsiparis"
-  deskripsi: text,
-  created_at: timestamp DEFAULT now()
-}
-```
+Urutan prioritas saat membaca atau mengubah schema:
 
-### Tabel 2: `user_roles`
-> Mapping user Supabase Auth ke role. Satu user bisa punya banyak role.
+1. `supabase/migrations/`
+2. endpoint dan helper yang memakai tabel tersebut
+3. `src/lib/db/schema.ts`
 
-```typescript
-user_roles: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id: uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role_id: uuid NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-  created_at: timestamp DEFAULT now(),
-  UNIQUE(user_id, role_id)
-}
-```
+Jangan menganggap `src/lib/db/schema.ts` sudah lengkap. Tabel produksi yang sudah dipakai aplikasi lebih banyak daripada yang dimirror di Drizzle.
 
-### Tabel 3: `master_fungsi`
-> Fungsi / Departemen dalam organisasi (BPS).
+### Tabel yang Sudah Aktif di Repo
 
-```typescript
-master_fungsi: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL UNIQUE,   // e.g., "Sosial", "Distribusi", "Neraca", "Produksi", "Umum", "IPDS"
-  deskripsi: text,
-  is_active: boolean DEFAULT true,
-  created_at: timestamp DEFAULT now()
-}
-```
+#### RBAC dan User
 
-### Tabel 4: `master_kegiatan`
-> Jenis kegiatan per fungsi.
+- `roles`
+- `user_roles`
+- `user_status`
 
-```typescript
-master_kegiatan: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  fungsi_id: uuid NOT NULL REFERENCES master_fungsi(id),
-  nama: text NOT NULL,          // e.g., "SAKERNAS", "SUSENAS", "PODES"
-  deskripsi: text,
-  is_active: boolean DEFAULT true,
-  created_at: timestamp DEFAULT now()
-}
-```
+#### Master Data Dokumen
 
-### Tabel 5: `master_kelengkapan_dokumen`
-> Kelengkapan dokumen yang dibutuhkan per kegiatan × chain permintaan × role (Ketua Tim vs Anggota).
+- `master_fungsi`
+- `master_kegiatan`
+- `master_kelengkapan_dokumen`
+- `master_jenis_permintaan`
+- `master_kategori_permintaan`
+- `master_detail_permintaan`
+- `master_jenis_dokumen`
+- `ketua_tim_assignments`
 
-```typescript
-master_kelengkapan_dokumen: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  kegiatan_id: uuid NOT NULL REFERENCES master_kegiatan(id),
-  is_ketua_tim: boolean NOT NULL,   // true = untuk Ketua Tim, false = untuk Anggota
-  nama_dokumen: text NOT NULL,       // e.g., "Laporan", "Form Permintaan", "KAK"
-  required: boolean DEFAULT true,
-  // Chain filters (nullable - null means applies to all)
-  jenis_permintaan_id: uuid REFERENCES master_jenis_permintaan(id),
-  kategori_permintaan_id: uuid REFERENCES master_kategori_permintaan(id),
-  detail_permintaan_id: uuid REFERENCES master_detail_permintaan(id),
-  created_at: timestamp DEFAULT now()
-}
-```
+#### Workflow Dokumen
 
-### Tabel 6: `kegiatan`
-> "Folder" / project container untuk dokumen-dokumen terkait.
+- `dokumen_transaksi`
+- `log_aktivitas`
 
-```typescript
-kegiatan: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  judul: text NOT NULL,
-  deskripsi: text,
-  created_by: uuid NOT NULL REFERENCES auth.users(id),
-  created_at: timestamp DEFAULT now()
-}
-```
+#### Arsip
 
-### Tabel 6b: `ketua_tim_assignments`
-> Mapping user ke kegiatan sebagai Ketua Tim.
+- `arsip`
+- `master_klasifikasi_arsip`
+- `arsip_usul_musnah`
 
-```typescript
-ketua_tim_assignments: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id: uuid NOT NULL REFERENCES auth.users(id),
-  kegiatan_id: uuid NOT NULL REFERENCES master_kegiatan(id),
-  created_at: timestamp DEFAULT now(),
-  UNIQUE(user_id, kegiatan_id)
-}
-```
+### Catatan Schema Penting
 
-### Tabel 6c: `master_jenis_permintaan`
-> Jenis permintaan untuk dokumen Material (hierarki level 1).
-
-```typescript
-master_jenis_permintaan: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL,    // e.g., "Surat Perintah", "Kwitansi", "Daftar Gaji"
-  created_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 6d: `master_kategori_permintaan`
-> Kategori permintaan (hierarki level 2), milik satu Jenis.
-
-```typescript
-master_kategori_permintaan: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  jenis_permintaan_id: uuid NOT NULL REFERENCES master_jenis_permintaan(id),
-  nama: text NOT NULL,    // e.g., "Honorarium", "Transport"
-  created_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 6e: `master_detail_permintaan`
-> Detail permintaan (hierarki level 3), milik satu Kategori.
-
-```typescript
-master_detail_permintaan: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  kategori_permintaan_id: uuid NOT NULL REFERENCES master_kategori_permintaan(id),
-  nama: text NOT NULL,    // e.g., "Translok>8", "SBSN"
-  created_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 6f: `master_jenis_dokumen`
-> Jenis dokumen untuk Non-Material.
-
-```typescript
-master_jenis_dokumen: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  nama: text NOT NULL,    // e.g., "Rapat", "Notulen", "Undangan"
-  created_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 7: `dokumen_transaksi`
-> Transaksi dokumen yang sedang berjalan.
-
-```typescript
-dokumen_transaksi: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  judul: text NOT NULL,
-  fungsi_id: uuid REFERENCES master_fungsi(id),            // Fungsi/departemen pengaju
-  kegiatan_jenis_id: uuid REFERENCES master_kegiatan(id),  // Jenis kegiatan
-  is_ketua_tim: boolean NOT NULL DEFAULT false,            // Apakah submitter Ketua Tim
-  tahun: integer,
-  tanggal: text,                                          // Format: YYYY-MM-DD
-  status: StatusDokumen NOT NULL DEFAULT 'DRAFT',
-  current_step: CurrentStep DEFAULT null,   // 'PPK' | 'BENDAHARA' — null saat DRAFT/COMPLETED/ARCHIVED
-  revision_target: RevisionTarget DEFAULT null,  // 'USER' | 'PPK' — hanya saat NEED_REVISION
-  revision_notes: text,                       // Catatan revisi saat ditolak
-  lampiran_urls: jsonb DEFAULT '[]',           // Array of { kelengkapan_id, nama, url, uploaded_at }
-  nominal_realisasi: numeric(15,2),            // Nominal untuk dokumen Material
-  is_non_material: boolean DEFAULT false,       // true = Non-Material, false = Material
-  jenis_dokumen_id: uuid,                     // Untuk Non-Material
-  keterangan_detail: text,                     // Keterangan tambahan
-  jenis_permintaan_id: uuid,                  // Untuk Material (chain permintaan)
-  kategori_permintaan_id: uuid,
-  detail_permintaan_id: uuid,
-  created_by: uuid NOT NULL REFERENCES auth.users(id),
-  created_at: timestamp DEFAULT now(),
-  updated_at: timestamp DEFAULT now()
-}
-```
-
-### Tabel 8: `log_aktivitas`
-> Audit trail — **APPEND ONLY**. Tidak ada UPDATE/DELETE.
-
-```typescript
-log_aktivitas: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  dokumen_id: uuid NOT NULL REFERENCES dokumen_transaksi(id),
-  user_id: uuid NOT NULL REFERENCES auth.users(id),
-  aksi: text NOT NULL,                 // e.g., "SUBMIT", "APPROVE", "REJECT", "REVISION_SENT"
-  catatan: text,                       // Wajib diisi jika aksi = REJECT
-  step_urutan: integer,                // Step ke berapa saat aksi dilakukan
-  timestamp: timestamp DEFAULT now()
-}
-```
-
-### Tabel 9: `arsip`
-> Metadata arsip final untuk dokumen yang sudah COMPLETED dan di-approve Arsiparis.
-
-```typescript
-arsip: {
-  id: uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  dokumen_id: uuid NOT NULL UNIQUE REFERENCES dokumen_transaksi(id),
-  nomor_surat: text,                   // Diisi Arsiparis
-  klasifikasi: text,                   // Diisi Arsiparis
-  retensi: text,                       // e.g., "5 Tahun"
-  catatan_arsiparis: text,
-  archived_by: uuid REFERENCES auth.users(id),
-  archived_at: timestamp DEFAULT now()
-}
-```
+- `ketua_tim_assignments` saat ini unik per `kegiatan_id`, bukan unik `(user_id, kegiatan_id)`
+- `dokumen_transaksi` sudah memuat:
+  - `nominal_realisasi`
+  - `is_non_material`
+  - `jenis_dokumen_id`
+  - chain material: `jenis_permintaan_id`, `kategori_permintaan_id`, `detail_permintaan_id`
+- `arsip` sudah memuat metadata retensi dan lifecycle:
+  - `retensi_aktif`
+  - `retensi_inaktif`
+  - `masa_aktif_berakhir`
+  - `masa_inaktif_berakhir`
+  - `status_arsip`
+  - `lampiran_snapshot`
+  - `musnah_at`
+  - `musnah_by`
+  - `musnah_catatan`
+  - `nominal_realisasi`
+- `log_aktivitas` tetap append-only secara kontrak
 
 ---
 
-## 🔒 Architectural Invariants (HUKUM — Tidak Boleh Dilanggar)
+## Architectural Invariants
 
-1. **Data-First Rule:** Tidak ada page/component yang dibangun sebelum data shape-nya didefinisikan di sini.
-2. **Layer Separation:**
-   - Data fetching → `src/routes/` (server functions) atau `src/lib/`
-   - Presentasi → `src/ui/` (komponen dumb)
-   - Business logic → `src/components/` (komponen smart)
-3. **Zod di Setiap Boundary:** Semua input API dan output harus divalidasi dengan Zod schema di `src/lib/schemas/`.
-4. **SOP Before Code:** Jika logic berubah, update SOP di `docs/` terlebih dahulu sebelum ubah kode.
-5. **No Magic Strings:** Semua route path, nama tabel DB, dan env var key harus didefinisikan sebagai typed constants.
-6. **`.env` Keys Only:** Semua secrets di `.env`. Tidak ada secret hardcoded di `src/`.
-7. **Audit Trail Sacred:** Tabel `log_aktivitas` adalah append-only. Tidak ada operasi UPDATE/DELETE pada tabel ini.
-8. **FSM Strict:** Transisi status `dokumen_transaksi.status` hanya melalui fungsi state machine di `src/lib/fsm.ts`. Tidak ada manual update status di luar fungsi ini.
-9. **Role Resolution di Server:** Pengecekan role RBAC selalu terjadi di server (server function / middleware SSR), bukan di client-side.
+1. **Schema truth lives in migrations first.**
+   - Ubah `supabase/migrations/` dulu untuk perubahan database.
+   - Setelah itu baru sinkronkan helper, Zod schema, dan mirror Drizzle bila perlu.
 
----
+2. **FSM is the only legal source for status transitions.**
+   - Semua transisi `dokumen_transaksi.status` harus memakai `src/lib/fsm.ts`.
+   - Tidak boleh ada update status manual tanpa reasoning yang setara dengan FSM.
+   - Jika ada state baru, update constants, types, tests, dan file ini.
 
-## ⚙️ Behavioral Rules (MVP)
+3. **Audit trail is sacred.**
+   - `log_aktivitas` append-only.
+   - Tidak boleh ada `UPDATE` atau `DELETE` ke tabel ini.
 
-### 1. RBAC — Role-Based Access Control
-- Setiap user memiliki satu atau lebih Role (via tabel `user_roles`)
-- **Setiap user BARU otomatis punya role PEGAWAI** — ini role default
-- Role di-hardcode: PEGAWAI, PPK, BENDAHARA, ARSIPARIS, ADMIN
-- **Role Switcher:** Jika user punya > 1 role, ada dropdown di kanan atas (profile icon) untuk switch antar role
-- **ADMIN tidak punya dropdown role** — akun dedicated, login terpisah
-- Active role disimpan di session/client state, dipakai untuk middleware & sidebar
-- Halaman dan aksi dikunci berdasarkan Role (middleware SSR)
-- Supabase RLS = garis pertahanan kedua di level database
+4. **Zod at every boundary.**
+   - Input request, payload mutasi, dan response shape yang penting harus divalidasi oleh schema di `src/lib/schemas/`.
 
-### 2. Workflow Berjenjang (PPK → Bendahara → Arsiparis)
-- Alur di-hardcode — **tidak ada workflow builder** di MVP
-- Tahapan tidak bisa diloncati:
-  - DRAFT → IN_PPK_VALIDATION (oleh PEGAWAI)
-  - IN_PPK_VALIDATION → IN_BENDAHARA_APPROVAL (oleh PPK, setelah validasi)
-  - IN_BENDAHARA_APPROVAL → COMPLETED (oleh BENDAHARA, setelah approve)
-  - COMPLETED → ARCHIVED (oleh ARSIPARIS, setelah arsip)
-- Tracking step saat ini via kolom `current_step` ('PPK' | 'BENDAHARA')
+5. **No magic strings.**
+   - Route path gunakan constants di `src/lib/constants/routes.ts`
+   - Role gunakan constants di `src/lib/constants/roles.ts`
+   - Table name gunakan constants di `src/lib/constants/tables.ts` bila menyentuh shared code
 
-### 3. Aturan Penolakan (Tolak Berjenjang)
-- PPK menolak → `NEED_REVISION` dengan `revision_target = 'USER'` → USER perbaiki & resubmit
-- Bendahara menolak → `NEED_REVISION` dengan `revision_target = 'PPK'` → PPK perbaiki & resubmit langsung ke Bendahara
-- Catatan revisi **wajib** diisi saat menolak — form tidak bisa di-submit tanpa catatan
-- Tolakan tidak mengubah `current_step` — tetap di step yang menolak
+6. **Secrets only in env.**
+   - Tidak ada hardcoded secret di `src/`
+   - Gunakan `.env`
 
-### 4. Audit Trail
-- Setiap aksi = satu INSERT baru ke `log_aktivitas`
-- **Tidak ada UPDATE atau DELETE** di tabel ini
+7. **Server is the authority for RBAC.**
+   - Client boleh menyembunyikan UI.
+   - Keputusan final akses harus diverifikasi di server handler atau helper server.
 
-### 5. Metadata Inheritance
-- Informasi dari tahapan awal (judul, jenis form, assignee) otomatis diwarisi ke tahapan berikutnya
-- User tidak perlu mengisi ulang konteks yang sudah ada
+8. **Prefer server/API boundaries for new work.**
+   - Repo saat ini masih punya beberapa helper browser yang baca/tulis Supabase langsung.
+   - Untuk fitur baru, utamakan API route atau server helper kecuali ada alasan kuat mempertahankan pola lama.
+
+9. **Update docs before behavior changes.**
+   - Jika SOP atau workflow berubah, update dokumen terkait di `docs/` dan `AGENTS.md` sebelum atau bersamaan dengan kode.
 
 ---
 
-## 📁 Canonical File Structure
+## Behavioral Rules
 
+### 1. Auth dan Active Role
+
+- user login lewat Supabase Auth
+- role aktif disimpan di cookie `dms_active_role`
+- helper auth utama:
+  - `src/lib/auth.ts`
+  - `src/lib/auth-state.ts`
+- bootstrap auth client-side terjadi di `src/components/layout/AppLayout.tsx`
+- `ADMIN` tetap diperlakukan sebagai akun dedicated
+
+### 2. Role Switcher
+
+- jika user punya lebih dari satu role, role bisa diganti dari header
+- route default per role ditentukan oleh:
+  - `src/lib/constants/routes.ts`
+  - `src/config/navigation.ts`
+
+### 3. Workflow Material
+
+Alur approval material:
+
+```text
+DRAFT
+-> IN_PPK_VALIDATION
+-> IN_BENDAHARA_APPROVAL
+-> COMPLETED
+-> ARCHIVED
 ```
-d:\GitHub\mvp\
-├── AGENTS.md              ← Project Constitution (file ini) — HUKUM
-├── task_plan.md           ← PRD / Blueprint / Phase Checklist
-├── findings.md            ← Research, API constraints, discoveries
-├── progress.md            ← Active task log, error history
-├── DMS_PRD_TechStack.md   ← PRD sumber (referensi, jangan diubah)
-├── .env                   ← Secrets (tidak pernah di-commit)
-├── docs/                  ← Layer 1: SOPs
-│   ├── routing-sop.md
-│   ├── drizzle-schema.md
-│   └── supabase-rls.md
-├── src/
-│   ├── routeTree.gen.ts    ← Generated TanStack route tree
-│   ├── router.tsx         ← Main router config
-│   ├── routes/            ← TanStack file-based routes & server functions
-│   │   ├── index.tsx     ← Landing/login page
-│   │   ├── login.tsx
-│   │   ├── forbidden.tsx
-│   │   ├── profile.tsx
-│   │   ├── dokumen/       ← Public/pegawai dokumen routes
-│   │   ├── pegawai/      ← Pegawai role routes
-│   │   ├── ppk/          ← PPK role routes
-│   │   ├── bendahara/     ← Bendahara role routes
-│   │   ├── arsiparis/     ← Arsiparis role routes
-│   │   ├── admin/         ← Admin role routes (master data)
-│   │   └── api/          ← REST API endpoints
-│   │       ├── auth/       ← Auth endpoints (login, logout, session)
-│   │       ├── dokumen/   ← Dokumen CRUD & submit
-│   │       ├── ppk/       ← PPK endpoints (inbox, approve, reject)
-│   │       ├── bendahara/ ← Bendahara endpoints
-│   │       ├── arsiparis/ ← Arsiparis endpoints
-│   │       ├── master-*/  ← Master data CRUD
-│   │       └── admin/     ← Admin endpoints (cleanup, analyze)
-│   ├── components/
-│   │   ├── auth/          ← Auth components (RoleSwitcher, UserMenu)
-│   │   ├── dashboard/     ← Dashboard layout (PageLayout, StatsBento)
-│   │   ├── dokumen/       ← Document components (AttachmentEditor, AttachmentViewer, etc.)
-│   │   ├── layout/        ← Layout components (AppLayout)
-│   │   ├── laporan/       ← Laporan components (HierarchicalFilter)
-│   │   └── ui/            ← shadcn/ui components
-│   └── lib/
-│       ├── db/            ← Drizzle schema & client
-│       ├── schemas/       ← Zod schemas (dokumen.ts, auth.ts, master-data.ts)
-│       ├── fsm.ts         ← Document status FSM (SATU-SATUNYA tempat transisi status)
-│       ├── auth.ts         ← Auth helpers (getServerSession)
-│       ├── guards.ts       ← Route guards (role-based access)
-│       ├── supabase.ts    ← Supabase client factory
-│       ├── supabase-server.ts ← Server-side Supabase client
-│       ├── supabase-browser.ts ← Browser Supabase client
-│       ├── supabase-admin.ts   ← Admin Supabase client (bypass RLS)
-│       ├── dokumen-helpers.ts  ← Dokumen CRUD & storage helpers
-│       ├── file-helpers.ts     ← File operations (legacy, ada duplikasi)
-│       ├── storage-client.ts  ← Storage operations (getSignedUrl, download)
-│       ├── master-data.ts     ← Master data helpers
-│       ├── user-helpers.ts     ← User/role helpers
-│       ├── utils.ts           ← Utility functions (cn, formatDate, etc.)
-│       ├── utils/tahun.ts     ← Tahun utilities
-│       └── types/
-│           ├── auth.ts    ← Auth types
-│           ├── fsm.ts     ← FSM types
-│           └── user.ts    ← User types
-└── .tmp/                  ← Scratch/intermediates (tidak di-commit)
+
+Penolakan:
+
+- PPK reject -> `NEED_REVISION` target `USER`
+- Bendahara reject -> `NEED_REVISION` target `PPK`
+- PPK dapat `KEMBALIKAN` dokumen revisi-target-PPK kembali ke Pegawai
+
+### 4. Workflow Non-Material
+
+Dokumen Non-Material saat ini mengikuti shortcut:
+
+```text
+DRAFT -> TERSIMPAN
 ```
+
+Implikasi:
+
+- tidak masuk approval PPK/Bendahara
+- tetap disimpan sebagai dokumen transaksi
+- tetap bisa tampil di laporan tertentu
+
+### 5. Arsip Flow
+
+Setelah dokumen `COMPLETED`:
+
+- Arsiparis dapat mengarsipkan -> dokumen menjadi `ARCHIVED`, record `arsip` dibuat dengan `status_arsip='AKTIF'`
+- Arsiparis juga memiliki aksi skip di FSM, tetapi dokumen tetap `COMPLETED`
+- lifecycle lanjutan dikelola pada tabel `arsip`
+
+### 6. Ketua Tim
+
+- status ketua tim berasal dari `ketua_tim_assignments`
+- satu kegiatan hanya punya satu ketua tim aktif
+- user bisa menjadi ketua tim untuk banyak kegiatan
+- permission laporan kegiatan dan badge tertentu bergantung pada assignment ini
 
 ---
 
-## 🔧 Key Implementation Patterns
+## Canonical File Structure
 
-### Storage Path Pattern
+Struktur aktual repo yang relevan:
+
+```text
+D:\GitHub\mvp\
+|-- AGENTS.md
+|-- task_plan.md
+|-- findings.md
+|-- progress.md
+|-- REFACTORING_PLAN.md
+|-- README.md
+|-- SETUP.md
+|-- docs/
+|   |-- routing-sop.md
+|   |-- src-architecture-summary.md
+|   |-- ringkasan_arsitektur.md
+|   |-- pnpm-best-practices.md
+|   |-- drizzle-zod-best-practices.md
+|   `-- specs/
+|-- supabase/
+|   |-- migrations/
+|   `-- functions/
+|       `-- arsip-retensi/
+|-- tests/
+|   |-- e2e/
+|   `-- unit/
+|-- src/
+|   |-- router.tsx
+|   |-- routeTree.gen.ts
+|   |-- styles.css
+|   |-- config/
+|   |   `-- navigation.ts
+|   |-- hooks/
+|   |-- components/
+|   |   |-- auth/
+|   |   |-- dashboard/
+|   |   |-- dokumen/
+|   |   |   `-- form/
+|   |   |-- laporan/
+|   |   |-- layout/
+|   |   `-- ui/
+|   |-- lib/
+|   |   |-- api-client.ts
+|   |   |-- api-mutation.ts
+|   |   |-- auth.ts
+|   |   |-- auth-state.ts
+|   |   |-- guards.ts
+|   |   |-- fsm.ts
+|   |   |-- dokumen-helpers.ts
+|   |   |-- storage-client.ts
+|   |   |-- user-helpers.ts
+|   |   |-- master-data.ts
+|   |   |-- master-data/
+|   |   |-- dokumen/
+|   |   |-- constants/
+|   |   |-- db/
+|   |   |-- schemas/
+|   |   |-- types/
+|   |   `-- utils/
+|   `-- routes/
+|       |-- __root.tsx
+|       |-- index.tsx
+|       |-- login.tsx
+|       |-- forbidden.tsx
+|       |-- profile.tsx
+|       |-- dokumen/
+|       |-- pegawai/
+|       |-- ppk/
+|       |-- bendahara/
+|       |-- arsiparis/
+|       |-- admin.tsx
+|       |-- admin.index.tsx
+|       |-- admin.master-data.*.tsx
+|       `-- api/
+|           |-- auth/
+|           |-- dokumen/
+|           |-- ppk/
+|           |-- bendahara/
+|           |-- arsiparis/
+|           |-- users/
+|           |-- ketua-tim/
+|           `-- admin/
+`-- .tmp/
 ```
-PENDING files: {userId}/{timestamp}-{random}-{filename}.{ext}
-  → Format: 1778064971564-caqghvva3no-Daftar_Absensi.pdf
-  → Diproses saat upload, sebelum submit
 
-FORMAL files: {userId}/{dokId}/{uuid}.{ext}
-  → Format: 5bf798f0-d824-468f-9985-b8964f883d5a/bb6a9668-.../3c86de66.pdf
-  → Setelah submit, file di-rename dari PENDING ke formal
-```
+### Route Notes
 
-### Centralized Helpers
-```typescript
-// dokumen-helpers.ts
-syncDocumentAttachments()   ← Rename PENDING files + track old files for deletion
-deleteOrphanFiles()         ← Delete orphaned files from storage
-isStoragePathPending()       ← Check if path is PENDING format
-buildDokumenFilename()       ← Build display filename (kelengkapan_leafNode_kegiatan_tanggal)
-buildStorageFilename()       ← Build filename based on storage path type
-
-// storage-client.ts
-getSignedUrl()                ← Get signed URL from storage path
-downloadWithSignedUrl()       ← Download file with signed URL
-formatDateTime()             ← Format ISO date to Indonesian format
-```
-
-### Workflow: Submit → Resubmit
-```
-Pegawai Ajukan → PATCH /api/dokumen/submit (create)
-              → POST /api/dokumen/$id/submit (submit FSM)
-
-PPK Tolak → NEED_REVISION:USER
-Pegawai Revisi → PATCH /api/dokumen/$id (update lampiran)
-              → POST /api/dokumen/$id/submit (resubmit FSM)
-
-Bendahara Tolak → NEED_REVISION:PPK
-PPK Resubmit → PATCH /api/ppk/resubmit/$id (update lampiran)
-             → POST /api/ppk/resubmit/$id (resubmit FSM)
-```
+- route root memakai `src/routes/__root.tsx` dengan `ssr: false`
+- `src/routes/dokumen/*` adalah jalur legacy/kompatibilitas menuju flow Pegawai
+- halaman admin memakai pola flat file:
+  - `admin.master-data.user.tsx`
+  - `admin.master-data.fungsi.tsx`
+  - dst
 
 ---
 
-*Last updated: 2026-05-06 | Phase: Protocol 1 — Core Features Complete | Status: ACTIVE DEVELOPMENT*
+## Route and Ownership Map
+
+### Pegawai
+
+UI utama:
+
+- `/`
+- `/pegawai/dokumen`
+- `/pegawai/dokumen/aju`
+- `/pegawai/dokumen/$id`
+- `/pegawai/dokumen/$id/edit`
+- `/pegawai/dokumen/$id/revisi`
+- `/pegawai/laporan/saya`
+- `/pegawai/laporan/kegiatan`
+
+API utama:
+
+- `/api/dokumen`
+- `/api/dokumen/submit`
+- `/api/dokumen/$id`
+- `/api/dokumen/$id/submit`
+- `/api/upload`
+- `/api/laporan/saya`
+- `/api/laporan/kegiatan`
+
+### PPK
+
+UI utama:
+
+- `/ppk`
+- `/ppk/inbox`
+- `/ppk/tervalidasi`
+- `/ppk/ditolak`
+- `/ppk/revisi`
+- `/ppk/dokumen/$id`
+- `/ppk/dokumen/$id/resubmit`
+
+API utama:
+
+- `/api/ppk/inbox`
+- `/api/ppk/tervalidasi`
+- `/api/ppk/ditolak`
+- `/api/ppk/revisi`
+- `/api/ppk/dokumen/$id`
+- `/api/ppk/dokumen/$id/approve`
+- `/api/ppk/dokumen/$id/reject`
+- `/api/ppk/resubmit/$id`
+- `/api/ppk/kembalikan/$id`
+
+### Bendahara
+
+UI utama:
+
+- `/bendahara`
+- `/bendahara/inbox`
+- `/bendahara/ditolak`
+- `/bendahara/selesai`
+- `/bendahara/dokumen/$id`
+
+API utama:
+
+- `/api/bendahara/inbox`
+- `/api/bendahara/ditolak`
+- `/api/bendahara/selesai`
+- `/api/bendahara/dokumen/$id`
+- `/api/bendahara/dokumen/$id/approve`
+- `/api/bendahara/dokumen/$id/reject`
+
+### Arsiparis
+
+UI utama:
+
+- `/arsiparis`
+- `/arsiparis/inbox`
+- `/arsiparis/dokumen/$id`
+- `/arsiparis/aktif`
+- `/arsiparis/inaktif`
+- `/arsiparis/usul-musnah`
+- `/arsiparis/klasifikasi`
+- `/arsiparis/search`
+
+API utama:
+
+- `/api/arsiparis/inbox`
+- `/api/arsiparis/dokumen.$id`
+- `/api/arsiparis/dokumen.$id.archive`
+- `/api/arsiparis/aktif`
+- `/api/arsiparis/aktif.$id`
+- `/api/arsiparis/aktif.$id/pindahkan`
+- `/api/arsiparis/inaktif`
+- `/api/arsiparis/inaktif.$id`
+- `/api/arsiparis/inaktif.$id/musnahkan`
+- `/api/arsiparis/usul-musnah`
+- `/api/arsiparis/usul-musnah.$id`
+- `/api/arsiparis/search`
+- `/api/arsiparis/klasifikasi/*`
+
+### Admin
+
+UI utama:
+
+- `/admin`
+- `/admin/master-data/user`
+- `/admin/master-data/fungsi`
+- `/admin/master-data/kegiatan`
+- `/admin/master-data/jenis`
+- `/admin/master-data/jenis-dokumen`
+- `/admin/master-data/kategori`
+- `/admin/master-data/detail`
+- `/admin/master-data/kelengkapan`
+
+API utama:
+
+- `/api/users/*`
+- `/api/master-fungsi*`
+- `/api/master-kegiatan*`
+- `/api/master-jenis*`
+- `/api/master-kategori*`
+- `/api/master-detail*`
+- `/api/master-kelengkapan*`
+- `/api/ketua-tim/*`
+- `/api/admin/analyze-storage`
+- `/api/admin/cleanup-orphan-files`
+
+---
+
+## Central Modules
+
+Kalau menyentuh domain inti, baca file-file ini dulu:
+
+- `src/components/layout/AppLayout.tsx`
+- `src/config/navigation.ts`
+- `src/lib/auth.ts`
+- `src/lib/auth-state.ts`
+- `src/lib/fsm.ts`
+- `src/lib/constants/document-status.ts`
+- `src/lib/dokumen-helpers.ts`
+- `src/lib/dokumen/queries.ts`
+- `src/lib/dokumen/mutations.ts`
+- `src/lib/master-data.ts`
+- `src/lib/user-helpers.ts`
+- `src/routes/api/dokumen/submit.ts`
+- `src/routes/api/dokumen.$id.ts`
+- `src/routes/api/ppk/dokumen/$id/approve.ts`
+- `src/routes/api/bendahara/dokumen/$id/approve.ts`
+- `src/routes/api/arsiparis/dokumen.$id.archive.ts`
+
+---
+
+## Storage Patterns
+
+Pola path storage lampiran masih dua tahap:
+
+```text
+Pending:
+{userId}/{timestamp}-{random}-{filename.ext}
+
+Formal:
+{userId}/{dokumenId}/{uuid.ext}
+```
+
+Aturan:
+
+- file boleh upload ke path pending
+- submit atau resubmit harus memindahkan file ke path formal
+- snapshot lampiran saat arsip disimpan di tabel `arsip.lampiran_snapshot`
+- akses preview/download harus memperhatikan arsip yang sudah `DIMUSNAHKAN`
+
+Helper sentral:
+
+- `src/lib/dokumen-helpers.ts`
+- `src/lib/storage-client.ts`
+- `src/lib/utils/file.ts`
+- `src/lib/file-helpers.ts`
+
+---
+
+## Testing Expectations
+
+Sebelum menganggap perubahan aman:
+
+- jalankan unit test yang relevan dengan `pnpm test`
+- untuk perubahan workflow atau auth utama, prioritaskan cek:
+  - `tests/fsm.test.ts`
+  - `tests/e2e/submit-flow.spec.ts`
+  - `tests/e2e/approval-flow.spec.ts`
+  - `tests/e2e/spec-06-user-management.spec.ts`
+
+Jika tidak sempat menjalankan test, nyatakan secara eksplisit.
+
+---
+
+## Practical Rules For Future Changes
+
+1. Jika menambah tabel baru:
+   - buat migration Supabase
+   - update AGENTS ini
+   - update Zod schema/helper yang terdampak
+   - mirror ke Drizzle bila tabel itu memang perlu dipakai dari layer tersebut
+
+2. Jika menambah status baru:
+   - update `src/lib/constants/document-status.ts`
+   - update `src/lib/fsm.ts`
+   - update test FSM
+   - update page badge/filter yang bergantung pada status
+   - update file ini
+
+3. Jika mengubah route:
+   - update `src/lib/constants/routes.ts`
+   - update `src/config/navigation.ts`
+   - update legacy redirect bila masih perlu backward compatibility
+   - update file ini
+
+4. Jika mengubah arsip lifecycle:
+   - cek migration dan function `supabase/functions/arsip-retensi/index.ts`
+   - cek endpoint aktif/inaktif/usul-musnah
+   - cek behavior download preview setelah musnah
+
+5. Jika mengubah auth atau role resolution:
+   - cek `AppLayout`
+   - cek `auth.ts`
+   - cek `user_status`
+   - cek API role checks
+
+---
+
+## Status
+
+- Last updated: 2026-05-12
+- App mode: Active development
+- Architecture mode: TanStack Start SPA-heavy with Supabase-backed server routes
+- Constitution accuracy target: synced to current repo structure and implemented features
