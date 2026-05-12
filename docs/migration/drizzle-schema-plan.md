@@ -597,3 +597,34 @@ Remaining questions:
 - Should `tanggal` in `dokumen_transaksi` remain text permanently or become `date` after API serialization is audited?
 - Which master-data tables require hard delete behavior and which require soft delete behavior in admin APIs?
 - Should database triggers enforce `updated_at` and `log_aktivitas` append-only rules, or should Phase 3 only model them at service/test level?
+
+## Phase 3B Status
+
+Phase 3B created the minimal Drizzle config and client foundation only.
+
+Foundation files created:
+
+- `src/db/index.ts`
+- `src/db/client.ts`
+- `src/db/schema/index.ts`
+- `src/db/schema/auth/index.ts`
+- `src/db/schema/master/index.ts`
+- `src/db/schema/dokumen/index.ts`
+- `src/db/schema/arsip/index.ts`
+- `src/db/schema/app/index.ts`
+
+Drizzle config now targets schema entrypoint `./src/db/schema/index.ts` and migration output folder `./drizzle`.
+
+Dependency inspection found `drizzle-orm` and `drizzle-kit` already present, but no PostgreSQL runtime driver dependency such as `pg`, `postgres`, or `@neondatabase/serverless` is declared in `package.json`. Because this task forbids installing packages, `src/db/client.ts` is a safe server-only placeholder: it requires `DATABASE_URL`, exports `db`, and throws a clear driver-missing error if used before an approved PostgreSQL driver is added.
+
+Intentionally unimplemented:
+
+- no domain schema tables
+- no relations
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no API route usage
+- no auth implementation
+- no storage implementation
+
+Corrected UUID decision remains: Use fresh local UUIDs for new local users/seeds while preserving UUID-based ownership and foreign-key semantics; old Supabase UUID values are not imported because existing Supabase data is not being migrated.
