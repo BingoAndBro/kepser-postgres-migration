@@ -76,6 +76,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Use `drizzle-kit generate` with reviewed SQL migrations, not `drizzle-kit push`, as the main migration workflow.
   Date: 2026-05-12.
   Rationale: generated SQL should be reviewed and committed; Docker init SQL remains limited to base schemas/extensions. See `docs/migration/drizzle-schema-plan.md` Section 14.
+- Use `pg`/node-postgres as the local PostgreSQL runtime driver for Drizzle client usage.
+  Date: 2026-05-12.
+  Rationale: `pg` and `@types/pg` are installed, and `src/db/client.ts` now wires `Pool` from `pg` to `drizzle-orm/node-postgres`. The client remains unused by API routes until later migration phases.
 
 ## Still Open
 
@@ -97,8 +100,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - What local scheduled-job mechanism replaces Supabase Edge Function plus pg_cron for archive retention.
 - Whether obsolete-looking `arsip_verifikasi_penyusutan` Edge Function behavior should be migrated, removed, or reconciled with current archive lifecycle.
 - Whether `.env.example` concrete-looking Supabase keys should be replaced with placeholders in a separate hygiene task.
-- Which PostgreSQL runtime driver should be added for Drizzle client usage.
-  Phase 3B finding: `drizzle-orm` and `drizzle-kit` are present, but no runtime driver such as `pg`, `postgres`, or `@neondatabase/serverless` is declared. `src/db/client.ts` remains a safe placeholder until this is decided and installed in a later implementation task.
 
 ## Decision Log Rules
 

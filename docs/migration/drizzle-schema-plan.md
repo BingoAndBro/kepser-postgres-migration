@@ -615,7 +615,7 @@ Foundation files created:
 
 Drizzle config now targets schema entrypoint `./src/db/schema/index.ts` and migration output folder `./drizzle`.
 
-Dependency inspection found `drizzle-orm` and `drizzle-kit` already present, but no PostgreSQL runtime driver dependency such as `pg`, `postgres`, or `@neondatabase/serverless` is declared in `package.json`. Because this task forbids installing packages, `src/db/client.ts` is a safe server-only placeholder: it requires `DATABASE_URL`, exports `db`, and throws a clear driver-missing error if used before an approved PostgreSQL driver is added.
+Dependency inspection found `drizzle-orm` and `drizzle-kit` already present. Phase 3B.1 selected `pg`/node-postgres as the local PostgreSQL runtime driver, with `@types/pg` added for TypeScript. `src/db/client.ts` now uses `Pool` from `pg` and `drizzle` from `drizzle-orm/node-postgres`, requires `DATABASE_URL`, exports `pool`, and exports `db`.
 
 Intentionally unimplemented:
 
