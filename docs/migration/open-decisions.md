@@ -61,18 +61,34 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - For LAN deployment, app must listen on `0.0.0.0` or an equivalent LAN-reachable interface.
 - PostgreSQL should not be exposed to LAN unless explicitly needed.
 - HTTPS strategy for LAN is deferred unless required.
+- Preserve old Supabase user UUIDs during migration.
+  Date: 2026-05-12.
+  Rationale: document ownership, role joins, logs, reports, archive snapshots, and storage paths may reference user IDs. Fresh UUIDs would require a high-risk mapping layer across DB rows, JSON payloads, and filesystem paths. See `docs/migration/drizzle-schema-plan.md` Section 6.
+- Keep lampiran metadata embedded in `dokumen_transaksi.lampiran_urls` as JSONB during the compatibility phase.
+  Date: 2026-05-12.
+  Rationale: current request/response shapes, pending-to-formal storage behavior, and `arsip.lampiran_snapshot` depend on the existing JSON array shape. A normalized file metadata table can be added later as a hybrid after storage parity is proven. See `docs/migration/drizzle-schema-plan.md` Section 11.
+- Use text columns with check constraints for status/enum-like values during the compatibility phase.
+  Date: 2026-05-12.
+  Rationale: workflow and archive states have changed during recent migrations. Text plus check constraints is easier to evolve than PostgreSQL enum types while TypeScript constants and FSM tests remain canonical. See `docs/migration/drizzle-schema-plan.md` Section 12.
+- Seed strategy should be deterministic, minimal, and idempotent.
+  Date: 2026-05-12.
+  Rationale: seed only roles, bootstrap admin, minimal required master data, and dev/test fixtures when explicitly in dev/test mode. Do not restore Supabase dummy data or seed production secrets. See `docs/migration/drizzle-schema-plan.md` Section 13.
+- Use `drizzle-kit generate` with reviewed SQL migrations, not `drizzle-kit push`, as the main migration workflow.
+  Date: 2026-05-12.
+  Rationale: generated SQL should be reviewed and committed; Docker init SQL remains limited to base schemas/extensions. See `docs/migration/drizzle-schema-plan.md` Section 14.
 
 ## Still Open
 
 - Exact Drizzle schema naming conventions.
-- Exact seed strategy.
-- Whether local auth preserves old Supabase user UUIDs or generates fresh UUIDs.
+  Phase 3A recommendation: preserve existing snake_case table/column names, use camelCase Drizzle identifiers, and use explicit index/constraint names. See `docs/migration/drizzle-schema-plan.md` Section 5.
 - Which current Supabase user metadata fields become first-class columns versus JSON metadata.
 - Exact repository folder structure for DB/auth/storage modules.
+  Phase 3A recommendation: use `src/db/` with domain-grouped schema files. See `docs/migration/drizzle-schema-plan.md` Section 4.
 - Exact transition strategy for old Supabase helpers.
 - Exact signed-token implementation details, including token claims, nonce/jti persistence, signing algorithm, and expiry durations.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
+  Phase 3A recommendation: preserve stored path strings during compatibility because user IDs and existing JSON snapshots are path-coupled. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.
