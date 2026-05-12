@@ -73,6 +73,15 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Seed strategy should be deterministic, minimal, and idempotent.
   Date: 2026-05-12.
   Rationale: seed only roles, bootstrap admin, minimal required master data, and dev/test fixtures when explicitly in dev/test mode. Do not restore Supabase dummy data or seed production secrets. See `docs/migration/drizzle-schema-plan.md` Section 13.
+- Canonical seed roles are `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`.
+  Date: 2026-05-13.
+  Rationale: these are the application roles already defined by the domain model. Phase 3G seeds them as initial dynamic `auth.roles` rows without adding a role-name enum/check restriction.
+- Seed users use fresh deterministic local UUIDs.
+  Date: 2026-05-13.
+  Rationale: deterministic IDs make local development repeatable while preserving UUID ownership and FK semantics. Old Supabase Auth UUIDs are not imported or preserved.
+- Minimal idempotent seed strategy for Phase 3G.
+  Date: 2026-05-13.
+  Rationale: Phase 3G seeds only canonical roles, optional development users, minimal FK-supporting master data, one archive classification, and a safe optional Ketua Tim fixture. It does not seed workflow rows or imported Supabase data.
 - Use `drizzle-kit generate` with reviewed SQL migrations, not `drizzle-kit push`, as the main migration workflow.
   Date: 2026-05-12.
   Rationale: generated SQL should be reviewed and committed; Docker init SQL remains limited to base schemas/extensions. See `docs/migration/drizzle-schema-plan.md` Section 14.
@@ -112,11 +121,14 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
+- Exact production bootstrap admin strategy.
+- Real password provisioning workflow for bootstrap and development users.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.
 - Backup schedule and retention.
 - Server hostname/static IP strategy.
 - What local scheduled-job mechanism replaces Supabase Edge Function plus pg_cron for archive retention.
 - How the obsolete `arsip_verifikasi_penyusutan` references inside the old Supabase Edge Function should be reconciled when replacing archive retention scheduling.
+- Exact API migration strategy by endpoint after DB/auth/storage foundations are ready.
 - Whether `.env.example` concrete-looking Supabase keys should be replaced with placeholders in a separate hygiene task.
 
 ## Decision Log Rules

@@ -792,6 +792,63 @@ Intentionally unimplemented:
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
 
+## Phase 3G Status
+
+Phase 3G created only the seed foundation for future local PostgreSQL development. The seed code was not run, Drizzle Kit was not run, and no database connection or write was performed.
+
+Seed files created:
+
+- `src/db/seed/constants.ts`
+- `src/db/seed/roles.ts`
+- `src/db/seed/users.ts`
+- `src/db/seed/master-data.ts`
+- `src/db/seed/index.ts`
+- `src/db/seed/README.md`
+
+Documentation created:
+
+- `docs/migration/seed-foundation.md`
+
+Planned seed data:
+
+- canonical roles: `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`
+- optional development users with fresh deterministic local UUIDs
+- optional user-role joins, with `ADMIN` kept as a dedicated role
+- minimal master data required to create a valid document later: one function, one activity, one material request chain, one non-material document type, and three required attachment rows
+- one minimal archive classification
+- one Ketua Tim assignment fixture only when development users are seeded
+
+Dependency findings:
+
+- `pg` and Drizzle are already present and the seed runner imports the existing `src/db/client.ts`.
+- No direct `argon2` dependency or other approved password hashing dependency is installed.
+- `tsx` appears in `pnpm-lock.yaml` only transitively through existing tooling; it is not a direct dependency or script runner declared in `package.json`.
+
+Password hash strategy:
+
+- Phase 3G does not generate password hashes.
+- Development user seeding is skipped unless `DMS_DEV_SEED_PASSWORD_HASH` is set to an externally generated argon2id hash.
+- No plaintext passwords or realistic secrets are committed.
+
+Package script status:
+
+- No `db:seed` script was added.
+- Adding a script is deferred until Phase 4 or an approved dependency task adds a direct TypeScript runner such as `tsx`.
+
+Intentionally unimplemented:
+
+- no generated Drizzle migrations
+- no Drizzle Kit execution
+- no seed execution
+- no database connection or write
+- no API route migration
+- no auth/session behavior implementation
+- no login/logout/session APIs
+- no password hashing service layer
+- no storage implementation
+- no FSM or workflow behavior changes
+- no workflow rows in `dokumen_transaksi`, `log_aktivitas`, `arsip`, or `arsip_usul_musnah`
+
 ## Phase 3F Status
 
 Phase 3F created only the arsip namespace Drizzle table definitions required by the current active archive lifecycle.
