@@ -44,9 +44,9 @@ User seeding is optional. If `DMS_DEV_SEED_PASSWORD_HASH` is not set, the seed r
 
 ## Password Hash Strategy
 
-No plaintext passwords are committed. The repo currently does not have a direct `argon2` dependency or another approved password hashing package.
+No plaintext passwords are committed. Phase 5A adds the approved direct `argon2` dependency and a separate helper script for human-triggered password hash generation.
 
-Until password hashing is approved and implemented in the auth phase, development user seeding requires an externally provided argon2id hash through:
+Development user seeding requires an explicitly supplied Argon2id hash through:
 
 ```bash
 DMS_DEV_SEED_PASSWORD_HASH=<argon2id-hash>
@@ -55,6 +55,18 @@ DMS_DEV_SEED_PASSWORD_HASH=<argon2id-hash>
 The seed script stores the provided value as `auth.users.password_hash` and marks `password_hash_algorithm` as `argon2id`. It does not generate hashes.
 
 Do not use development credentials or deterministic seed hashes in production.
+
+## Phase 5A Password Hash Helper
+
+Phase 5A adds `argon2` plus a helper script for generating `DMS_DEV_SEED_PASSWORD_HASH` later:
+
+```bash
+pnpm auth:hash-password
+```
+
+The helper reads `DMS_DEV_SEED_PASSWORD` and prints only the generated Argon2id hash when a human developer explicitly runs it. Codex did not run the helper or generate a hash during Phase 5A.
+
+Development user seed execution remains separate and approval-gated. Supply `DMS_DEV_SEED_PASSWORD_HASH` only when explicitly running a later approved development user seed. Do not commit generated hashes, plaintext passwords, `.env`, or `.env.migration`.
 
 ## Deterministic UUID Strategy
 
@@ -117,4 +129,4 @@ Phase 3H adds a direct TypeScript runner for the seed entrypoint by declaring `t
 
 Seed execution remains manual and approval-gated. Do not run the seed until reviewed Drizzle migrations have been applied to the local PostgreSQL database.
 
-Development user seeding still requires `DMS_DEV_SEED_PASSWORD_HASH`. The seed script does not generate password hashes and `argon2` remains intentionally uninstalled in this phase.
+Development user seeding still requires `DMS_DEV_SEED_PASSWORD_HASH`. The seed script does not generate password hashes. Phase 5A adds a separate password hash helper for human-triggered hash generation, but seed execution remains approval-gated.

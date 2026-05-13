@@ -30,6 +30,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Rationale: current browser Supabase session bootstrap must be replaced with server-validated session data.
 - Argon2id password hashing.
   Rationale: target auth contract requires modern password hashing.
+- Use the `argon2` package for password hashing with Argon2id parameters `memoryCost: 65536`, `timeCost: 3`, and `parallelism: 1`.
+  Date: 2026-05-13.
+  Rationale: `argon2` is the approved package for Phase 5A, uses the required Argon2id algorithm, and `parallelism: 1` is safer for cross-machine local development compatibility. Bcrypt, bcryptjs, scrypt, PBKDF2, and custom cryptography were not used.
 - Session token stored hashed.
   Rationale: raw session tokens must not be stored in the database.
 - Default session expiration: 8 hours.
@@ -132,6 +135,12 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for bootstrap and development users.
+- Development user seed execution.
+- Exact session cookie implementation.
+- Login/logout/session API migration.
+- Storage replacement.
+- Backup/restore process.
+- Archive scheduler replacement.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.
 - Backup schedule and retention.
 - Server hostname/static IP strategy.
