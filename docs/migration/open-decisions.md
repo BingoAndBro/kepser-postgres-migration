@@ -136,6 +136,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for bootstrap and development users.
 - Development user seed execution.
+  Phase 5B status on 2026-05-13: still open. Preflight found that the effective local seed environment did not contain `DMS_DEV_SEED_PASSWORD_HASH`, so `pnpm db:local:seed` was not run and development users remain unseeded.
 - Exact session cookie implementation.
 - Login/logout/session API migration.
 - Storage replacement.

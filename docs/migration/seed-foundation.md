@@ -68,6 +68,24 @@ The helper reads `DMS_DEV_SEED_PASSWORD` and prints only the generated Argon2id 
 
 Development user seed execution remains separate and approval-gated. Supply `DMS_DEV_SEED_PASSWORD_HASH` only when explicitly running a later approved development user seed. Do not commit generated hashes, plaintext passwords, `.env`, or `.env.migration`.
 
+## Phase 5B Controlled Development User Seed
+
+Phase 5B keeps development user seeding local-only and approval-gated. The seed path must be checked before execution:
+
+- `.env.migration` must exist, remain ignored/untracked, and target local PostgreSQL.
+- `pnpm db:local:seed` must be the only DB mutation command used for this phase.
+- `DMS_DEV_SEED_PASSWORD_HASH` must already be present in the local seed environment.
+- The supplied value must only be checked for Argon2id encoded hash shape, such as the `$argon2id$` prefix.
+- Codex must not generate, print, or store a hash.
+- Seed code must not generate hashes.
+- Sessions are not seeded.
+
+If `DMS_DEV_SEED_PASSWORD_HASH` is absent, development users are not seeded and the phase stops before `pnpm db:local:seed`.
+
+The current seed definitions create 5 development users and 7 role joins when the hash is supplied. `ADMIN` remains a dedicated account with no combined roles. The seed still does not create workflow documents, activity logs, archive transaction rows, archive destruction proposal rows, or sessions.
+
+Phase 5B execution details are documented in `docs/migration/dev-user-seed-execution.md`.
+
 ## Deterministic UUID Strategy
 
 Seed rows use deterministic UUIDs for repeatable local development. These are fresh local fixture IDs, not old Supabase Auth UUIDs.
