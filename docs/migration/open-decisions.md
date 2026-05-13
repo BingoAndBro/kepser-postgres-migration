@@ -118,6 +118,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Package script names for local DB migration preparation.
   Date: 2026-05-13.
   Rationale: Phase 3H defines separate safe scripts: `db:generate` for `drizzle-kit generate`, `db:migrate` for `drizzle-kit migrate`, and `db:seed` for `tsx src/db/seed/index.ts`. Combined generate/migrate/seed and destructive reset scripts remain intentionally absent.
+- Development user seed execution for local development.
+  Date: 2026-05-13.
+  Rationale: Phase 5B.1 confirmed the effective local seed environment already contained an Argon2id-shaped `DMS_DEV_SEED_PASSWORD_HASH`, ran only `pnpm db:local:seed`, and verified 5 development users, 8 user-role joins, 0 sessions, 0 workflow rows, 0 archive transaction rows, and no application tables in `public`. This decision is local-development-only and does not decide production bootstrap, session implementation, login/logout/session API migration, API migration strategy, storage replacement, signed-token implementation, backup/restore, or archive scheduler replacement.
 
 ## Still Open
 
@@ -134,9 +137,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
-- Real password provisioning workflow for bootstrap and development users.
-- Development user seed execution.
-  Phase 5B status on 2026-05-13: still open. Preflight found that the effective local seed environment did not contain `DMS_DEV_SEED_PASSWORD_HASH`, so `pnpm db:local:seed` was not run and development users remain unseeded.
+- Real password provisioning workflow for production/bootstrap users.
 - Exact session cookie implementation.
 - Login/logout/session API migration.
 - Storage replacement.

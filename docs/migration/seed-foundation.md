@@ -82,7 +82,9 @@ Phase 5B keeps development user seeding local-only and approval-gated. The seed 
 
 If `DMS_DEV_SEED_PASSWORD_HASH` is absent, development users are not seeded and the phase stops before `pnpm db:local:seed`.
 
-The current seed definitions create 5 development users and 7 role joins when the hash is supplied. `ADMIN` remains a dedicated account with no combined roles. The seed still does not create workflow documents, activity logs, archive transaction rows, archive destruction proposal rows, or sessions.
+The current seed definitions create 5 development users and 8 role joins when the hash is supplied. `ADMIN` remains a dedicated account with no combined roles. The seed still does not create workflow documents, activity logs, archive transaction rows, archive destruction proposal rows, or sessions.
+
+Phase 5B.1 executed the controlled local seed on 2026-05-13 after `DMS_DEV_SEED_PASSWORD_HASH` was already present in the effective local seed environment. Development users are now seeded in the local Docker PostgreSQL database only. This does not decide the production bootstrap strategy. Sessions remain unseeded, and future seed reruns remain approval-gated.
 
 Phase 5B execution details are documented in `docs/migration/dev-user-seed-execution.md`.
 

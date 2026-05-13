@@ -86,13 +86,67 @@ Derived from current seed definitions, the expected development users are:
 - `dev.bendahara@local.test` with `PEGAWAI` and `BENDAHARA`.
 - `dev.arsiparis@local.test` with `PEGAWAI` and `ARSIPARIS`.
 
-That means a fresh successful dev-user seed should create 5 development users and 7 user-role joins.
+That means a fresh successful dev-user seed should create 5 development users and 8 user-role joins.
 
-## Phase 5B Result
+## Phase 5B Preflight-Only Result
 
 On 2026-05-13, preflight confirmed that `.env.migration` exists, is ignored/untracked, and targets local PostgreSQL database `kepser`. The effective local seed environment did not contain `DMS_DEV_SEED_PASSWORD_HASH`, so `pnpm db:local:seed` was not run.
 
-Development user seed execution remains blocked until the human developer provides a local Argon2id encoded hash.
+Development user seed execution remained blocked until the human developer provided a local Argon2id encoded hash for Phase 5B.1.
+
+## Phase 5B.1 Execution Result
+
+Date: 2026-05-13.
+
+Preflight passed:
+
+- `git status --short --branch` was clean before seed execution.
+- `.env.migration` existed, was ignored, and was untracked.
+- `db:local:seed` was present and configured to load `.env.migration` with dotenv override semantics.
+- The effective local seed environment contained `DMS_DEV_SEED_PASSWORD_HASH`.
+- The hash shape check passed for the `$argon2id$` prefix without printing the hash.
+- The target database classified as local PostgreSQL database `kepser`; the full URL was not printed.
+- Seed code review confirmed no hash generation, no session seeding, no workflow document seeding, and no archive transaction seeding.
+- `ADMIN` remained a dedicated role in the seed definitions.
+
+`pnpm db:local:seed` was run and completed successfully. Development users were seeded locally for future custom auth/session testing. No password, hash, token, or database URL value was printed.
+
+Read-only verification counts after seed:
+
+| Table | Count |
+|---|---:|
+| `auth.roles` | 5 |
+| `auth.users` | 5 |
+| `auth.user_roles` | 8 |
+| `auth.sessions` | 0 |
+| `master.master_fungsi` | 1 |
+| `master.master_kegiatan` | 1 |
+| `master.master_jenis_dokumen` | 1 |
+| `master.master_jenis_permintaan` | 1 |
+| `master.master_kategori_permintaan` | 1 |
+| `master.master_detail_permintaan` | 1 |
+| `master.master_kelengkapan_dokumen` | 3 |
+| `arsip.master_klasifikasi_arsip` | 1 |
+| `master.ketua_tim_assignments` | 1 |
+| `dokumen.dokumen_transaksi` | 0 |
+| `dokumen.log_aktivitas` | 0 |
+| `arsip.arsip` | 0 |
+| `arsip.arsip_usul_musnah` | 0 |
+| `public` base tables | 0 |
+
+The verified development user role mapping was:
+
+| User | Roles |
+|---|---|
+| `dev.admin@local.test` | `ADMIN` |
+| `dev.pegawai@local.test` | `PEGAWAI` |
+| `dev.ppk@local.test` | `PEGAWAI`, `PPK` |
+| `dev.bendahara@local.test` | `PEGAWAI`, `BENDAHARA` |
+| `dev.arsiparis@local.test` | `PEGAWAI`, `ARSIPARIS` |
+
+The resulting 8 `auth.user_roles` rows match the current seed constants and role mapping above.
+
+The application auth runtime remains Supabase-backed. Custom login/session runtime remains not implemented.
 
 ## Intentionally Not Implemented
 
