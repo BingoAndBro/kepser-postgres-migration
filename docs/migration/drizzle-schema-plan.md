@@ -835,6 +835,32 @@ pnpm db:local:seed
 
 Migration was not retried in Phase 4B.2. Seed was not run.
 
+## Phase 4B.3 Status
+
+Phase 4B.3 successfully applied the reviewed initial Drizzle migration to local Docker PostgreSQL using the explicit local env script:
+
+```bash
+pnpm db:local:migrate
+```
+
+Local env confirmation:
+
+- `.env.migration` existed and was ignored
+- `.env.migration` target host was local
+- `.env.migration` target database was `kepser`
+
+Database verification summary:
+
+- pre-migration database was empty: no application tables and no Drizzle metadata table
+- Drizzle metadata table exists after apply: `drizzle.__drizzle_migrations`
+- all 17 expected application tables exist under `auth`, `master`, `dokumen`, and `arsip`
+- no application tables exist in `public`
+- expected unique indexes, composite primary key, checks, JSONB defaults, and FK delete rules were spot-checked successfully
+
+Seed was not run. `pnpm db:seed`, `pnpm db:local:seed`, `pnpm db:generate`, and `pnpm db:local:generate` were not run.
+
+Next recommended phase: run the controlled local seed with `pnpm db:local:seed` only after explicit approval and seed prerequisites are confirmed.
+
 ## Phase 3G Status
 
 Phase 3G created only the seed foundation for future local PostgreSQL development. The seed code was not run, Drizzle Kit was not run, and no database connection or write was performed.

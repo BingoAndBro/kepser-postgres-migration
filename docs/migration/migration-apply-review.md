@@ -142,3 +142,138 @@ Implementation notes:
 - existing generic scripts `db:generate`, `db:migrate`, and `db:seed` were preserved unchanged.
 
 Migration was not retried in Phase 4B.2. Seed was not run.
+
+## Phase 4B.3 Local Migration Apply
+
+Date/time: 2026-05-13 17:15:05 +07:00.
+
+Command run:
+
+```bash
+pnpm db:local:migrate
+```
+
+Result:
+
+```text
+migrations applied successfully
+```
+
+The generic `pnpm db:migrate` command was not run.
+
+### Local Environment Confirmation
+
+Checked without printing secrets:
+
+- `.env.migration` exists: true
+- `.env.migration` is ignored: true
+- local target host is `localhost` or `127.0.0.1`: true
+- local target database is `kepser`: true
+
+### Docker And Pre-Migration State
+
+Docker/PostgreSQL health:
+
+- `kepser-postgres` was running and healthy.
+- `pg_isready -U kepser -d kepser` returned accepting connections.
+
+Pre-migration schemas existed:
+
+- `app`
+- `arsip`
+- `auth`
+- `dokumen`
+- `master`
+- `public`
+
+Pre-migration empty check:
+
+- no application tables existed in `auth`, `master`, `dokumen`, or `arsip`
+- no application tables existed in `public`
+- no Drizzle metadata table existed
+
+### Drizzle Metadata Verification
+
+Drizzle metadata table exists:
+
+- `drizzle.__drizzle_migrations`
+
+The table contains one applied migration row.
+
+### Expected Tables Verification
+
+Expected application tables exist:
+
+- `auth.users`
+- `auth.roles`
+- `auth.user_roles`
+- `auth.sessions`
+- `master.master_fungsi`
+- `master.master_kegiatan`
+- `master.master_kelengkapan_dokumen`
+- `master.master_jenis_permintaan`
+- `master.master_kategori_permintaan`
+- `master.master_detail_permintaan`
+- `master.master_jenis_dokumen`
+- `master.ketua_tim_assignments`
+- `dokumen.dokumen_transaksi`
+- `dokumen.log_aktivitas`
+- `arsip.arsip`
+- `arsip.master_klasifikasi_arsip`
+- `arsip.arsip_usul_musnah`
+
+Public schema check:
+
+- no application tables exist in `public`
+
+### Constraint, Index, Check, And Default Spot Checks
+
+Verified indexes:
+
+- `auth_users_email_unique`
+- `auth_roles_nama_unique`
+- `auth_user_roles_user_id_role_id_pk`
+- `auth_sessions_token_hash_unique`
+- `ketua_tim_kegiatan_unique`
+
+Verified constraints/checks:
+
+- `auth.user_roles` composite primary key on `(user_id, role_id)`
+- `dokumen_nominal_realisasi_positive`
+- `arsip_usul_musnah_status_check`
+- no role-name check constraint exists on `auth.roles`
+
+Verified JSONB defaults:
+
+- `auth.users.metadata` is `jsonb` with default `'{}'::jsonb`
+- `dokumen.dokumen_transaksi.lampiran_urls` is `jsonb` with default `'[]'::jsonb`
+
+Foreign-key delete behavior spot-check:
+
+- archive rows and user-linked workflow/archive history use `NO ACTION` where expected
+- `arsip.master_klasifikasi_arsip.parent_id` uses `SET NULL`
+- `dokumen.log_aktivitas.dokumen_id` uses `CASCADE`, matching the reviewed migration
+- no unexpected cascade delete was found for archive rows or user-linked workflow/archive history
+
+### Seed Confirmation
+
+Seed was not run.
+
+Zero-count checks passed:
+
+- `auth.roles`: 0
+- `auth.users`: 0
+- `master.master_fungsi`: 0
+- `dokumen.dokumen_transaksi`: 0
+- `arsip.arsip`: 0
+
+Commands intentionally not run:
+
+- `pnpm db:seed`
+- `pnpm db:local:seed`
+- `pnpm db:generate`
+- `pnpm db:local:generate`
+
+### Recommendation
+
+Phase 4B.3 successfully applied the reviewed initial Drizzle migration to the local Docker PostgreSQL database. The next recommended phase is a controlled seed run using `pnpm db:local:seed` only after explicit seed approval and required seed password-hash prerequisites are confirmed.

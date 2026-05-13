@@ -43,6 +43,14 @@ pnpm db:seed
 
 Those generic scripts may read the regular `.env`, which can still point to Supabase during the migration branch.
 
+Phase 4B.3 applied the reviewed initial Drizzle migration successfully with:
+
+```bash
+pnpm db:local:migrate
+```
+
+For any fresh local database rebuild, keep using the explicit local scripts so Drizzle targets Docker PostgreSQL through `.env.migration`.
+
 ## Safe Command Order
 
 1. Start PostgreSQL:
