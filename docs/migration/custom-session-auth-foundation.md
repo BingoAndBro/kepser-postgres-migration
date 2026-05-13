@@ -312,7 +312,15 @@ The implementation uses local `auth.users`, `auth.roles`, `auth.user_roles`, Arg
 
 `AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` were intentionally not modified. The primary browser runtime still uses Supabase-backed auth until Phase 5F performs the controlled client integration/runtime switch.
 
-`/api/auth/role-switch` was intentionally left Supabase-backed. It is a Phase 5E.1 or Phase 5F blocker before fully switching the runtime to local custom sessions.
+At the end of Phase 5E, `/api/auth/role-switch` was intentionally left Supabase-backed as the next auth API compatibility gap.
+
+## Phase 5E.1 Implementation Note
+
+Phase 5E.1 migrated the existing `POST /api/auth/role-switch` endpoint internals to local `dms_session` validation.
+
+The route now hashes the session cookie token, resolves it through `auth.sessions`, validates the assigned local role set, rejects ADMIN role switching, verifies the requested `activeRole` belongs to the authenticated user, and writes only the readable `dms_active_role` UX cookie on success.
+
+`dms_active_role` remains UX state only and is not authorization proof. `AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` remain intentionally unchanged until the controlled runtime switch.
 
 ## Verification Plan
 

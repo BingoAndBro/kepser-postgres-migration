@@ -142,6 +142,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Login/logout/session API compatibility implementation for local custom auth.
   Date: 2026-05-13.
   Rationale: Phase 5E replaced only the internals of `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/auth/session` with local PostgreSQL, Drizzle, Argon2id password verification, opaque `dms_session` cookies, and hashed session-token storage while preserving endpoint paths and JSON response shapes. `AppLayout`, the login page, client auth-state, role-switch, non-auth APIs, storage, and workflow behavior remain outside this decision.
+- Role-switch API compatibility implementation for local custom auth.
+  Date: 2026-05-14.
+  Rationale: Phase 5E.1 replaced only the internals of `POST /api/auth/role-switch` with local `dms_session` validation, hashed session-token lookup, assigned-role validation, ADMIN switch rejection, and compatible `dms_active_role` cookie writing. The auth API layer now covers login, logout, session, and role-switch, while `AppLayout`, the login page, client auth-state, non-auth APIs, storage, and workflow behavior remain outside this decision.
 
 ## Still Open
 
@@ -159,7 +162,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
-- Role-switch runtime migration.
 - AppLayout/auth-state integration with local custom sessions.
 - Supabase Auth runtime retirement.
 - CSRF and rate-limiting details for cookie-auth runtime.

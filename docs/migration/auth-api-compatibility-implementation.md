@@ -125,18 +125,24 @@ Phase 5E intentionally does not migrate:
 - `src/routes/login.tsx`
 - `src/components/layout/AppLayout.tsx`
 - `src/lib/auth-state.ts`
-- `src/routes/api/auth/role-switch.ts`
 - non-auth API routes
 - Supabase Auth Admin user-management paths
 - Supabase-backed workflow, archive, and storage behavior
 
 The primary browser auth runtime still uses Supabase until Phase 5F rewires client auth bootstrap/login behavior.
 
+## Phase 5E.1 Role-Switch Note
+
+Phase 5E.1 migrated the existing `POST /api/auth/role-switch` endpoint internals to the local custom session boundary.
+
+The route now validates `dms_session` through the hashed-token session repository, validates the requested `activeRole` against the authenticated user's assigned local roles, rejects ADMIN role switching, and sets only the readable `dms_active_role` UX cookie on success.
+
+With this change, `login`, `logout`, `session`, and `role-switch` form the local auth API boundary. `AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` are still not switched to that boundary.
+
 ## Intentionally Not Implemented
 
 - AppLayout/client auth-state runtime switch
 - login page runtime switch
-- role-switch migration
 - CSRF protection
 - rate limiting
 - remember-me request shape expansion
@@ -161,6 +167,5 @@ The first sandboxed attempt failed with `spawn EPERM` while Vitest/esbuild loade
 
 - `src/routes/login.tsx` still bypasses `/api/auth/login`; Phase 5F must decide and implement the runtime switch.
 - `AppLayout` still uses Supabase browser auth and direct role/status reads; Phase 5F must switch bootstrap to `/api/auth/session`.
-- `/api/auth/role-switch` remains Supabase-backed and will not work with a local `dms_session` alone. This is a Phase 5E.1 or Phase 5F blocker before full runtime switch.
 - Non-auth API routes still expect Supabase sessions and will not authorize local `dms_session` until later phases.
 - Cookie-auth CSRF and login rate limiting remain required before production use.
