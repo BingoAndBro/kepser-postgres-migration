@@ -861,6 +861,40 @@ Seed was not run. `pnpm db:seed`, `pnpm db:local:seed`, `pnpm db:generate`, and 
 
 Next recommended phase: run the controlled local seed with `pnpm db:local:seed` only after explicit approval and seed prerequisites are confirmed.
 
+## Phase 4C Status
+
+Phase 4C ran the controlled local seed using Option 1: canonical roles, minimal master data, one archive classification, and safe non-user fixtures only.
+
+Command run:
+
+```bash
+pnpm db:local:seed
+```
+
+Seed option and environment:
+
+- `.env.migration` existed, was ignored, and targeted local `kepser`
+- `DMS_DEV_SEED_PASSWORD_HASH` was absent
+- development users and `auth.user_roles` were skipped
+- Ketua Tim fixture was skipped because development users were not seeded
+
+Post-seed verification summary:
+
+- `auth.roles`: 5
+- `auth.users`: 0
+- `auth.user_roles`: 0
+- `auth.sessions`: 0
+- minimal master rows were inserted
+- `arsip.master_klasifikasi_arsip`: 1
+- `master.ketua_tim_assignments`: 0
+- workflow/archive transaction rows were not seeded: `dokumen.dokumen_transaksi`, `dokumen.log_aktivitas`, `arsip.arsip`, and `arsip.arsip_usul_musnah` all remained 0
+
+Canonical role verification found exactly `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`.
+
+The sandboxed seed attempt failed before execution with `tsx`/`esbuild` `spawn EPERM`; the approved outside-sandbox run of the same local seed command completed successfully.
+
+Next recommended phase: continue with auth/password-hash planning or implementation before enabling development user seed execution.
+
 ## Phase 3G Status
 
 Phase 3G created only the seed foundation for future local PostgreSQL development. The seed code was not run, Drizzle Kit was not run, and no database connection or write was performed.

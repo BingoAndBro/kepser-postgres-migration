@@ -49,6 +49,14 @@ Phase 4B.3 applied the reviewed initial Drizzle migration successfully with:
 pnpm db:local:migrate
 ```
 
+Phase 4C Option 1 ran the controlled local seed successfully with:
+
+```bash
+pnpm db:local:seed
+```
+
+Because `DMS_DEV_SEED_PASSWORD_HASH` was absent, development users, user-role joins, sessions, and the Ketua Tim fixture were skipped. Canonical roles, minimal master data, and one archive classification were seeded.
+
 For any fresh local database rebuild, keep using the explicit local scripts so Drizzle targets Docker PostgreSQL through `.env.migration`.
 
 ## Safe Command Order
