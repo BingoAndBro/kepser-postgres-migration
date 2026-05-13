@@ -59,6 +59,8 @@ Because `DMS_DEV_SEED_PASSWORD_HASH` was absent, development users, user-role jo
 
 For any fresh local database rebuild, keep using the explicit local scripts so Drizzle targets Docker PostgreSQL through `.env.migration`.
 
+Phase 4D verified the current local DB bootstrap state with read-only inspection and recorded the handoff in `docs/migration/local-db-bootstrap-handoff.md`.
+
 ## Safe Command Order
 
 1. Start PostgreSQL:

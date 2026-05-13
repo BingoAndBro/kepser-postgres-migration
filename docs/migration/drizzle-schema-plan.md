@@ -792,6 +792,51 @@ Intentionally unimplemented:
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
 
+## Phase 4D Status
+
+Phase 4D verified the local PostgreSQL bootstrap state with read-only Docker/psql inspection only. No migration, seed, generation, build, test suite, dev server, full typecheck, API migration, auth runtime, storage runtime, or workflow behavior changes were performed.
+
+Verification summary:
+
+- local DB bootstrap verified against Docker PostgreSQL
+- `.env.migration` exists, is ignored, targets localhost/127.0.0.1, and targets database `kepser`
+- `kepser-postgres` is running and `pg_isready -U kepser -d kepser` reports accepting connections
+- reviewed migration `drizzle/0000_dry_roland_deschain.sql` is applied
+- `drizzle.__drizzle_migrations` exists
+- schemas `auth`, `master`, `dokumen`, `arsip`, `app`, and `public` exist
+- all 17 expected application tables exist under `auth`, `master`, `dokumen`, and `arsip`
+- no application tables exist in `public`
+- Seed Option 1 is verified: 5 canonical roles, minimal master data, and one archive classification
+- development users, user-role joins, sessions, Ketua Tim fixture, workflow rows, logs, archive rows, and destruction proposal rows remain unseeded
+
+Verified DB state:
+
+| Table | Count |
+|---|---:|
+| `auth.roles` | 5 |
+| `auth.users` | 0 |
+| `auth.user_roles` | 0 |
+| `auth.sessions` | 0 |
+| `master.master_fungsi` | 1 |
+| `master.master_kegiatan` | 1 |
+| `master.master_jenis_dokumen` | 1 |
+| `master.master_jenis_permintaan` | 1 |
+| `master.master_kategori_permintaan` | 1 |
+| `master.master_detail_permintaan` | 1 |
+| `master.master_kelengkapan_dokumen` | 3 |
+| `arsip.master_klasifikasi_arsip` | 1 |
+| `master.ketua_tim_assignments` | 0 |
+| `dokumen.dokumen_transaksi` | 0 |
+| `dokumen.log_aktivitas` | 0 |
+| `arsip.arsip` | 0 |
+| `arsip.arsip_usul_musnah` | 0 |
+
+Canonical roles were verified exactly: `PEGAWAI`, `PPK`, `BENDAHARA`, `ARSIPARIS`, and `ADMIN`.
+
+Detailed handoff: `docs/migration/local-db-bootstrap-handoff.md`.
+
+Recommended next phase: Phase 5A Auth Password Hash Foundation.
+
 ## Phase 4B / 4B.1 Status
 
 Phase 4B attempted to apply the reviewed initial migration with:
