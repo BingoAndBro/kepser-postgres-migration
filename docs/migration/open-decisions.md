@@ -35,6 +35,21 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Rationale: `argon2` is the approved package for Phase 5A, uses the required Argon2id algorithm, and `parallelism: 1` is safer for cross-machine local development compatibility. Bcrypt, bcryptjs, scrypt, PBKDF2, and custom cryptography were not used.
 - Session token stored hashed.
   Rationale: raw session tokens must not be stored in the database.
+- Session cookie name: `dms_session`.
+  Date: 2026-05-13.
+  Rationale: Phase 5C selects a dedicated opaque custom session cookie while preserving the existing active-role cookie separately.
+- Active role cookie remains `dms_active_role`.
+  Date: 2026-05-13.
+  Rationale: current UX and role-switch behavior already use this cookie; it remains UX state and not authorization proof.
+- Session token hash algorithm: SHA-256 encoded as base64url.
+  Date: 2026-05-13.
+  Rationale: session tokens are high-entropy random values, so a deterministic fast hash is appropriate for indexed lookup. This decision does not apply to passwords, which remain Argon2id.
+- Session token raw encoding: base64url.
+  Date: 2026-05-13.
+  Rationale: base64url is cookie-safe for opaque random bytes without adding user-readable claims.
+- Default session cookie policy: `HttpOnly`, `SameSite=Lax`, `Path=/`, and `Secure` when served over HTTPS.
+  Date: 2026-05-13.
+  Rationale: this matches the auth contract and keeps the session credential unavailable to client JavaScript while preserving LAN HTTP development compatibility.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - ADMIN remains a dedicated role and must not be combined with other roles.
@@ -138,8 +153,8 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
-- Exact session cookie implementation.
 - Login/logout/session API migration.
+- CSRF and rate-limiting details for cookie-auth runtime.
 - Storage replacement.
 - Backup/restore process.
 - Archive scheduler replacement.

@@ -39,6 +39,13 @@ Build the custom auth layer while preserving UX:
 
 Use argon2id for password hashes and store only hashed session tokens in PostgreSQL. The raw token only lives in the `HttpOnly` cookie.
 
+Recommended auth subphase order after the Phase 5C planning contract:
+
+1. Phase 5D: add isolated session token utility and session repository foundation without wiring UI/auth runtime.
+2. Phase 5E: implement compatible login, logout, session, and role-switch API behavior behind existing endpoint paths.
+3. Phase 5F: integrate `AppLayout` and client auth state through the custom session boundary or perform a controlled runtime switch.
+4. Phase 5G: add focused auth regression checks and document the Supabase Auth runtime retirement path.
+
 ## Phase 6: Storage Compatibility
 
 Replace storage behind the same upload/preview/download behavior:
@@ -100,4 +107,3 @@ Work order:
 - After read migration: all role list/detail pages render with compatible data.
 - After mutation migration: submit, approve, reject, revise, archive, and admin CRUD flows work.
 - Before Supabase removal: no replacement gaps remain.
-
