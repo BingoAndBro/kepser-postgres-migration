@@ -122,3 +122,23 @@ Before retrying Phase 4B, make the effective migration environment point to the 
 - or replace the local `.env` `DATABASE_URL` during this migration branch with the local Docker PostgreSQL URL if that matches the branch policy
 
 After the effective URL is confirmed as local `localhost:5432/kepser`, retry `pnpm db:migrate` once against the still-empty local database, then run the Phase 4B table/index/check verification. Do not run seed until migration apply succeeds and seed is explicitly approved.
+
+## Phase 4B.2 Local Migration Env Scripts
+
+Phase 4B.2 added explicit local package scripts so migration and seed commands can load `.env.migration` instead of the regular `.env`:
+
+```bash
+pnpm db:local:generate
+pnpm db:local:migrate
+pnpm db:local:seed
+```
+
+Implementation notes:
+
+- `dotenv-cli` was added as a dev dependency.
+- the installed CLI supports `--override`, so the local scripts use `.env.migration` values with priority over any existing shell or `.env` values.
+- `.env.migration` was created from `.env.migration.example`.
+- `.env.migration` is ignored by `.gitignore` and must remain untracked.
+- existing generic scripts `db:generate`, `db:migrate`, and `db:seed` were preserved unchanged.
+
+Migration was not retried in Phase 4B.2. Seed was not run.

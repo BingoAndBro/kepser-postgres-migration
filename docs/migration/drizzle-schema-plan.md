@@ -819,6 +819,22 @@ Seed was not run. `pnpm db:seed` and `pnpm db:generate` were not run.
 
 Next recommended step: set or load a local migration `DATABASE_URL` pointing to `localhost:5432/kepser`, confirm the local database is still empty, then retry `pnpm db:migrate` once and complete the Phase 4B verification checks.
 
+## Phase 4B.2 Status
+
+Phase 4B.2 added explicit local migration scripts so Drizzle commands can target Docker PostgreSQL through `.env.migration` instead of the regular `.env`:
+
+```bash
+pnpm db:local:generate
+pnpm db:local:migrate
+pnpm db:local:seed
+```
+
+`dotenv-cli` was added as a dev dependency. The installed CLI supports `--override`, and the local scripts use it so `.env.migration` values take priority over shell variables and the Supabase-oriented `.env`.
+
+`.env.migration` was created from `.env.migration.example`, is gitignored, and must remain untracked. The existing generic scripts remain unchanged for non-local use.
+
+Migration was not retried in Phase 4B.2. Seed was not run.
+
 ## Phase 3G Status
 
 Phase 3G created only the seed foundation for future local PostgreSQL development. The seed code was not run, Drizzle Kit was not run, and no database connection or write was performed.
