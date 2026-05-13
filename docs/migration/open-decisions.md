@@ -139,6 +139,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 5D session token utility and repository foundation lives under `src/lib/auth/`.
   Date: 2026-05-13.
   Rationale: The foundation is server-only and isolated from current runtime imports. `session-constants.ts`, `session-token.ts`, and `session-repository.ts` provide reusable building blocks for future custom auth without changing Supabase-backed login/logout/session behavior or exporting through shared barrels.
+- Login/logout/session API compatibility implementation for local custom auth.
+  Date: 2026-05-13.
+  Rationale: Phase 5E replaced only the internals of `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/auth/session` with local PostgreSQL, Drizzle, Argon2id password verification, opaque `dms_session` cookies, and hashed session-token storage while preserving endpoint paths and JSON response shapes. `AppLayout`, the login page, client auth-state, role-switch, non-auth APIs, storage, and workflow behavior remain outside this decision.
 
 ## Still Open
 
@@ -156,7 +159,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
-- Login/logout/session API migration.
+- Role-switch runtime migration.
+- AppLayout/auth-state integration with local custom sessions.
+- Supabase Auth runtime retirement.
 - CSRF and rate-limiting details for cookie-auth runtime.
 - Storage replacement.
 - Backup/restore process.

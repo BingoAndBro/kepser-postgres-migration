@@ -304,6 +304,16 @@ Phase 5D added isolated server-only session constants, a pure session token util
 
 These files are not wired into login, logout, `/api/auth/session`, role switching, `AppLayout`, `auth-state`, or any current runtime API/UI path. Supabase-backed auth remains the active runtime, and login/logout/session implementation remains future Phase 5E work.
 
+## Phase 5E Implementation Note
+
+Phase 5E implemented local custom-auth compatibility behind the existing `POST /api/auth/login`, `POST /api/auth/logout`, and `GET /api/auth/session` endpoint paths.
+
+The implementation uses local `auth.users`, `auth.roles`, `auth.user_roles`, Argon2id password verification, opaque session-token generation, SHA-256 session-token hashes, and the Phase 5D `auth.sessions` repository. Login creates session rows; logout revokes only the current matching session; session bootstrap validates the `dms_session` cookie and returns the existing `{ session, roles, activeRole }` shape.
+
+`AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` were intentionally not modified. The primary browser runtime still uses Supabase-backed auth until Phase 5F performs the controlled client integration/runtime switch.
+
+`/api/auth/role-switch` was intentionally left Supabase-backed. It is a Phase 5E.1 or Phase 5F blocker before fully switching the runtime to local custom sessions.
+
 ## Verification Plan
 
 Future implementation checks:

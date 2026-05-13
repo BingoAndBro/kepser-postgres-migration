@@ -108,12 +108,22 @@ Phase 5D implements the reusable constants, token generation/hash helper, token 
 
 ## Risks And Open Items For Phase 5E
 
-- Login/logout/session API migration remains open.
+- Login/logout/session API migration was implemented in Phase 5E for the existing `/api/auth/login`, `/api/auth/logout`, and `/api/auth/session` endpoint paths.
 - Exact CSRF and rate-limiting strategy remains open.
-- Active role validation and fallback behavior must be implemented at the auth API boundary later.
+- Active role validation and fallback behavior is implemented for `/api/auth/session`; role-switch and non-auth authorization boundaries remain later work.
 - Exact session invalidation policy for password change/deactivation remains open.
 - Repository functions need runtime/API tests once they are wired into custom auth.
 - `AppLayout` still depends on Supabase browser auth until a controlled runtime switch.
+
+## Phase 5E Usage Note
+
+The repository is now used by the local auth compatibility APIs:
+
+- login creates `auth.sessions` rows through `createSessionRecord`
+- logout revokes the current session through `revokeSessionByTokenHash`
+- session bootstrap reads through `findSessionByTokenHash`
+
+It is still not used by non-auth APIs, `/api/auth/role-switch`, `AppLayout`, `src/routes/login.tsx`, or `src/lib/auth-state.ts`.
 
 ## Validation Run
 
@@ -123,4 +133,3 @@ Phase 5D validation used only narrow non-DB checks:
 - `git diff --check`
 
 No DB migration, DB generation, seed, password hash helper, build, dev server, full test suite, or full typecheck was run.
-
