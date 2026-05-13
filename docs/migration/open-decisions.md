@@ -85,6 +85,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Use `drizzle-kit generate` with reviewed SQL migrations, not `drizzle-kit push`, as the main migration workflow.
   Date: 2026-05-12.
   Rationale: generated SQL should be reviewed and committed; Docker init SQL remains limited to base schemas/extensions. See `docs/migration/drizzle-schema-plan.md` Section 14.
+- Docker init SQL owns application schema creation; Drizzle migrations own tables, indexes, FKs, and checks inside those schemas.
+  Date: 2026-05-13.
+  Rationale: the local Docker foundation creates `auth`, `master`, `dokumen`, `arsip`, and `app` with `CREATE SCHEMA IF NOT EXISTS`, so generated Drizzle migrations must assume those schemas already exist and must not duplicate schema creation.
 - Use `pg`/node-postgres as the local PostgreSQL runtime driver for Drizzle client usage.
   Date: 2026-05-12.
   Rationale: `pg` and `@types/pg` are installed, and `src/db/client.ts` now wires `Pool` from `pg` to `drizzle-orm/node-postgres`. The client remains unused by API routes until later migration phases.

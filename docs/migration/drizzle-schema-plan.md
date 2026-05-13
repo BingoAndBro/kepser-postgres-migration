@@ -1013,6 +1013,166 @@ Intentionally unimplemented:
 
 The next step should be migration generation followed by SQL review in a later approved phase.
 
+## Phase 4A Status
+
+Phase 4A attempted to generate the first reviewed Drizzle migration from the current local schema, but generation is blocked by stale existing Drizzle migration metadata.
+
+Pre-generation checks:
+
+- Initial `git status --short --branch` was clean on `migration/postgres-local`.
+- `drizzle.config.ts` points to `./src/db/schema/index.ts` and outputs to `./drizzle`.
+- `src/db/schema/index.ts` exports `auth`, `master`, `dokumen`, `arsip`, and the empty `app` placeholder.
+- A narrow schema TypeScript check passed:
+
+```bash
+pnpm exec tsc --noEmit --moduleResolution bundler --module ESNext --target ES2022 --strict --skipLibCheck --types node src/db/schema/index.ts
+```
+
+Generation command:
+
+```bash
+pnpm db:generate
+```
+
+Result:
+
+- The first sandboxed attempt failed with `spawn EPERM`.
+- The approved rerun loaded `drizzle.config.ts` but stopped at Drizzle Kit's non-interactive prompt path: `Interactive prompts require a TTY terminal`.
+- The stack trace entered `promptNamedWithSchemasConflict`, consistent with conflicts between existing old public-schema snapshots and the current domain-schema model.
+- No new migration files were generated.
+- Existing files remain:
+  - `drizzle/0000_handy_next_avengers.sql`
+  - `drizzle/0001_003_dokumen_transaksi.sql`
+  - `drizzle/meta/0000_snapshot.json`
+  - `drizzle/meta/0001_snapshot.json`
+  - `drizzle/meta/_journal.json`
+
+SQL review summary:
+
+- No new SQL exists to review.
+- Existing stale migration SQL creates application tables in the implicit/public schema, which is not compatible with the current target schemas `auth`, `master`, `dokumen`, and `arsip`.
+- No generated Phase 4A migration is recommended for apply.
+
+Intentionally unimplemented:
+
+- no migration applied
+- no `pnpm db:migrate`
+- no seed execution
+- no database connection or mutation
+- no API route migration
+- no auth/session runtime
+- no storage runtime
+- no generated SQL edits
+
+Recommendation: do not proceed to Phase 4B until an explicit follow-up task resolves the stale `drizzle/` baseline and a fresh migration can be generated and reviewed.
+
+## Phase 4A.1 Status
+
+Phase 4A.1 resolved the stale active Drizzle baseline and generated a fresh initial migration from the current local multi-schema Drizzle schema.
+
+Stale baseline handling:
+
+- Old active Drizzle artifacts were moved to `docs/migration/legacy-drizzle-baseline/`.
+- Archived old files:
+  - `0000_handy_next_avengers.sql`
+  - `0001_003_dokumen_transaksi.sql`
+  - `0000_snapshot.json`
+  - `0001_snapshot.json`
+  - `_journal.json`
+- A README was added to explain that these files targeted the old/public schema and are preserved only for audit/reference.
+- Active `drizzle/` was cleared before generation.
+
+Fresh generation:
+
+```bash
+pnpm db:generate
+```
+
+Generated active files:
+
+- `drizzle/0000_workable_shadowcat.sql`
+- `drizzle/meta/0000_snapshot.json`
+- `drizzle/meta/_journal.json`
+
+SQL review summary:
+
+- The generated migration creates the expected 17 application tables under `auth`, `master`, `dokumen`, and `arsip`.
+- No app placeholder tables are generated.
+- No application tables are generated in `public`.
+- No `DROP TABLE`, `DROP SCHEMA`, destructive alter, Supabase storage/auth objects, RLS policies, Edge Function objects, `pg_cron` objects, enum status types, or imported Supabase data were found.
+- Expected unique indexes, composite primary key, check constraints, cross-schema FKs, lifecycle/report indexes, and JSONB defaults were generated.
+
+Apply blocker:
+
+- The generated migration emits `CREATE SCHEMA "auth";`.
+- It does not emit `CREATE SCHEMA` for `master`, `dokumen`, or `arsip`.
+- The Docker foundation already creates all five schemas with `CREATE SCHEMA IF NOT EXISTS`.
+- This means the generated migration is not safe to apply as-is against the normal Docker-initialized local database, and it is not self-contained for a database without the Docker init schemas.
+
+Recommendation:
+
+- Do not proceed to Phase 4B apply migration yet.
+- Fix the schema-generation baseline so Drizzle and the Docker foundation agree on schema creation, then regenerate and review again.
+
+Intentionally unimplemented:
+
+- no migration applied
+- no `pnpm db:migrate`
+- no seed execution
+- no database connection or mutation
+- no API route migration
+- no auth/session runtime
+- no storage runtime
+- no generated SQL edits
+
+## Phase 4A.2 Status
+
+Phase 4A.2 fixed Drizzle schema creation consistency with the Docker PostgreSQL foundation and regenerated the fresh initial migration.
+
+Schema creation responsibility:
+
+- `infra/docker/postgres/init/001-create-schemas.sql` owns schema creation for `auth`, `master`, `dokumen`, `arsip`, and `app`.
+- Drizzle migrations own tables, indexes, FKs, and checks inside those pre-created schemas.
+- Generated Drizzle SQL must not emit `CREATE SCHEMA` statements for these application schemas.
+
+Root cause fixed:
+
+- `src/db/schema/auth/users.ts` exported `authSchema = pgSchema('auth')`.
+- Other `pgSchema(...)` objects were local constants.
+- `authSchema` is now a local constant, so all domain schemas are treated consistently.
+- No table definitions, columns, indexes, constraints, or relations were intentionally changed.
+
+Regenerated active files:
+
+- `drizzle/0000_dry_roland_deschain.sql`
+- `drizzle/meta/0000_snapshot.json`
+- `drizzle/meta/_journal.json`
+
+SQL review summary:
+
+- The regenerated migration creates the expected 17 application tables under `auth`, `master`, `dokumen`, and `arsip`.
+- It no longer emits any `CREATE SCHEMA` statement.
+- No application tables are generated in `public`.
+- No `DROP TABLE`, `DROP SCHEMA`, destructive alter, Supabase storage/auth objects, RLS policies, Edge Function objects, `pg_cron` objects, enum status types, inserts, or imported Supabase data were found.
+- Expected FKs, indexes, checks, and JSONB defaults remain present.
+- `arsip_usul_musnah_status_check` remains present with `MENUNGGU`, `DISETUJUI`, and `DITOLAK`.
+- `auth.roles` still has unique `nama` and no role-name `CHECK` constraint.
+
+Recommendation:
+
+- Phase 4B apply migration may proceed after explicit approval and normal local PostgreSQL prerequisites.
+
+Intentionally unimplemented:
+
+- no migration applied
+- no `pnpm db:migrate`
+- no seed execution
+- no database connection or mutation
+- no API route migration
+- no auth/session runtime
+- no storage runtime
+- no generated SQL edits
+
 ## Phase 3E Status
 
 Phase 3E created only the dokumen namespace Drizzle table definitions required by current document workflow and audit logging.
