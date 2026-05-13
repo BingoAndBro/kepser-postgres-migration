@@ -298,6 +298,12 @@ Recommended next auth subphases:
 
 These phases should stay narrow. Do not combine login runtime wiring with broad API migration or storage replacement.
 
+## Phase 5D Implementation Note
+
+Phase 5D added isolated server-only session constants, a pure session token utility, and a Drizzle session repository foundation for `auth.sessions`.
+
+These files are not wired into login, logout, `/api/auth/session`, role switching, `AppLayout`, `auth-state`, or any current runtime API/UI path. Supabase-backed auth remains the active runtime, and login/logout/session implementation remains future Phase 5E work.
+
 ## Verification Plan
 
 Future implementation checks:

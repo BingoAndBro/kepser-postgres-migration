@@ -136,6 +136,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Development user seed execution for local development.
   Date: 2026-05-13.
   Rationale: Phase 5B.1 confirmed the effective local seed environment already contained an Argon2id-shaped `DMS_DEV_SEED_PASSWORD_HASH`, ran only `pnpm db:local:seed`, and verified 5 development users, 8 user-role joins, 0 sessions, 0 workflow rows, 0 archive transaction rows, and no application tables in `public`. This decision is local-development-only and does not decide production bootstrap, session implementation, login/logout/session API migration, API migration strategy, storage replacement, signed-token implementation, backup/restore, or archive scheduler replacement.
+- Phase 5D session token utility and repository foundation lives under `src/lib/auth/`.
+  Date: 2026-05-13.
+  Rationale: The foundation is server-only and isolated from current runtime imports. `session-constants.ts`, `session-token.ts`, and `session-repository.ts` provide reusable building blocks for future custom auth without changing Supabase-backed login/logout/session behavior or exporting through shared barrels.
 
 ## Still Open
 
