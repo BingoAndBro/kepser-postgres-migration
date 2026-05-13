@@ -974,6 +974,45 @@ Intentionally unimplemented:
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
 
+## Phase 3H Status
+
+Phase 3H prepared schema and migration validation without generating migrations, applying migrations, running seed code, connecting to the database, or changing runtime behavior.
+
+Schema export/module readiness:
+
+- `src/db/schema/index.ts` exports `./auth`, `./master`, `./dokumen`, `./arsip`, and `./app`.
+- The `app` namespace remains a placeholder with no tables.
+- `src/db/schema/app/index.ts` was made an explicit empty TypeScript module with `export {}` so root schema exports remain valid.
+- No auth, master, dokumen, or arsip table definitions were changed.
+
+Dependency and script decisions:
+
+- `drizzle-kit` is already a direct dev dependency.
+- `drizzle-orm` is already a direct dev dependency in this branch.
+- `pg` is already a direct dependency.
+- `tsx` was added as a direct dev dependency because seed execution uses a TypeScript entrypoint.
+- `argon2` was not installed.
+- Package scripts added: `db:generate`, `db:migrate`, and `db:seed`.
+
+Validation workflow documentation:
+
+- `docs/migration/schema-validation.md`
+- `docs/migration/local-db-bootstrap.md`
+
+Intentionally unimplemented:
+
+- no Drizzle Kit execution
+- no new migration generation
+- no migration apply
+- no seed execution
+- no database connection or mutation
+- no API route migration
+- no auth/session runtime
+- no storage runtime
+- no FSM/workflow behavior change
+
+The next step should be migration generation followed by SQL review in a later approved phase.
+
 ## Phase 3E Status
 
 Phase 3E created only the dokumen namespace Drizzle table definitions required by current document workflow and audit logging.

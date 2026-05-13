@@ -106,6 +106,12 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Historical `arsip_verifikasi_penyusutan` is obsolete for the current schema.
   Date: 2026-05-12.
   Rationale: The table was created in `supabase/migrations/005_arsip.sql` but dropped by `supabase/migrations/010_drop_verifikasi_penyusutan.sql`; AGENTS.md states `VERIFIKASI_PENYUSUTAN` was removed from active lifecycle behavior. The old Edge Function reference remains a scheduler-replacement reconciliation issue, not an active Drizzle table decision.
+- Use `tsx` as the direct TypeScript runner for seed scripts.
+  Date: 2026-05-13.
+  Rationale: `src/db/seed/index.ts` is a TypeScript entrypoint. Declaring `tsx` directly avoids relying on transitive tooling dependencies when running the seed manually after reviewed migrations are applied.
+- Package script names for local DB migration preparation.
+  Date: 2026-05-13.
+  Rationale: Phase 3H defines separate safe scripts: `db:generate` for `drizzle-kit generate`, `db:migrate` for `drizzle-kit migrate`, and `db:seed` for `tsx src/db/seed/index.ts`. Combined generate/migrate/seed and destructive reset scripts remain intentionally absent.
 
 ## Still Open
 

@@ -110,3 +110,11 @@ No `package.json` script was added in Phase 3G because `tsx` is only present tra
 ## Relationship To Phase 4
 
 Phase 3G defines seed code and documentation. Phase 4 should decide the reviewed bootstrapping command, package script, password hash provisioning workflow, and local reset procedure.
+
+## Phase 3H Note
+
+Phase 3H adds a direct TypeScript runner for the seed entrypoint by declaring `tsx` as a direct dev dependency. It also adds `pnpm db:seed` as a manual script for later approved bootstrapping.
+
+Seed execution remains manual and approval-gated. Do not run the seed until reviewed Drizzle migrations have been applied to the local PostgreSQL database.
+
+Development user seeding still requires `DMS_DEV_SEED_PASSWORD_HASH`. The seed script does not generate password hashes and `argon2` remains intentionally uninstalled in this phase.
