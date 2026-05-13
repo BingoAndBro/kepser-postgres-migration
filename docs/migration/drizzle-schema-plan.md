@@ -792,6 +792,33 @@ Intentionally unimplemented:
 
 No migrations have been generated yet and no API behavior is wired to these tables yet.
 
+## Phase 4B / 4B.1 Status
+
+Phase 4B attempted to apply the reviewed initial migration with:
+
+```bash
+pnpm db:migrate
+```
+
+Result: failed with exit code 1 and no detailed PostgreSQL error in the visible output.
+
+Phase 4B.1 diagnosis found:
+
+- local Docker PostgreSQL is running and healthy
+- required schemas `app`, `arsip`, `auth`, `dokumen`, `master`, and `public` exist locally
+- local database remains empty: no application tables and no Drizzle metadata table
+- `DATABASE_URL` is not set in the current PowerShell process
+- `.env` contains `DATABASE_URL`, but it points to a Supabase pooler endpoint instead of local `localhost:5432/kepser`
+- `drizzle.config.ts` reads `process.env.DATABASE_URL`
+- `drizzle-kit` v0.31.10 bundles dotenv support, so the failed command likely loaded `.env` and targeted the wrong database endpoint
+- generated SQL still starts with schema-qualified `CREATE TABLE "auth"."users"` and contains no `CREATE SCHEMA` or public application table creation
+
+No retry was attempted in Phase 4B.1 because the effective database target must be corrected first.
+
+Seed was not run. `pnpm db:seed` and `pnpm db:generate` were not run.
+
+Next recommended step: set or load a local migration `DATABASE_URL` pointing to `localhost:5432/kepser`, confirm the local database is still empty, then retry `pnpm db:migrate` once and complete the Phase 4B verification checks.
+
 ## Phase 3G Status
 
 Phase 3G created only the seed foundation for future local PostgreSQL development. The seed code was not run, Drizzle Kit was not run, and no database connection or write was performed.
