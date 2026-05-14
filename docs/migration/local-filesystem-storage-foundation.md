@@ -134,6 +134,10 @@ Phase 6C added `docs/migration/internal-preview-download-token-contract.md`. The
 
 Phase 6C did not import or wire the path helpers into runtime preview/download routes. Upload, preview, download, token signing, file streaming, move/delete behavior, archive destruction deletion, diagnostics, and orphan cleanup remain future work.
 
+## Phase 6D.1 Follow-Up Note
+
+Phase 6D.1 added `src/lib/storage/file-access-token.ts` and `tests/unit/storage/file-access-token.test.ts` as an isolated token helper foundation. It signs and verifies the future internal preview/download token payload, but it still does not resolve storage roots, resolve physical paths, create storage directories, wire routes/components, replace Supabase signed URL generation, or migrate/copy/download/sync any Supabase Storage files.
+
 ## Recommended Next Phase
 
 Recommended next phase:

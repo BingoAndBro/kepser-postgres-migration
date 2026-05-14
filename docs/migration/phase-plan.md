@@ -75,6 +75,8 @@ Phase 6B added the local filesystem storage helper/test foundation in `src/lib/s
 
 Phase 6C completed the internal preview/download token compatibility contract in `docs/migration/internal-preview-download-token-contract.md`. It defines the future internal `{ signedUrl }` URL shape, token claims, signing/verification direction, authorization revalidation, `DIMUSNAHKAN` blocking, filename/content-disposition parity, expiry defaults, and revocation limits. It did not add token helper code or runtime route wiring; implementation remains future Phase 6D+ work.
 
+Phase 6D.1 added the isolated file access token helper foundation in `src/lib/storage/file-access-token.ts` and `tests/unit/storage/file-access-token.test.ts`. It implements only the server-only HMAC-SHA256 signing/verification primitive, canonical non-JWT wire format, payload validation, expiry rejection, tamper rejection, and sensitive-claim rejection. It does not add `/api/files/access`, file streaming, upload/preview/download runtime replacement, storage root resolution, route/component wiring, DB schema changes, workflow changes, or Supabase Storage file/data migration.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

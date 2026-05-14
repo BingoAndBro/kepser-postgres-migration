@@ -22,6 +22,12 @@ Phase 6C added the internal preview/download token compatibility contract in `do
 
 The contract preserves current `{ signedUrl }` response expectations by defining future internal API URLs for preview/download access, token claims, expiry, signing and verification rules, authorization revalidation, `DIMUSNAHKAN` blocking, and filename/content-disposition parity. No runtime routes, upload behavior, preview/download behavior, token helpers, file streaming, storage implementation, or Supabase Storage data migration were added in Phase 6C.
 
+## Phase 6D.1 Token Helper Foundation Note
+
+Phase 6D.1 added the isolated server-only token helper in `src/lib/storage/file-access-token.ts` plus focused unit tests.
+
+The helper signs and verifies non-JWT tokens with the wire format `v1.<base64url-canonical-json-payload>.<base64url-hmac-sha256-signature>`, validates allowed claims, rejects expired/tampered/malformed tokens, and rejects unsupported or sensitive claims. It is not imported by runtime routes/components and does not implement `/api/files/access`, file streaming, upload behavior, preview/download replacement, storage root resolution, or Supabase Storage file/data migration.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

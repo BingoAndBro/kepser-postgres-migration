@@ -158,7 +158,9 @@ Recommended direction:
 
 Token verification output should return only a validated typed payload or a generic failure reason appropriate for server handling. Detailed parse/signature errors should not leak sensitive internals to clients.
 
-This phase does not implement token signing or verification helpers.
+Phase 6D.1 later implemented the isolated helper foundation in `src/lib/storage/file-access-token.ts`. The helper uses this contract's HMAC-SHA256 direction, validates the allowed claim set, and documents the concrete non-JWT wire format in `docs/migration/file-access-token-helper-foundation.md`.
+
+Phase 6D.1 still does not implement `/api/files/access`, file streaming, preview/download route wiring, upload behavior, local storage runtime replacement, or Supabase Storage file/data migration.
 
 ## Authorization Revalidation Contract
 
