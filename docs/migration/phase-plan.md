@@ -46,6 +46,8 @@ Recommended auth subphase order after the Phase 5C planning contract:
 3. Phase 5F: integrate `AppLayout` and client auth state through the custom session boundary or perform a controlled runtime switch.
 4. Phase 5G: add focused auth regression checks and document the Supabase Auth runtime retirement path.
 
+Phase 5G confirmed the local browser auth boundary and documented the remaining Supabase Auth retirement path. The recommended next auth step, before broad endpoint migration, is a narrow local server auth helper compatibility phase for non-auth APIs so routes can validate `dms_session` without changing endpoint paths, request shapes, response shapes, workflow behavior, or storage behavior.
+
 ## Phase 6: Storage Compatibility
 
 Replace storage behind the same upload/preview/download behavior:

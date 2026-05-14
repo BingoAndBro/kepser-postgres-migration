@@ -150,6 +150,14 @@ Manual verification still recommended:
 - verify logout calls `/api/auth/logout`, clears session cookies, and returns to `/login`
 - verify unauthenticated `/api/auth/session` redirects or blocks as before
 
+## Phase 5G Regression Note
+
+Phase 5G performed focused regression grep checks against the Phase 5F browser/runtime boundary and created `docs/migration/auth-regression-and-retirement-plan.md`.
+
+The checks confirmed that `/login` and `AppLayout` no longer import Supabase browser auth for the primary auth runtime, that `AppLayout` bootstraps through `GET /api/auth/session`, and that browser code does not read or store `dms_session`. The new Phase 5G doc also records the manual verification checklist and the remaining Supabase Auth retirement order.
+
+Non-auth APIs remain legacy. In particular, API routes outside `/api/auth/*` still generally use Supabase server auth helpers, Supabase Auth Admin lookup, or Supabase Storage behavior until later migration phases.
+
 ## Risks And Open Items
 
 - Non-auth APIs still expect the legacy Supabase-backed server auth boundary, so authenticated pages can still hit Supabase-backed API authorization gaps until later phases migrate those routes.

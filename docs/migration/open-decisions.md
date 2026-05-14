@@ -148,6 +148,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Browser auth runtime integration for AppLayout/login/auth-state.
   Date: 2026-05-14.
   Rationale: Phase 5F switched the login page to `POST /api/auth/login`, switched `AppLayout` bootstrap to `GET /api/auth/session`, wired central logout to `POST /api/auth/logout`, and wired central role switching to `POST /api/auth/role-switch` while preserving the existing client auth-state shape. This addresses the AppLayout/auth-state local custom session integration and login page switch decisions only. Non-auth API authorization, Supabase Auth Admin replacement, storage, workflow/archive behavior, CSRF/rate limiting, and full Supabase Auth runtime retirement remain open.
+- Focused auth regression and Supabase Auth retirement planning completed.
+  Date: 2026-05-14.
+  Rationale: Phase 5G confirmed the Phase 5F browser/runtime boundary with targeted grep checks and focused auth helper tests, then recorded the manual verification checklist and remaining Supabase Auth retirement order in `docs/migration/auth-regression-and-retirement-plan.md`. This does not decide or complete broad non-auth API authorization migration, Supabase Auth Admin replacement, storage replacement, CSRF/rate limiting, or full Supabase Auth runtime retirement.
 
 ## Still Open
 
@@ -166,8 +169,14 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
 - Supabase Auth runtime retirement.
+- Non-auth API authorization migration to local `dms_session`.
+- Supabase Auth Admin replacement for user management and user-name enrichment.
+- Local server auth helper compatibility for non-auth APIs.
 - CSRF and rate-limiting details for cookie-auth runtime.
+- Remember-me request shape support.
 - Storage replacement.
+- Local filesystem storage.
+- Upload/preview/download local storage compatibility.
 - Backup/restore process.
 - Archive scheduler replacement.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.
