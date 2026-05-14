@@ -617,6 +617,20 @@ Required future decisions:
 
 Phase 6A leaves these as open implementation details.
 
+## Phase 6B Foundation Note
+
+Phase 6B added isolated local filesystem storage foundation helpers and focused unit tests:
+
+- `src/lib/storage/local-storage-paths.ts`
+- `tests/unit/storage/local-storage-paths.test.ts`
+- `docs/migration/local-filesystem-storage-foundation.md`
+
+The helper module covers lazy root resolution, logical path normalization, path traversal prevention, safe physical path resolution under a configured root, filename/path-segment sanitization, owner-segment checks, and classification for the observed dash pending, upload API pending, and formal path formats.
+
+Phase 6B did not change runtime storage behavior. It did not wire local filesystem storage into upload, preview, download, signed-token generation, file streaming, move, delete, archive destruction, diagnostics, orphan cleanup, workflow mutations, API routes, or client components.
+
+No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced. Implementation wiring remains future Phase 6C/6D+ work.
+
 ## Backup/Restore Considerations
 
 After local filesystem storage exists, PostgreSQL backup alone is insufficient.

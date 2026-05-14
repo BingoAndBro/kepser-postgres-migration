@@ -71,6 +71,8 @@ Storage should be tested before migrating workflow mutations because submit/resu
 
 Phase 6A completed the storage replacement planning and compatibility contract in `docs/migration/storage-replacement-planning-contract.md`. It inventoried current Supabase Storage behavior, path semantics, API response shapes, preview/download expectations, archive snapshot/destruction behavior, diagnostics/orphan cleanup, and backup/restore risks. Implementation remains future Phase 6B+ work; Phase 6A did not change storage runtime behavior.
 
+Phase 6B added the local filesystem storage helper/test foundation in `src/lib/storage/local-storage-paths.ts` and `tests/unit/storage/local-storage-paths.test.ts`. It covers root resolution, logical path validation, path traversal prevention, safe physical path resolution, filename/path-segment sanitization, ownership checks, and pending/formal classification only. Route wiring and runtime upload/preview/download/move/delete/archive behavior remain future Phase 6C/6D+ work.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

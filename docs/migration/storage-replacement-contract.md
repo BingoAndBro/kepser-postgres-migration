@@ -10,6 +10,12 @@ Phase 6A added a current-behavior inventory and compatibility contract at:
 
 Use the Phase 6A document as the detailed implementation reference for current endpoint paths, request/response shapes, observed pending/formal path variants, `AttachmentEditor` direct browser storage behavior, archive snapshot/destruction behavior, diagnostics/orphan cleanup behavior, and open partial-failure decisions. This file remains the higher-level storage replacement contract.
 
+## Phase 6B Foundation Note
+
+Phase 6B added isolated server-only local storage path helpers in `src/lib/storage/local-storage-paths.ts` plus focused unit tests. The helpers prepare root resolution, logical path validation, safe physical path resolution, filename/path-segment sanitization, ownership checks, and pending/formal classification.
+
+No runtime storage behavior changed in Phase 6B. Upload, preview, download, signed-token, move, delete, archive destruction, diagnostics, orphan cleanup, and route/component wiring remain future work. No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

@@ -166,6 +166,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Storage replacement planning and compatibility contract completed.
   Date: 2026-05-14.
   Rationale: Phase 6A inventoried current Supabase Storage behavior and locked the compatibility contract in `docs/migration/storage-replacement-planning-contract.md`, including upload, direct browser attachment editing, pending/formal path variants, signed URL response expectations, archive snapshot/destruction, diagnostics/orphan cleanup, local filesystem principles, preview/download replacement direction, partial-failure open decisions, and backup/restore notes. This does not mark local filesystem storage implementation, upload/preview/download replacement, move/delete/archive cleanup migration, Supabase Storage retirement, or backup/restore implementation complete.
+- Local filesystem storage foundation helpers added.
+  Date: 2026-05-14.
+  Rationale: Phase 6B added isolated server-only helper/test foundation in `src/lib/storage/local-storage-paths.ts` and `tests/unit/storage/local-storage-paths.test.ts` for local storage root resolution, logical path validation, safe physical path resolution, filename/path-segment sanitization, owner checks, and pending/formal classification. This does not mark local filesystem storage runtime implementation, upload/preview/download replacement, signed-token implementation, pending-to-formal move behavior, archive destruction delete behavior, storage diagnostics/orphan cleanup, Supabase Storage retirement, or backup/restore implementation complete.
 
 ## Still Open
 
@@ -180,6 +183,11 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
+- Local filesystem storage runtime implementation.
+- Upload/preview/download local storage compatibility.
+- Pending-to-formal local move behavior.
+- Archive destruction local delete behavior.
+- Storage diagnostics/orphan cleanup local implementation.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
@@ -192,8 +200,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - CSRF and rate-limiting details for cookie-auth runtime.
 - Remember-me request shape support.
 - Storage replacement.
-- Local filesystem storage.
-- Upload/preview/download local storage compatibility.
 - Supabase Storage retirement.
 - Backup/restore process.
 - Archive scheduler replacement.
