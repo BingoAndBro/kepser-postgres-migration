@@ -2,6 +2,14 @@
 
 This contract defines the target behavior for replacing Supabase Storage with local filesystem storage. It is documentation only and does not implement storage.
 
+## Phase 6A Planning Contract
+
+Phase 6A added a current-behavior inventory and compatibility contract at:
+
+- `docs/migration/storage-replacement-planning-contract.md`
+
+Use the Phase 6A document as the detailed implementation reference for current endpoint paths, request/response shapes, observed pending/formal path variants, `AttachmentEditor` direct browser storage behavior, archive snapshot/destruction behavior, diagnostics/orphan cleanup behavior, and open partial-failure decisions. This file remains the higher-level storage replacement contract.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
@@ -203,4 +211,3 @@ Restore validation must include:
 - Path traversal attempts fail.
 - MIME and size validation reject invalid uploads.
 - Orphan cleanup can run safely after local storage exists.
-

@@ -69,6 +69,8 @@ Replace storage behind the same upload/preview/download behavior:
 
 Storage should be tested before migrating workflow mutations because submit/resubmit depends on file movement.
 
+Phase 6A completed the storage replacement planning and compatibility contract in `docs/migration/storage-replacement-planning-contract.md`. It inventoried current Supabase Storage behavior, path semantics, API response shapes, preview/download expectations, archive snapshot/destruction behavior, diagnostics/orphan cleanup, and backup/restore risks. Implementation remains future Phase 6B+ work; Phase 6A did not change storage runtime behavior.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

@@ -163,6 +163,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Auth local runtime stabilization and Phase 6 handoff completed.
   Date: 2026-05-14.
   Rationale: Phase 5K completed a docs/audit/handoff stabilization pass for the local auth runtime boundary and recorded the manual verification checklist, known mixed-runtime risks, remaining Supabase-backed areas, and Phase 6A storage readiness notes in `docs/migration/auth-local-runtime-stabilization-handoff.md`. This does not mark broad non-auth API migration, storage migration, Supabase Auth Admin replacement, CSRF/rate limiting, or Supabase removal complete.
+- Storage replacement planning and compatibility contract completed.
+  Date: 2026-05-14.
+  Rationale: Phase 6A inventoried current Supabase Storage behavior and locked the compatibility contract in `docs/migration/storage-replacement-planning-contract.md`, including upload, direct browser attachment editing, pending/formal path variants, signed URL response expectations, archive snapshot/destruction, diagnostics/orphan cleanup, local filesystem principles, preview/download replacement direction, partial-failure open decisions, and backup/restore notes. This does not mark local filesystem storage implementation, upload/preview/download replacement, move/delete/archive cleanup migration, Supabase Storage retirement, or backup/restore implementation complete.
 
 ## Still Open
 

@@ -10,6 +10,14 @@ This phase is documentation, audit, and handoff only. It does not migrate additi
 
 The next phase should prepare the project for local filesystem storage planning/foundation before any broad storage implementation begins.
 
+## Phase 6A Storage Planning Note
+
+Phase 6A created the storage replacement planning and compatibility contract in `docs/migration/storage-replacement-planning-contract.md`.
+
+That contract inventories the current Supabase Storage upload, direct browser attachment editing, pending-to-formal move, preview/download signed URL, archive snapshot/destruction, and admin diagnostics/orphan cleanup surfaces. It locks the compatibility constraints for the future local filesystem work.
+
+Storage implementation remains future work. Phase 6A does not migrate upload, preview, download, signed URL/token, move, delete, archive destruction, diagnostics, orphan cleanup, workflow, archive lifecycle, mutation API, or filesystem runtime behavior.
+
 ## Completed Local Auth Boundary
 
 The following paths and support areas are now on the local custom auth boundary:
