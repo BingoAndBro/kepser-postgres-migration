@@ -48,6 +48,13 @@ Recommended auth subphase order after the Phase 5C planning contract:
 
 Phase 5G confirmed the local browser auth boundary and documented the remaining Supabase Auth retirement path. The recommended next auth step, before broad endpoint migration, is a narrow local server auth helper compatibility phase for non-auth APIs so routes can validate `dms_session` without changing endpoint paths, request shapes, response shapes, workflow behavior, or storage behavior.
 
+Phase 5I migrated the first two low-risk current-user Ketua Tim support reads after the helper bridge:
+
+- `GET /api/users/me/ketua-tim`
+- `GET /api/users/me/is-ketua-tim/$kegiatanId`
+
+The next support-route candidate is `GET /api/users/me`, but only after profile response parity is reviewed against `/profile` and laporan callers. Broad domain reads still belong to Phase 7, and mutations still belong to Phase 8.
+
 ## Phase 6: Storage Compatibility
 
 Replace storage behind the same upload/preview/download behavior:

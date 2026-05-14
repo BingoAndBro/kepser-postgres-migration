@@ -228,10 +228,21 @@ No proof route was migrated. Broad non-auth API authorization migration remains 
 
 Usage guidance and the recommended first route migration order are documented in `docs/migration/local-server-auth-helper-bridge.md`.
 
+## Phase 5I Support Endpoint Note
+
+Phase 5I migrated the first two low-risk current-user Ketua Tim support endpoints to local `dms_session` authorization:
+
+- `GET /api/users/me/ketua-tim`
+- `GET /api/users/me/is-ketua-tim/$kegiatanId`
+
+These routes no longer require a legacy Supabase server session and now use Drizzle reads against `master.ketua_tim_assignments` and `master.master_kegiatan`. This reduces the `AppLayout` support gap because `/api/users/me/ketua-tim` is called immediately after local auth bootstrap.
+
+`GET /api/users/me` remains Supabase-backed because its profile/role response shape is broader and should be migrated in a dedicated profile support phase. Broad non-auth API authorization, read-only domain API migration, mutation API migration, Supabase Auth Admin replacement, and storage replacement remain open.
+
 ## Known Mixed-Runtime Risks
 
 - Local login creates `dms_session`, but non-auth API routes still generally expect Supabase-authenticated server clients.
-- Authenticated pages can render from local auth state and then fail when a legacy non-auth API checks Supabase Auth.
+- Authenticated pages can render from local auth state and then fail when a legacy non-auth API checks Supabase Auth; Phase 5I only removed this risk from the two current-user Ketua Tim support endpoints.
 - `AppLayout` no longer listens to Supabase browser auth events, so cross-tab sign-out/refresh behavior needs local-auth regression coverage later.
 - Supabase Auth Admin still owns user-management and password-change behavior outside the local login path.
 - Storage, preview, download, and archive destruction still depend on Supabase Storage and signed URLs.

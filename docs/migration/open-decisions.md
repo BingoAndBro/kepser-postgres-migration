@@ -154,6 +154,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local server auth helper compatibility bridge for non-auth APIs.
   Date: 2026-05-14.
   Rationale: Phase 5H added `src/lib/auth/local-server-auth.ts` as an isolated server-only bridge for future non-auth API authorization migrations. It validates local `dms_session` through the hashed session-token repository, resolves active role only after membership validation, and provides reusable session, role, and 401/403 helper functions without migrating non-auth routes or changing endpoint contracts.
+- First low-risk support API local auth migration completed.
+  Date: 2026-05-14.
+  Rationale: Phase 5I migrated only `GET /api/users/me/ketua-tim` and `GET /api/users/me/is-ketua-tim/$kegiatanId` from legacy Supabase session authorization/RPC reads to local `dms_session` authorization plus equivalent Drizzle reads against `master.ketua_tim_assignments` and `master.master_kegiatan`. This reduces the AppLayout/current-user Ketua Tim support gap without deciding or completing broad non-auth API authorization migration, read-only domain API migration, mutation API migration, storage replacement, or Supabase Auth Admin replacement.
 
 ## Still Open
 
@@ -173,14 +176,19 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Real password provisioning workflow for production/bootstrap users.
 - Supabase Auth runtime retirement.
 - Non-auth API authorization migration to local `dms_session`.
+- Read-only domain API migration.
+- Mutation API migration.
 - Supabase Auth Admin replacement for user management and user-name enrichment.
+- User management and password-change replacement.
 - CSRF and rate-limiting details for cookie-auth runtime.
 - Remember-me request shape support.
 - Storage replacement.
 - Local filesystem storage.
 - Upload/preview/download local storage compatibility.
+- Supabase Storage retirement.
 - Backup/restore process.
 - Archive scheduler replacement.
+- Full Supabase removal.
 - Whether final LAN deployment runs app directly on host or app plus PostgreSQL in Docker Compose.
 - Backup schedule and retention.
 - Server hostname/static IP strategy.

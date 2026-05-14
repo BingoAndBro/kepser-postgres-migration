@@ -166,6 +166,17 @@ No proof route was migrated in Phase 5H.
 
 Reason: the candidate `/api/users/me/ketua-tim` depends on a Supabase RPC and would require a local Drizzle query replacement to preserve response shape. That belongs with the first low-risk read-only API migration rather than this helper bridge.
 
+## Phase 5I Usage Note
+
+Phase 5I used this helper bridge in the first low-risk support API migrations:
+
+- `GET /api/users/me/ketua-tim`
+- `GET /api/users/me/is-ketua-tim/$kegiatanId`
+
+Both routes now call `getLocalServerSession(request)` and preserve their existing `401 { error: 'Unauthorized' }` body through `createUnauthorizedResponse('Unauthorized')`. The Supabase RPC reads were replaced with equivalent Drizzle reads against `master.ketua_tim_assignments` and `master.master_kegiatan`.
+
+This is not a broad non-auth API authorization migration. Document, workflow, storage, report, archive, admin, and mutation routes remain outside Phase 5I.
+
 ## Known Limitations
 
 - Non-auth APIs still generally use legacy `getServerSession`, `hasRole`, `createServerSupabaseClient`, and Supabase data queries.
