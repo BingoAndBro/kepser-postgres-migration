@@ -209,7 +209,7 @@ Still Supabase Storage-backed:
 
 Recommended next sequence:
 
-1. Phase 5H or Phase 6A: add local server auth helper compatibility for non-auth APIs, preserving endpoint contracts and response shapes.
+1. Use the Phase 5H local server auth helper bridge for the first non-auth API authorization migrations, preserving endpoint contracts and response shapes.
 2. Migrate read-only non-auth API authorization to local `dms_session`, starting with low-risk profile/current-user and role-support endpoints before domain lists.
 3. Migrate read-only data APIs by domain to local auth and Drizzle while preserving response shapes.
 4. Migrate mutation APIs carefully, with workflow/FSM and audit checks before each domain is considered done.
@@ -218,7 +218,15 @@ Recommended next sequence:
 7. Replace Supabase Storage runtime and signed URLs with local filesystem storage and internal signed-token/streaming behavior.
 8. Remove Supabase dependencies only after full DB/auth/storage parity and manual workflow verification.
 
-This recommendation keeps the existing roadmap structure, but inserts an auth-helper compatibility bridge before broad read/write API migration if needed.
+This recommendation keeps the existing roadmap structure and places the Phase 5H auth-helper compatibility bridge before broad read/write API migration.
+
+## Phase 5H Helper Bridge Note
+
+Phase 5H added `src/lib/auth/local-server-auth.ts`, an isolated server-only helper bridge for future non-auth API migrations. The helper resolves local `dms_session` through the existing hashed session-token repository, validates assigned roles, resolves `dms_active_role` only after membership checks, and provides narrow 401/403 response helpers.
+
+No proof route was migrated. Broad non-auth API authorization migration remains future work, including the `AppLayout` support endpoint `/api/users/me/ketua-tim`.
+
+Usage guidance and the recommended first route migration order are documented in `docs/migration/local-server-auth-helper-bridge.md`.
 
 ## Known Mixed-Runtime Risks
 
@@ -257,4 +265,3 @@ Follow-up checks for the final task summary:
 - `git diff --check`
 - final `git status --short --branch`
 - confirm `src/routeTree.gen.ts` did not change
-

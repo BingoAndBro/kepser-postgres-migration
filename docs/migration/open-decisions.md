@@ -151,6 +151,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Focused auth regression and Supabase Auth retirement planning completed.
   Date: 2026-05-14.
   Rationale: Phase 5G confirmed the Phase 5F browser/runtime boundary with targeted grep checks and focused auth helper tests, then recorded the manual verification checklist and remaining Supabase Auth retirement order in `docs/migration/auth-regression-and-retirement-plan.md`. This does not decide or complete broad non-auth API authorization migration, Supabase Auth Admin replacement, storage replacement, CSRF/rate limiting, or full Supabase Auth runtime retirement.
+- Local server auth helper compatibility bridge for non-auth APIs.
+  Date: 2026-05-14.
+  Rationale: Phase 5H added `src/lib/auth/local-server-auth.ts` as an isolated server-only bridge for future non-auth API authorization migrations. It validates local `dms_session` through the hashed session-token repository, resolves active role only after membership validation, and provides reusable session, role, and 401/403 helper functions without migrating non-auth routes or changing endpoint contracts.
 
 ## Still Open
 
@@ -171,7 +174,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Supabase Auth runtime retirement.
 - Non-auth API authorization migration to local `dms_session`.
 - Supabase Auth Admin replacement for user management and user-name enrichment.
-- Local server auth helper compatibility for non-auth APIs.
 - CSRF and rate-limiting details for cookie-auth runtime.
 - Remember-me request shape support.
 - Storage replacement.
