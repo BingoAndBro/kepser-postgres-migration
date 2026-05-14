@@ -322,6 +322,16 @@ The route now hashes the session cookie token, resolves it through `auth.session
 
 `dms_active_role` remains UX state only and is not authorization proof. `AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` remain intentionally unchanged until the controlled runtime switch.
 
+## Phase 5F Implementation Note
+
+Phase 5F performs the controlled browser runtime switch for the login page and app layout.
+
+`src/routes/login.tsx` now uses `POST /api/auth/login` instead of Supabase browser `signInWithPassword`, and it updates the existing client auth-state shape from the returned `{ user, roles, activeRole }` payload. `src/components/layout/AppLayout.tsx` now uses `GET /api/auth/session` as the primary bootstrap source instead of Supabase browser `getSession`, `getUser`, `onAuthStateChange`, and direct browser reads of `user_status` and `user_roles`.
+
+The central logout and role-switch handlers in `AppLayout` now call `POST /api/auth/logout` and `POST /api/auth/role-switch`. The browser code does not read or store `dms_session`; the session token remains only in the HttpOnly cookie and request handling path.
+
+Supabase browser auth remains elsewhere as reference or for later migration phases. Non-auth APIs, Supabase Auth Admin replacement, storage, workflow, and archive behavior are still outside the Phase 5F scope.
+
 ## Verification Plan
 
 Future implementation checks:

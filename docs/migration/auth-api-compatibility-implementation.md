@@ -139,10 +139,22 @@ The route now validates `dms_session` through the hashed-token session repositor
 
 With this change, `login`, `logout`, `session`, and `role-switch` form the local auth API boundary. `AppLayout`, `src/routes/login.tsx`, and `src/lib/auth-state.ts` are still not switched to that boundary.
 
+## Phase 5F Browser Runtime Integration Note
+
+Phase 5F wires the browser runtime paths to the local auth API boundary:
+
+- `src/routes/login.tsx` now posts credentials to `POST /api/auth/login`.
+- `src/components/layout/AppLayout.tsx` now bootstraps authenticated UI state from `GET /api/auth/session`.
+- the central logout handler now calls `POST /api/auth/logout`.
+- the central role-switch handler now calls `POST /api/auth/role-switch`.
+
+The browser login/layout paths no longer use Supabase browser auth for primary login, session bootstrap, logout, or role switching. Client auth-state exports were not changed; they are populated from the existing auth API response shapes.
+
+Remaining gaps are intentionally unchanged: non-auth APIs still expect the legacy Supabase-backed authorization boundary, Supabase Auth Admin replacement remains open, and full Supabase Auth runtime retirement is not claimed.
+
 ## Intentionally Not Implemented
 
-- AppLayout/client auth-state runtime switch
-- login page runtime switch
+- non-auth API authorization migration
 - CSRF protection
 - rate limiting
 - remember-me request shape expansion

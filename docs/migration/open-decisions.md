@@ -145,6 +145,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Role-switch API compatibility implementation for local custom auth.
   Date: 2026-05-14.
   Rationale: Phase 5E.1 replaced only the internals of `POST /api/auth/role-switch` with local `dms_session` validation, hashed session-token lookup, assigned-role validation, ADMIN switch rejection, and compatible `dms_active_role` cookie writing. The auth API layer now covers login, logout, session, and role-switch, while `AppLayout`, the login page, client auth-state, non-auth APIs, storage, and workflow behavior remain outside this decision.
+- Browser auth runtime integration for AppLayout/login/auth-state.
+  Date: 2026-05-14.
+  Rationale: Phase 5F switched the login page to `POST /api/auth/login`, switched `AppLayout` bootstrap to `GET /api/auth/session`, wired central logout to `POST /api/auth/logout`, and wired central role switching to `POST /api/auth/role-switch` while preserving the existing client auth-state shape. This addresses the AppLayout/auth-state local custom session integration and login page switch decisions only. Non-auth API authorization, Supabase Auth Admin replacement, storage, workflow/archive behavior, CSRF/rate limiting, and full Supabase Auth runtime retirement remain open.
 
 ## Still Open
 
@@ -162,7 +165,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
-- AppLayout/auth-state integration with local custom sessions.
 - Supabase Auth runtime retirement.
 - CSRF and rate-limiting details for cookie-auth runtime.
 - Storage replacement.
