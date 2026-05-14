@@ -160,6 +160,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Current-user profile API local auth compatibility completed.
   Date: 2026-05-14.
   Rationale: Phase 5J migrated only `GET /api/users/me` from legacy Supabase session authorization to local `dms_session` authorization through `getLocalServerSession(request)`. The endpoint maps local `auth.users.nama_lengkap`, `auth.users.nip_nrp`, and `auth.users.departemen` to the unchanged profile metadata response shape and keeps broad non-auth API authorization migration, read-only domain API migration, mutation API migration, user-management/Auth Admin replacement, password-change replacement, storage replacement, and full Supabase removal open.
+- Auth local runtime stabilization and Phase 6 handoff completed.
+  Date: 2026-05-14.
+  Rationale: Phase 5K completed a docs/audit/handoff stabilization pass for the local auth runtime boundary and recorded the manual verification checklist, known mixed-runtime risks, remaining Supabase-backed areas, and Phase 6A storage readiness notes in `docs/migration/auth-local-runtime-stabilization-handoff.md`. This does not mark broad non-auth API migration, storage migration, Supabase Auth Admin replacement, CSRF/rate limiting, or Supabase removal complete.
 
 ## Still Open
 

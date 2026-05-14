@@ -265,6 +265,14 @@ Remaining mixed-runtime risks after Phase 5J:
 - CSRF and rate limiting remain open before production use of cookie auth.
 - Remember-me request shape support remains open.
 
+## Phase 5K Stabilization And Handoff Note
+
+Phase 5K completed the local auth runtime stabilization and handoff audit. It created `docs/migration/auth-local-runtime-stabilization-handoff.md` as the Phase 5 closure summary, manual verification checklist, known-gap record, and Phase 6A readiness note.
+
+The completed local auth boundary now covers `/api/auth/login`, `/api/auth/logout`, `/api/auth/session`, `/api/auth/role-switch`, `/login`, `AppLayout`, central logout, central role switching, the server-only local auth helper bridge, and the current-user support endpoints migrated in Phase 5I and Phase 5J.
+
+The remaining gaps are unchanged: broad non-auth API authorization, read-only domain API migration, mutation API migration, Supabase Auth Admin user-management and user-name enrichment, password change, Supabase Storage upload/preview/download/move/delete/signed URLs, storage diagnostics/orphan cleanup, CSRF/rate limiting, remember-me support, and full Supabase removal.
+
 ## Intentionally Not Implemented
 
 - non-auth API migration

@@ -55,6 +55,8 @@ Phase 5I migrated the first two low-risk current-user Ketua Tim support reads af
 
 Phase 5J migrated `GET /api/users/me` after profile response parity was reviewed against `/profile` and laporan callers. Current-user support reads now use local `dms_session` authorization, but broad domain reads still belong to Phase 7, and mutations still belong to Phase 8.
 
+Phase 5K stabilized and closed the auth runtime segment with a docs/audit/handoff pass. The completed local auth boundary includes login/logout/session/role-switch APIs, `/login`, `AppLayout`, central logout/role switch, the server-only local auth helper bridge, and the current-user support endpoints from Phase 5I/5J. The recommended next step is Phase 6A storage replacement planning/foundation; it should inventory and lock the storage contract before implementation.
+
 ## Phase 6: Storage Compatibility
 
 Replace storage behind the same upload/preview/download behavior:
