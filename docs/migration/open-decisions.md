@@ -175,6 +175,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - File access token helper foundation added.
   Date: 2026-05-14.
   Rationale: Phase 6D.1 added `src/lib/storage/file-access-token.ts` as an isolated server-only helper for future internal preview/download URLs. The helper uses a non-JWT `v1.<base64url-canonical-json-payload>.<base64url-hmac-sha256-signature>` wire format, HMAC-SHA256, deterministic payload serialization, `timingSafeEqual`, expiry enforcement during verification, and claim validation that rejects unsupported or sensitive payload fields. This does not mark `/api/files/access`, preview/download runtime replacement, upload behavior, local storage runtime wiring, Supabase Storage retirement, or any file/data migration complete.
+- Internal file access route foundation added.
+  Date: 2026-05-14.
+  Rationale: Phase 6D.2 added `src/lib/storage/internal-file-access.ts` as a server-only validation service for the future `GET /api/files/access?token=<opaque-token>` route. The service verifies Phase 6D.1 tokens, requires future route wiring to supply a local `dms_session`-validated session, supports only raw logical-path tokens, applies owner/role compatibility checks for raw-path access, validates logical paths, and resolves local paths only for root-containment validation. The actual route file was deferred because registering it would require `src/routeTree.gen.ts` generation, which this phase forbids. This does not mark preview/download endpoint compatibility wiring, upload replacement, local storage streaming, document/archive token access, Supabase Storage retirement, or any file/data migration complete.
 
 ## Still Open
 
@@ -184,16 +187,17 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact repository folder structure for DB/auth/storage modules.
   Phase 3A recommendation: use `src/db/` with domain-grouped schema files. See `docs/migration/drizzle-schema-plan.md` Section 4.
 - Exact transition strategy for old Supabase helpers.
-- Internal signed-token runtime implementation remains open, including `/api/files/access`, authorization revalidation, file streaming, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims.
+- Internal signed-token runtime implementation remains open for actual `/api/files/access` route registration, file streaming, document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.2 added only a validation service foundation.
+- Preview/download endpoint compatibility wiring.
+- Upload local storage compatibility.
+- Pending-to-formal local move behavior.
+- Archive destruction local delete behavior.
+- Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Local filesystem storage runtime implementation.
-- Upload/preview/download local storage compatibility.
-- Pending-to-formal local move behavior.
-- Archive destruction local delete behavior.
-- Storage diagnostics/orphan cleanup local implementation.
 - Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.

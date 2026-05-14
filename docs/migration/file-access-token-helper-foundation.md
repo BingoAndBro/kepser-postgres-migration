@@ -132,3 +132,9 @@ A later runtime phase may use this helper to return compatible internal URLs suc
 ```
 
 That later phase must still revalidate current session, role/owner authorization, document or archive state, logical path safety, file root containment, and `DIMUSNAHKAN` blocking before streaming any file.
+
+## Phase 6D.2 Follow-Up Note
+
+Phase 6D.2 added `src/lib/storage/internal-file-access.ts` as a server-only service foundation that uses `verifyFileAccessToken(token, secret)` for future internal file access. The route file itself was deferred because adding `GET /api/files/access` would require `src/routeTree.gen.ts` generation, which is forbidden in this phase.
+
+The helper is used only by this internal access service foundation. Existing preview/download endpoints still return Supabase-backed signed URLs, and endpoint wiring remains future work.

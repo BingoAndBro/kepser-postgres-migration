@@ -28,6 +28,12 @@ Phase 6D.1 added the isolated server-only token helper in `src/lib/storage/file-
 
 The helper signs and verifies non-JWT tokens with the wire format `v1.<base64url-canonical-json-payload>.<base64url-hmac-sha256-signature>`, validates allowed claims, rejects expired/tampered/malformed tokens, and rejects unsupported or sensitive claims. It is not imported by runtime routes/components and does not implement `/api/files/access`, file streaming, upload behavior, preview/download replacement, storage root resolution, or Supabase Storage file/data migration.
 
+## Phase 6D.2 Internal Access Foundation Note
+
+Phase 6D.2 added `src/lib/storage/internal-file-access.ts` as a server-only service foundation for the future internal access route. It verifies the Phase 6D.1 token, expects a local server session from future route wiring, validates supported logical-path tokens, performs owner/role compatibility checks, and resolves the local physical path only for root-containment validation.
+
+No route file was registered because `src/routeTree.gen.ts` must not be touched in this phase. No existing preview/download endpoints were wired, and file streaming remains intentionally unimplemented.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

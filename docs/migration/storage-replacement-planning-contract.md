@@ -639,6 +639,18 @@ The contract defines a future internal `{ signedUrl }` target such as `/api/file
 
 Phase 6C did not add runtime route wiring, token helper code, upload/preview/download replacement, file streaming, move/delete behavior, archive destruction deletion, diagnostics, orphan cleanup, DB schema changes, or existing Supabase Storage file migration/copy/download/sync. Internal signed-token implementation remains future work.
 
+## Phase 6D.2 Internal Access Foundation Note
+
+Phase 6D.2 added a server-only validation service for future internal file access:
+
+- `src/lib/storage/internal-file-access.ts`
+- `tests/unit/storage/internal-file-access.test.ts`
+- `docs/migration/internal-file-access-route-foundation.md`
+
+The service verifies Phase 6D.1 tokens, requires future route wiring to pass a local `dms_session`-validated session, supports only raw `logicalPath` tokens, applies owner/role compatibility checks, validates logical paths, resolves paths under the local storage root for containment, and returns 501 because streaming is intentionally not implemented.
+
+The actual `GET /api/files/access` route file was deferred because route registration would require `src/routeTree.gen.ts` generation. Existing preview/download endpoints remain Supabase-backed and unchanged.
+
 ## Backup/Restore Considerations
 
 After local filesystem storage exists, PostgreSQL backup alone is insufficient.

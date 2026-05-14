@@ -162,6 +162,10 @@ Phase 6D.1 later implemented the isolated helper foundation in `src/lib/storage/
 
 Phase 6D.1 still does not implement `/api/files/access`, file streaming, preview/download route wiring, upload behavior, local storage runtime replacement, or Supabase Storage file/data migration.
 
+Phase 6D.2 added a server-only internal file access service foundation in `src/lib/storage/internal-file-access.ts`. The preferred route remains `GET /api/files/access?token=<opaque-token>`, but the actual route file was deferred because registering it would require `src/routeTree.gen.ts` generation, which this phase forbids.
+
+Token verification is still not enough. The Phase 6D.2 service requires a local session supplied by future server route wiring, applies owner/role revalidation for raw logical-path tokens, validates logical paths, and performs root-containment path resolution before returning a non-streaming 501 response. Document/archive tokens, `DIMUSNAHKAN` rechecks, existing endpoint wiring, and file streaming remain future work.
+
 ## Authorization Revalidation Contract
 
 Token verification alone is not authorization.
