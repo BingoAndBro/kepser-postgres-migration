@@ -128,12 +128,18 @@ Result: passed.
 
 No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced. The local filesystem storage target remains empty until a later runtime implementation writes new local files.
 
+## Phase 6C Follow-Up Note
+
+Phase 6C added `docs/migration/internal-preview-download-token-contract.md`. The token contract builds on the Phase 6B logical path and safe physical path helpers by requiring future preview/download access routes to validate logical paths, resolve physical paths only server-side, and verify resolved paths remain under the configured storage root.
+
+Phase 6C did not import or wire the path helpers into runtime preview/download routes. Upload, preview, download, token signing, file streaming, move/delete behavior, archive destruction deletion, diagnostics, and orphan cleanup remain future work.
+
 ## Recommended Next Phase
 
 Recommended next phase:
 
 ```text
-Phase 6C Internal Preview/Download Token Contract
+Phase 6D Upload/Preview/Download Compatibility Implementation
 ```
 
-That phase should define token claims, expiry, signing secret/config, authorization revalidation, and the compatible `{ signedUrl }` route shape before any upload/preview/download runtime replacement is wired.
+That phase should implement only after token helper tests and access route authorization tests are defined, while preserving existing endpoint paths, request shapes, response shapes, and `{ signedUrl }` compatibility.

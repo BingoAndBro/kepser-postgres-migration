@@ -629,7 +629,15 @@ The helper module covers lazy root resolution, logical path normalization, path 
 
 Phase 6B did not change runtime storage behavior. It did not wire local filesystem storage into upload, preview, download, signed-token generation, file streaming, move, delete, archive destruction, diagnostics, orphan cleanup, workflow mutations, API routes, or client components.
 
-No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced. Implementation wiring remains future Phase 6C/6D+ work.
+No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced. Implementation wiring remains future Phase 6D+ work.
+
+## Phase 6C Token Contract Note
+
+Phase 6C created `docs/migration/internal-preview-download-token-contract.md` to lock the internal preview/download token and URL compatibility model before runtime implementation.
+
+The contract defines a future internal `{ signedUrl }` target such as `/api/files/access?token=<opaque-token>`, allowed token claims, avoided sensitive claims, HMAC-based signing direction, required expiry, authorization revalidation, `DIMUSNAHKAN` blocking, filename/content-disposition parity, and revocation limitations.
+
+Phase 6C did not add runtime route wiring, token helper code, upload/preview/download replacement, file streaming, move/delete behavior, archive destruction deletion, diagnostics, orphan cleanup, DB schema changes, or existing Supabase Storage file migration/copy/download/sync. Internal signed-token implementation remains future work.
 
 ## Backup/Restore Considerations
 
@@ -660,8 +668,9 @@ Recommended next storage subphases:
    - Do not wire runtime routes until path safety is verified.
 
 2. Phase 6C: Internal Preview/Download Token Contract
-   - Define token claims, expiry, signing algorithm, secret config, and streaming route shape.
-   - Preserve `{ signedUrl }` compatibility while clients still expect it.
+   - Completed as documentation-only contract work.
+   - Defines token claims, expiry, signing algorithm, secret config direction, access route shape, reauthorization expectations, `DIMUSNAHKAN` blocking, and filename/content-disposition parity.
+   - Preserves `{ signedUrl }` compatibility while clients still expect it.
 
 3. Phase 6D: Upload/Preview/Download Compatibility Implementation
    - Migrate `/api/upload`, raw-path preview/download, and role preview/download internals behind existing endpoint paths.

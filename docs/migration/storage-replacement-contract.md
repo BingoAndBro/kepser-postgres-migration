@@ -16,6 +16,12 @@ Phase 6B added isolated server-only local storage path helpers in `src/lib/stora
 
 No runtime storage behavior changed in Phase 6B. Upload, preview, download, signed-token, move, delete, archive destruction, diagnostics, orphan cleanup, and route/component wiring remain future work. No existing Supabase Storage files or data were migrated, copied, downloaded, backfilled, or synced.
 
+## Phase 6C Token Contract Note
+
+Phase 6C added the internal preview/download token compatibility contract in `docs/migration/internal-preview-download-token-contract.md`.
+
+The contract preserves current `{ signedUrl }` response expectations by defining future internal API URLs for preview/download access, token claims, expiry, signing and verification rules, authorization revalidation, `DIMUSNAHKAN` blocking, and filename/content-disposition parity. No runtime routes, upload behavior, preview/download behavior, token helpers, file streaming, storage implementation, or Supabase Storage data migration were added in Phase 6C.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

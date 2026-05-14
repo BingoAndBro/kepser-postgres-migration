@@ -169,6 +169,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local filesystem storage foundation helpers added.
   Date: 2026-05-14.
   Rationale: Phase 6B added isolated server-only helper/test foundation in `src/lib/storage/local-storage-paths.ts` and `tests/unit/storage/local-storage-paths.test.ts` for local storage root resolution, logical path validation, safe physical path resolution, filename/path-segment sanitization, owner checks, and pending/formal classification. This does not mark local filesystem storage runtime implementation, upload/preview/download replacement, signed-token implementation, pending-to-formal move behavior, archive destruction delete behavior, storage diagnostics/orphan cleanup, Supabase Storage retirement, or backup/restore implementation complete.
+- Internal preview/download token contract completed.
+  Date: 2026-05-14.
+  Rationale: Phase 6C documented the future internal `{ signedUrl }` compatibility model in `docs/migration/internal-preview-download-token-contract.md`, including internal API URL shape, token claims, signing/verification direction, expiry defaults, authorization revalidation, `DIMUSNAHKAN` blocking, filename/content-disposition parity, and revocation limitations. This was docs-only and does not mark signed-token implementation, preview/download runtime replacement, upload behavior, local storage runtime wiring, Supabase Storage retirement, or any file/data migration complete.
 
 ## Still Open
 
@@ -178,7 +181,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact repository folder structure for DB/auth/storage modules.
   Phase 3A recommendation: use `src/db/` with domain-grouped schema files. See `docs/migration/drizzle-schema-plan.md` Section 4.
 - Exact transition strategy for old Supabase helpers.
-- Exact signed-token implementation details, including token claims, nonce/jti persistence, signing algorithm, and expiry durations.
+- Internal signed-token helper/runtime implementation remains open, including whether to use a pure stateless signed payload, persisted nonce/jti records, session binding, or another compatible opaque-token strategy.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
