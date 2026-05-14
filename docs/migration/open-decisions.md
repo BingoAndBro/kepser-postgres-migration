@@ -157,6 +157,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - First low-risk support API local auth migration completed.
   Date: 2026-05-14.
   Rationale: Phase 5I migrated only `GET /api/users/me/ketua-tim` and `GET /api/users/me/is-ketua-tim/$kegiatanId` from legacy Supabase session authorization/RPC reads to local `dms_session` authorization plus equivalent Drizzle reads against `master.ketua_tim_assignments` and `master.master_kegiatan`. This reduces the AppLayout/current-user Ketua Tim support gap without deciding or completing broad non-auth API authorization migration, read-only domain API migration, mutation API migration, storage replacement, or Supabase Auth Admin replacement.
+- Current-user profile API local auth compatibility completed.
+  Date: 2026-05-14.
+  Rationale: Phase 5J migrated only `GET /api/users/me` from legacy Supabase session authorization to local `dms_session` authorization through `getLocalServerSession(request)`. The endpoint maps local `auth.users.nama_lengkap`, `auth.users.nip_nrp`, and `auth.users.departemen` to the unchanged profile metadata response shape and keeps broad non-auth API authorization migration, read-only domain API migration, mutation API migration, user-management/Auth Admin replacement, password-change replacement, storage replacement, and full Supabase removal open.
 
 ## Still Open
 

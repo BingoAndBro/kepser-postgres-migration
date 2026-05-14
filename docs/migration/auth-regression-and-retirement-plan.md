@@ -237,7 +237,23 @@ Phase 5I migrated the first two low-risk current-user Ketua Tim support endpoint
 
 These routes no longer require a legacy Supabase server session and now use Drizzle reads against `master.ketua_tim_assignments` and `master.master_kegiatan`. This reduces the `AppLayout` support gap because `/api/users/me/ketua-tim` is called immediately after local auth bootstrap.
 
-`GET /api/users/me` remains Supabase-backed because its profile/role response shape is broader and should be migrated in a dedicated profile support phase. Broad non-auth API authorization, read-only domain API migration, mutation API migration, Supabase Auth Admin replacement, and storage replacement remain open.
+`GET /api/users/me` was migrated in Phase 5J after its profile/role response shape was reviewed against `/profile` and `/pegawai/laporan/kegiatan`. Broad non-auth API authorization, read-only domain API migration, mutation API migration, Supabase Auth Admin replacement, and storage replacement remain open.
+
+## Phase 5J Current User Profile API Note
+
+Phase 5J migrated:
+
+- `GET /api/users/me`
+
+The endpoint now validates local `dms_session` through `getLocalServerSession(request)` and reads profile metadata from local `auth.users` via Drizzle while preserving the existing `{ user: { id, email, metadata, roles } }` response shape and `401 { error: 'Unauthorized' }` unauthorized body.
+
+Remaining mixed-runtime risks after Phase 5J:
+
+- `POST /api/users/me/change-password` still depends on legacy Supabase Auth password behavior.
+- admin user-management/Auth Admin endpoints still depend on Supabase Auth Admin helpers.
+- report, document, workflow, archive, upload, preview, and download APIs still generally depend on legacy Supabase authorization/data/storage behavior.
+- read-only domain API migration and mutation API migration remain future phases.
+- storage and signed URL replacement remain future phases.
 
 ## Known Mixed-Runtime Risks
 

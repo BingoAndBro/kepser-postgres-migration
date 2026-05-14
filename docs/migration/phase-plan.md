@@ -53,7 +53,7 @@ Phase 5I migrated the first two low-risk current-user Ketua Tim support reads af
 - `GET /api/users/me/ketua-tim`
 - `GET /api/users/me/is-ketua-tim/$kegiatanId`
 
-The next support-route candidate is `GET /api/users/me`, but only after profile response parity is reviewed against `/profile` and laporan callers. Broad domain reads still belong to Phase 7, and mutations still belong to Phase 8.
+Phase 5J migrated `GET /api/users/me` after profile response parity was reviewed against `/profile` and laporan callers. Current-user support reads now use local `dms_session` authorization, but broad domain reads still belong to Phase 7, and mutations still belong to Phase 8.
 
 ## Phase 6: Storage Compatibility
 

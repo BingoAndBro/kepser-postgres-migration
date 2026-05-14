@@ -171,8 +171,18 @@ Result:
 
 Recommended next phase:
 
-1. Migrate `GET /api/users/me` only after profile response parity is reviewed against `/profile` and `/pegawai/laporan/kegiatan`.
+1. Phase 5J migrated `GET /api/users/me` after profile response parity was reviewed against `/profile` and `/pegawai/laporan/kegiatan`; it now uses local `dms_session` authorization and local Drizzle profile reads while preserving `{ user: { id, email, metadata, roles } }`.
 2. Migrate small read-only current-user/profile support helpers before broader domain reads.
 3. Start Phase 7 read-only domain API migration after current-user support endpoints are stable.
 
 Do not move to mutation, workflow, storage, preview/download, archive lifecycle, or admin user-management replacement until their planned phases.
+
+## Phase 5J Current User Profile Note
+
+Phase 5J migrated the broad current-user profile endpoint:
+
+- `GET /api/users/me`
+
+The endpoint now validates local `dms_session` through `getLocalServerSession(request)` and maps local `auth.users.nama_lengkap`, `auth.users.nip_nrp`, and `auth.users.departemen` into the unchanged `user.metadata` response shape.
+
+`POST /api/users/me/change-password`, user-management/Auth Admin endpoints, broad non-auth API authorization, read-only domain API migration, mutation API migration, storage replacement, and Supabase Auth Admin replacement remain open.
