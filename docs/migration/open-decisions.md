@@ -187,6 +187,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Internal file access raw-path local streaming foundation added.
   Date: 2026-05-15.
   Rationale: Phase 6D.7 added local file content responses to `src/lib/storage/internal-file-access.ts` only for already-supported raw logical-path tokens after token, session, logical path, root-containment, and raw owner/role compatibility checks pass. This does not mark document/archive token authorization, `DIMUSNAHKAN` checks for those token types, upload replacement, pending-to-formal local moves, delete/remove behavior, broad preview/download endpoint migration, Supabase Storage retirement, or any file/data migration complete.
+- Opt-in raw preview internal URL runtime verification completed.
+  Date: 2026-05-15.
+  Rationale: Phase 6D.8 verified that `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` can return the compatible internal `{ signedUrl, filename }` shape and that the resulting raw logical-path token can serve local file content through the internal access service when a matching local file exists and token/session/path/root-containment/owner-or-role checks pass. The default raw preview request remains Supabase-backed, `useInternal=true` remains opt-in only, normal UI callers remain unchanged, and download/document/role/archive/upload behavior remains outside this decision.
 
 ## Still Open
 

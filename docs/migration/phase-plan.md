@@ -87,6 +87,8 @@ Phase 6D.5 added the isolated internal file access URL builder foundation in `sr
 
 Phase 6D.7 added local file content responses to the existing internal file access service for raw logical-path tokens only. `/api/files/access` can now return a local file after token, session, logical path, root-containment, and raw owner/role compatibility checks pass. Document/archive/status-check tokens remain unsupported, `DIMUSNAHKAN` checks for those token types remain future work, and existing preview/download/upload endpoints remain unchanged except the earlier opt-in raw preview internal URL path from Phase 6D.6.
 
+Phase 6D.8 verified the opt-in raw logical-path preview internal URL runtime path with focused tests and documentation. `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` can produce the compatible `{ signedUrl, filename }` shape, and the returned internal token URL can serve local file content through `/api/files/access` when a matching local file exists and token/session/path/root-containment/owner-or-role checks pass. The default raw preview request without `useInternal=true` remains Supabase-backed, normal UI callers remain unchanged, and download/document/role/archive/upload endpoints remain out of scope.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

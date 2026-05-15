@@ -60,6 +60,12 @@ Phase 6D.7 added local file content responses in `src/lib/storage/internal-file-
 
 Document/archive/status-check tokens remain unsupported and continue to return the generic 501 unsupported-token behavior. `DIMUSNAHKAN` checks for document/archive tokens, upload replacement, pending-to-formal local moves, delete/remove behavior, and Supabase Storage file migration remain future work.
 
+## Phase 6D.8 Runtime Verification Note
+
+Phase 6D.8 added focused runtime verification for the opt-in raw logical-path preview flow in `tests/unit/storage/raw-preview-internal-url-runtime.test.ts` and documented the result in `docs/migration/raw-preview-internal-url-runtime-verification.md`.
+
+The verified path is limited to `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` returning a compatible internal `{ signedUrl, filename }` response and the internal access service returning local file content when a matching local file exists. The default raw preview request remains Supabase-backed, `useInternal=true` remains opt-in only, normal UI callers remain unchanged, and no download/document/role/archive/upload endpoint behavior was changed.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
