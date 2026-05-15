@@ -81,6 +81,10 @@ Phase 6D.2 added the internal file access service foundation in `src/lib/storage
 
 Phase 6D.3 registered the internal `GET /api/files/access?token=<opaque-token>` route in `src/routes/api/files/access.ts` and `src/routeTree.gen.ts`. The route is only a thin wrapper that supplies `getLocalServerSession(request)`, `getFileTokenSecret()`, and the request to `handleInternalFileAccessRequest(...)`. Existing preview/download/upload endpoints remain Supabase-backed, no internal signed URL generation is wired yet, and local file streaming remains intentionally unimplemented.
 
+Phase 6D.4 completed the preview/download internal URL wiring plan in `docs/migration/preview-download-internal-url-wiring-plan.md`. It inventoried the current raw, document-detail, PPK, and Bendahara signed-URL endpoints, documented archive preview risks, and defined a safe later implementation sequence without changing runtime behavior.
+
+Phase 6D.5 added the isolated internal file access URL builder foundation in `src/lib/storage/internal-file-access-url.ts` and `tests/unit/storage/internal-file-access-url.test.ts`. The helper signs a validated file access token payload and returns only a relative `/api/files/access?token=<opaque-token>` URL. Existing preview/download/upload endpoints remain Supabase-backed, no endpoint imports the helper yet, and local file streaming remains intentionally unimplemented.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

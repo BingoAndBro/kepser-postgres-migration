@@ -181,6 +181,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Internal file access route registered.
   Date: 2026-05-15.
   Rationale: Phase 6D.3 added `src/routes/api/files/access.ts` and registered `GET /api/files/access?token=<opaque-token>` in `src/routeTree.gen.ts`. The route is intentionally thin and delegates to the existing Phase 6D.2 service with a local server session and file token secret. This makes the internal route reachable but does not mark preview/download endpoint compatibility wiring, upload replacement, local storage streaming, document/archive token access, `DIMUSNAHKAN` token-streaming behavior, Supabase Storage retirement, or any file/data migration complete.
+- Internal file access URL builder foundation added.
+  Date: 2026-05-15.
+  Rationale: Phase 6D.5 added `src/lib/storage/internal-file-access-url.ts` as an isolated server-only helper that signs a validated file access token payload with an explicit secret and returns only a relative `/api/files/access?token=<opaque-token>` URL. This does not mark preview/download endpoint compatibility wiring, Supabase signed URL replacement, upload replacement, local storage streaming, document/archive token access, `DIMUSNAHKAN` token-streaming behavior, Supabase Storage retirement, or any file/data migration complete.
 
 ## Still Open
 
@@ -190,7 +193,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact repository folder structure for DB/auth/storage modules.
   Phase 3A recommendation: use `src/db/` with domain-grouped schema files. See `docs/migration/drizzle-schema-plan.md` Section 4.
 - Exact transition strategy for old Supabase helpers.
-- Internal signed-token runtime implementation remains open for file streaming, document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.3 registered `/api/files/access` only as a non-streaming route wrapper.
+- Internal signed-token runtime implementation remains open for file streaming, document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.3 registered `/api/files/access` only as a non-streaming route wrapper, and Phase 6D.5 added only a non-wired relative URL builder.
 - Preview/download endpoint compatibility wiring.
 - Upload local storage compatibility.
 - Pending-to-formal local move behavior.

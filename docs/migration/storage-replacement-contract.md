@@ -44,6 +44,16 @@ GET /api/files/access?token=<opaque-token>
 
 The route is a thin wrapper around `getLocalServerSession(request)`, `getFileTokenSecret()`, and `handleInternalFileAccessRequest(...)`. It makes the internal access route reachable, but existing preview/download/upload endpoints remain Supabase-backed. File streaming, document/archive token access, `DIMUSNAHKAN` handling for token streaming, upload replacement, move/delete behavior, and Supabase Storage data migration remain future work.
 
+## Phase 6D.5 Internal URL Builder Note
+
+Phase 6D.5 added `src/lib/storage/internal-file-access-url.ts` as an isolated server-only helper for building relative internal file access URLs:
+
+```text
+/api/files/access?token=<opaque-token>
+```
+
+The helper accepts a validated file access token payload and an explicit signing secret, delegates token signing to the Phase 6D.1 token helper, and uses `URLSearchParams` for safe query construction. It is not imported by existing preview/download/upload endpoints yet. It does not read env, call filesystem APIs, perform authorization, stream files, replace Supabase signed URLs, migrate Supabase Storage files, or change runtime endpoint behavior.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
