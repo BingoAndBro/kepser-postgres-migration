@@ -54,6 +54,12 @@ Phase 6D.5 added `src/lib/storage/internal-file-access-url.ts` as an isolated se
 
 The helper accepts a validated file access token payload and an explicit signing secret, delegates token signing to the Phase 6D.1 token helper, and uses `URLSearchParams` for safe query construction. It is not imported by existing preview/download/upload endpoints yet. It does not read env, call filesystem APIs, perform authorization, stream files, replace Supabase signed URLs, migrate Supabase Storage files, or change runtime endpoint behavior.
 
+## Phase 6D.7 Local Streaming Foundation Note
+
+Phase 6D.7 added local file content responses in `src/lib/storage/internal-file-access.ts` for raw logical-path tokens only. The service still verifies the signed token, requires a local server session from the route, validates logical path safety, resolves through the local storage path helper, enforces root containment, and applies existing raw-path owner/role compatibility before any file read.
+
+Document/archive/status-check tokens remain unsupported and continue to return the generic 501 unsupported-token behavior. `DIMUSNAHKAN` checks for document/archive tokens, upload replacement, pending-to-formal local moves, delete/remove behavior, and Supabase Storage file migration remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
