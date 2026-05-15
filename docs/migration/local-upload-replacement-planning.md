@@ -247,6 +247,12 @@ Phase 6E.2 added the isolated server-only helper foundation described in `docs/m
 
 The helper covers upload metadata validation, client filename sanitization, `kelengkapan_id` validation, compatible underscore pending logical path generation, and contained no-overwrite local writes. It remains unwired from `/api/upload` and does not implement pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, or Supabase Storage file migration.
 
+## Phase 6E.3 Follow-Up Note
+
+Phase 6E.3 added the route wiring plan described in `docs/migration/local-upload-route-wiring-plan.md`.
+
+The plan keeps the future implementation bounded to `/api/upload` route internals, recommends local `dms_session` ownership via `getLocalServerSession(request)`, maps current multipart inputs to the Phase 6E.2 helper, and preserves the existing `/api/upload` request/response/status contract for `FileUploadButton`. It also keeps `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, and Supabase Storage file migration out of scope.
+
 ## 12. Validation Performed
 
 Commands run:

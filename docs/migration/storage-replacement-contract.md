@@ -88,6 +88,14 @@ The helper is server-only and isolated from runtime routes/components. It valida
 
 No `/api/upload` behavior changed. UI callers, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, Supabase Storage retirement, and Supabase Storage file migration remain future work.
 
+## Phase 6E.3 Local Upload Route Wiring Plan Note
+
+Phase 6E.3 added `docs/migration/local-upload-route-wiring-plan.md` as a planning-only route wiring contract for a future `/api/upload` local implementation.
+
+The plan preserves `/api/upload`, `multipart/form-data` fields `file`, `kelengkapan_id`, and `nama_dokumen`, success status `201`, response shape `{ url, nama, kelengkapan_id, uploaded_at }`, logical-path-only responses, and underscore pending path compatibility. It recommends using `getLocalServerSession(request)` during the implementation phase so the local file owner segment comes from the local session user id.
+
+No runtime upload behavior changed. `/api/upload` remains Supabase-backed. UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, auth runtime changes, Supabase Storage retirement, and Supabase Storage file migration remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
