@@ -166,6 +166,8 @@ Phase 6D.2 added a server-only internal file access service foundation in `src/l
 
 Token verification is still not enough. The Phase 6D.2 service requires a local session supplied by future server route wiring, applies owner/role revalidation for raw logical-path tokens, validates logical paths, and performs root-containment path resolution before returning a non-streaming 501 response. Document/archive tokens, `DIMUSNAHKAN` rechecks, existing endpoint wiring, and file streaming remain future work.
 
+Phase 6D.3 later added `src/routes/api/files/access.ts` and registered `/api/files/access` in the route tree. The route supplies `getLocalServerSession(request)` and `getFileTokenSecret()` to the Phase 6D.2 service. Existing preview/download endpoints still return Supabase-backed signed URLs, and file streaming remains future work.
+
 ## Authorization Revalidation Contract
 
 Token verification alone is not authorization.

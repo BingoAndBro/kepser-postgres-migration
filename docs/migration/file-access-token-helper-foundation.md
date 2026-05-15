@@ -138,3 +138,7 @@ That later phase must still revalidate current session, role/owner authorization
 Phase 6D.2 added `src/lib/storage/internal-file-access.ts` as a server-only service foundation that uses `verifyFileAccessToken(token, secret)` for future internal file access. The route file itself was deferred because adding `GET /api/files/access` would require `src/routeTree.gen.ts` generation, which is forbidden in this phase.
 
 The helper is used only by this internal access service foundation. Existing preview/download endpoints still return Supabase-backed signed URLs, and endpoint wiring remains future work.
+
+## Phase 6D.3 Follow-Up Note
+
+Phase 6D.3 added and registered the route file `src/routes/api/files/access.ts`. The route delegates to the Phase 6D.2 service and does not change token format, token validation, existing preview/download endpoint behavior, upload behavior, or file streaming status.

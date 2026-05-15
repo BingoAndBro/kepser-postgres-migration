@@ -651,6 +651,12 @@ The service verifies Phase 6D.1 tokens, requires future route wiring to pass a l
 
 The actual `GET /api/files/access` route file was deferred because route registration would require `src/routeTree.gen.ts` generation. Existing preview/download endpoints remain Supabase-backed and unchanged.
 
+## Phase 6D.3 Route Registration Note
+
+Phase 6D.3 added `src/routes/api/files/access.ts` and registered `/api/files/access` in `src/routeTree.gen.ts` through the normal TanStack build/generation path. The route passes the request, local server session, and file token secret into the Phase 6D.2 service.
+
+Existing preview/download endpoints remain Supabase-backed and unchanged. No upload replacement, pending-to-formal move behavior, delete/remove behavior, archive destruction file deletion, storage diagnostics/orphan cleanup, local file streaming, document/archive token authorization, or Supabase Storage file migration was added.
+
 ## Backup/Restore Considerations
 
 After local filesystem storage exists, PostgreSQL backup alone is insufficient.

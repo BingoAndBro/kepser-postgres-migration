@@ -79,6 +79,8 @@ Phase 6D.1 added the isolated file access token helper foundation in `src/lib/st
 
 Phase 6D.2 added the internal file access service foundation in `src/lib/storage/internal-file-access.ts` and `tests/unit/storage/internal-file-access.test.ts`. The actual route file was deferred because registering `GET /api/files/access` would require `src/routeTree.gen.ts` generation, which this phase forbids. The service verifies Phase 6D.1 tokens, expects a future local `dms_session` route session, validates raw logical-path tokens, applies owner/role compatibility checks, resolves local paths for containment only, and returns 501 because streaming and endpoint wiring remain future work.
 
+Phase 6D.3 registered the internal `GET /api/files/access?token=<opaque-token>` route in `src/routes/api/files/access.ts` and `src/routeTree.gen.ts`. The route is only a thin wrapper that supplies `getLocalServerSession(request)`, `getFileTokenSecret()`, and the request to `handleInternalFileAccessRequest(...)`. Existing preview/download/upload endpoints remain Supabase-backed, no internal signed URL generation is wired yet, and local file streaming remains intentionally unimplemented.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

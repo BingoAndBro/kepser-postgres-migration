@@ -33,7 +33,7 @@ The preferred future route remains:
 GET /api/files/access?token=<opaque-token>
 ```
 
-The route file was deferred in this phase. Existing TanStack API routes are registered through `src/routeTree.gen.ts`, and project rules forbid route generation and manual edits to that file. Adding `src/routes/api/files/access.ts` without routeTree generation would create a misleading inert route file.
+The route file was deferred in Phase 6D.2. Phase 6D.3 later added `src/routes/api/files/access.ts` and registered it through the normal TanStack route generation path. The route now delegates to this service foundation, but streaming and existing preview/download endpoint wiring remain intentionally unimplemented.
 
 The routeTree update and route file should be added in a later human-approved phase that explicitly permits route generation or an accepted route registration change.
 
@@ -175,8 +175,6 @@ Result:
 
 ## Intentionally Not Implemented
 
-- route file `src/routes/api/files/access.ts`;
-- routeTree generation;
 - existing preview/download endpoint wiring;
 - upload route replacement;
 - pending-to-formal move behavior;
@@ -195,7 +193,7 @@ Result:
 Recommended next phase:
 
 ```text
-Phase 6D.3 Route Registration And Preview/Download Wiring Plan
+Phase 6D.4 Preview/Download Internal URL Wiring Plan
 ```
 
-That phase should either approve routeTree generation for `GET /api/files/access` or choose a different supported route registration strategy, then wire existing preview/download endpoints only after route availability and response compatibility are verified.
+That phase should wire existing preview/download endpoints only after route availability and response compatibility are verified. It must preserve current endpoint paths, request shapes, response shapes, filename behavior, and Supabase-backed behavior until each replacement path is explicitly migrated and tested.

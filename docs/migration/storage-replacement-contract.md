@@ -34,6 +34,16 @@ Phase 6D.2 added `src/lib/storage/internal-file-access.ts` as a server-only serv
 
 No route file was registered because `src/routeTree.gen.ts` must not be touched in this phase. No existing preview/download endpoints were wired, and file streaming remains intentionally unimplemented.
 
+## Phase 6D.3 Route Registration Note
+
+Phase 6D.3 added and registered:
+
+```text
+GET /api/files/access?token=<opaque-token>
+```
+
+The route is a thin wrapper around `getLocalServerSession(request)`, `getFileTokenSecret()`, and `handleInternalFileAccessRequest(...)`. It makes the internal access route reachable, but existing preview/download/upload endpoints remain Supabase-backed. File streaming, document/archive token access, `DIMUSNAHKAN` handling for token streaming, upload replacement, move/delete behavior, and Supabase Storage data migration remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
