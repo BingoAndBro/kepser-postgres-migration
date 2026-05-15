@@ -373,6 +373,12 @@ Strict boundaries for that phase:
 
 Another planning phase is not required before `/api/upload` route implementation if Phase 6E.4 stays this narrow. A separate planning phase is still recommended before migrating `AttachmentEditor`, move/delete behavior, archive destruction deletion, diagnostics/orphan cleanup, or preview/download defaults.
 
+## Phase 6E.4 Follow-Up Note
+
+Phase 6E.4 implemented this plan in `src/routes/api/upload.ts` and documented the result in `docs/migration/local-upload-route-implementation.md`.
+
+The route now uses local `dms_session` authorization through `getLocalServerSession(request)`, writes newly uploaded files through `writeLocalUploadContent(...)`, preserves the `201 { url, nama, kelengkapan_id, uploaded_at }` response shape, and keeps returned paths logical-only. No UI caller, `AttachmentEditor`, pending move, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download default, route tree, database, or Supabase Storage data migration work was added.
+
 ## 13. Validation Performed
 
 Commands run:

@@ -96,10 +96,18 @@ The plan preserves `/api/upload`, `multipart/form-data` fields `file`, `kelengka
 
 No runtime upload behavior changed. `/api/upload` remains Supabase-backed. UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, auth runtime changes, Supabase Storage retirement, and Supabase Storage file migration remain future work.
 
+## Phase 6E.4 Local Upload Route Implementation Note
+
+Phase 6E.4 switched `POST /api/upload` internals to local filesystem upload using `src/lib/storage/local-upload.ts`.
+
+The route now uses local `dms_session` authorization through `getLocalServerSession(request)`, derives the owner segment from the local session user id, writes only newly uploaded files to local filesystem storage, and returns the existing compatible `201 { url, nama, kelengkapan_id, uploaded_at }` shape. The returned `url` remains a logical storage path and no physical path or storage root is returned.
+
+UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, Supabase Storage retirement, and Supabase Storage file/data migration remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
-- `/api/upload` uploads files using Supabase admin storage and returns `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
+- `/api/upload` now uploads newly submitted files to local filesystem storage and returns `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
 - `AttachmentEditor` also performs direct browser Supabase Storage upload/remove in some revision flows.
 - Submit/resubmit/update flows move pending files to formal paths.
 - Preview/download endpoints return Supabase signed URLs.

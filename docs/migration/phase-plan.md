@@ -97,6 +97,8 @@ Phase 6E.2 added the isolated local upload helper foundation in `src/lib/storage
 
 Phase 6E.3 documented the local `/api/upload` route wiring plan in `docs/migration/local-upload-route-wiring-plan.md`. The plan inventories current route behavior and `FileUploadButton` assumptions, recommends using `getLocalServerSession(request)` for future local owner semantics, maps the Phase 6E.2 helper into a later route implementation, and locks boundaries around multipart parsing, errors, security, pending moves, `AttachmentEditor`, deletes, archive destruction, diagnostics, and preview/download defaults. No runtime source code, `/api/upload` behavior, UI caller, route tree, database schema, auth runtime, preview/download default, or Supabase Storage file/data changed.
 
+Phase 6E.4 switched only the internals of `POST /api/upload` to local filesystem upload in `src/routes/api/upload.ts`, using `getLocalServerSession(request)`, `createLocalUploadDescriptor(...)`, and `writeLocalUploadContent(...)`. The route path, multipart fields, `201` success status, and `{ url, nama, kelengkapan_id, uploaded_at }` response shape are preserved. UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, Supabase Storage data migration, and Supabase dependency cleanup remain future work.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.
