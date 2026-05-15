@@ -190,6 +190,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Opt-in raw preview internal URL runtime verification completed.
   Date: 2026-05-15.
   Rationale: Phase 6D.8 verified that `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` can return the compatible internal `{ signedUrl, filename }` shape and that the resulting raw logical-path token can serve local file content through the internal access service when a matching local file exists and token/session/path/root-containment/owner-or-role checks pass. The default raw preview request remains Supabase-backed, `useInternal=true` remains opt-in only, normal UI callers remain unchanged, and download/document/role/archive/upload behavior remains outside this decision.
+- Controlled raw preview caller enablement strategy documented.
+  Date: 2026-05-15.
+  Rationale: Phase 6D.9 keeps `useInternal=true` manual/test-only until local file availability, fallback policy, and manual verification are defined for a selected caller. Raw-path preview callers are the only later candidates; download, document-detail, role-specific, archive, and upload surfaces remain Supabase-backed until their own authorization and storage lifecycle work exists. This does not mark runtime caller enablement, upload replacement, document/archive token authorization, or Supabase Storage retirement complete.
 
 ## Still Open
 

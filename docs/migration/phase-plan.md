@@ -89,6 +89,8 @@ Phase 6D.7 added local file content responses to the existing internal file acce
 
 Phase 6D.8 verified the opt-in raw logical-path preview internal URL runtime path with focused tests and documentation. `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` can produce the compatible `{ signedUrl, filename }` shape, and the returned internal token URL can serve local file content through `/api/files/access` when a matching local file exists and token/session/path/root-containment/owner-or-role checks pass. The default raw preview request without `useInternal=true` remains Supabase-backed, normal UI callers remain unchanged, and download/document/role/archive/upload endpoints remain out of scope.
 
+Phase 6D.9 documented the controlled raw preview enablement strategy in `docs/migration/controlled-raw-preview-enablement-strategy.md`. The strategy keeps `useInternal=true` manual/test-only for now, identifies only raw-path preview callers as future controlled candidates, requires local file availability and fallback policy before caller changes, and recommends deferring runtime caller enablement until local upload replacement is planned. No runtime code, UI callers, endpoint defaults, download/document/role/archive/upload endpoints, or route tree files changed in this phase.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

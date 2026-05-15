@@ -66,6 +66,12 @@ Phase 6D.8 added focused runtime verification for the opt-in raw logical-path pr
 
 The verified path is limited to `GET /api/dokumen/preview-url?url={logicalPath}&useInternal=true` returning a compatible internal `{ signedUrl, filename }` response and the internal access service returning local file content when a matching local file exists. The default raw preview request remains Supabase-backed, `useInternal=true` remains opt-in only, normal UI callers remain unchanged, and no download/document/role/archive/upload endpoint behavior was changed.
 
+## Phase 6D.9 Controlled Enablement Strategy Note
+
+Phase 6D.9 added `docs/migration/controlled-raw-preview-enablement-strategy.md` as a planning-only guardrail before any UI/helper caller uses `useInternal=true`.
+
+The accepted strategy is conservative: keep `useInternal=true` manual/test-only for now, treat raw-path preview surfaces as the only later controlled candidates, keep download/document/role/archive/upload surfaces Supabase-backed, require matching local files or local upload replacement before caller enablement, and define fallback/rollback/manual verification before any runtime caller change. No runtime storage behavior changed.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
