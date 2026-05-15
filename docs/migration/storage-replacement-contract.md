@@ -80,6 +80,14 @@ The plan keeps `/api/upload` path and response compatibility central, documents 
 
 No runtime upload behavior changed. Supabase Storage remains the active upload implementation, and no existing Supabase Storage files were migrated, copied, downloaded, backfilled, or synced.
 
+## Phase 6E.2 Local Upload Helper Foundation Note
+
+Phase 6E.2 added `src/lib/storage/local-upload.ts`, focused unit tests, and `docs/migration/local-upload-helper-foundation.md`.
+
+The helper is server-only and isolated from runtime routes/components. It validates upload file metadata, sanitizes client filenames, validates `kelengkapan_id`, generates compatible underscore pending logical paths, resolves write targets internally through the local path foundation, and writes small upload buffers with no-overwrite semantics. Helper results expose logical metadata only and do not expose physical filesystem paths.
+
+No `/api/upload` behavior changed. UI callers, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, Supabase Storage retirement, and Supabase Storage file migration remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

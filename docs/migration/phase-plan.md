@@ -93,6 +93,8 @@ Phase 6D.9 documented the controlled raw preview enablement strategy in `docs/mi
 
 Phase 6E.1 documented the local upload replacement plan in `docs/migration/local-upload-replacement-planning.md`. The plan inventories `/api/upload`, `FileUploadButton`, `AttachmentEditor` direct browser upload/delete, pending-to-formal move surfaces, delete/remove surfaces, archive destruction deletion, admin diagnostics/orphan cleanup, local filesystem write safety, auth transition concerns, and the interaction with opt-in internal raw preview. No runtime code, UI callers, upload behavior, preview/download defaults, move/delete behavior, Supabase Storage files, or route tree files changed in this phase.
 
+Phase 6E.2 added the isolated local upload helper foundation in `src/lib/storage/local-upload.ts` and `tests/unit/storage/local-upload.test.ts`. The helper validates upload metadata, sanitizes client filenames, validates `kelengkapan_id`, generates upload-API-compatible pending logical paths, and writes small upload buffers with contained no-overwrite semantics. It is not wired into `/api/upload`, UI callers, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, or Supabase Storage migration.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

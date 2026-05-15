@@ -196,6 +196,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local upload replacement planning completed.
   Date: 2026-05-15.
   Rationale: Phase 6E.1 documented the conservative upload replacement plan in `docs/migration/local-upload-replacement-planning.md`, including current upload surfaces, pending path compatibility, response shape compatibility, auth/session transition concerns, local filesystem write safety, cleanup/delete implications, preview/internal URL interaction, and recommended small implementation phases. This does not mark upload replacement, UI caller migration, pending-to-formal local moves, delete/remove behavior, archive destruction deletion, preview/download default changes, document/archive token authorization, Supabase Storage retirement, or any Supabase Storage file migration complete.
+- Local upload helper foundation added.
+  Date: 2026-05-15.
+  Rationale: Phase 6E.2 added `src/lib/storage/local-upload.ts` as an isolated server-only helper for future local upload replacement. It validates file metadata, filename safety, `kelengkapan_id`, upload-API-compatible logical pending paths, and small no-overwrite local writes without returning physical paths. This does not mark `/api/upload` migration, UI caller migration, pending-to-formal local moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, Supabase Storage retirement, or any Supabase Storage file migration complete.
 
 ## Still Open
 
@@ -207,7 +210,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact transition strategy for old Supabase helpers.
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
-- Upload local storage compatibility.
+- Upload route local storage compatibility.
 - Pending-to-formal local move behavior.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.

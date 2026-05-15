@@ -241,6 +241,12 @@ Phase 6E.1 does not implement:
 - Storage diagnostics/orphan cleanup replacement.
 - Supabase Storage retirement.
 
+## Phase 6E.2 Follow-Up Note
+
+Phase 6E.2 added the isolated server-only helper foundation described in `docs/migration/local-upload-helper-foundation.md`.
+
+The helper covers upload metadata validation, client filename sanitization, `kelengkapan_id` validation, compatible underscore pending logical path generation, and contained no-overwrite local writes. It remains unwired from `/api/upload` and does not implement pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, or Supabase Storage file migration.
+
 ## 12. Validation Performed
 
 Commands run:
