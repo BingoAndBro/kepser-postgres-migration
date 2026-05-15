@@ -72,6 +72,14 @@ Phase 6D.9 added `docs/migration/controlled-raw-preview-enablement-strategy.md` 
 
 The accepted strategy is conservative: keep `useInternal=true` manual/test-only for now, treat raw-path preview surfaces as the only later controlled candidates, keep download/document/role/archive/upload surfaces Supabase-backed, require matching local files or local upload replacement before caller enablement, and define fallback/rollback/manual verification before any runtime caller change. No runtime storage behavior changed.
 
+## Phase 6E.1 Local Upload Planning Note
+
+Phase 6E.1 added `docs/migration/local-upload-replacement-planning.md` as the planning document for future local filesystem upload replacement.
+
+The plan keeps `/api/upload` path and response compatibility central, documents the current `/api/upload` underscore pending path and `AttachmentEditor` dash pending path, recommends local `dms_session` ownership semantics for local uploads, and sequences upload helper foundation before route wiring, `AttachmentEditor` migration, pending-to-formal moves, delete/remove behavior, archive destruction deletion, and caller-level internal preview enablement.
+
+No runtime upload behavior changed. Supabase Storage remains the active upload implementation, and no existing Supabase Storage files were migrated, copied, downloaded, backfilled, or synced.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

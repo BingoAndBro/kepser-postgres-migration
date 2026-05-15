@@ -193,6 +193,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Controlled raw preview caller enablement strategy documented.
   Date: 2026-05-15.
   Rationale: Phase 6D.9 keeps `useInternal=true` manual/test-only until local file availability, fallback policy, and manual verification are defined for a selected caller. Raw-path preview callers are the only later candidates; download, document-detail, role-specific, archive, and upload surfaces remain Supabase-backed until their own authorization and storage lifecycle work exists. This does not mark runtime caller enablement, upload replacement, document/archive token authorization, or Supabase Storage retirement complete.
+- Local upload replacement planning completed.
+  Date: 2026-05-15.
+  Rationale: Phase 6E.1 documented the conservative upload replacement plan in `docs/migration/local-upload-replacement-planning.md`, including current upload surfaces, pending path compatibility, response shape compatibility, auth/session transition concerns, local filesystem write safety, cleanup/delete implications, preview/internal URL interaction, and recommended small implementation phases. This does not mark upload replacement, UI caller migration, pending-to-formal local moves, delete/remove behavior, archive destruction deletion, preview/download default changes, document/archive token authorization, Supabase Storage retirement, or any Supabase Storage file migration complete.
 
 ## Still Open
 

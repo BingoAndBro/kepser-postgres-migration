@@ -91,6 +91,8 @@ Phase 6D.8 verified the opt-in raw logical-path preview internal URL runtime pat
 
 Phase 6D.9 documented the controlled raw preview enablement strategy in `docs/migration/controlled-raw-preview-enablement-strategy.md`. The strategy keeps `useInternal=true` manual/test-only for now, identifies only raw-path preview callers as future controlled candidates, requires local file availability and fallback policy before caller changes, and recommends deferring runtime caller enablement until local upload replacement is planned. No runtime code, UI callers, endpoint defaults, download/document/role/archive/upload endpoints, or route tree files changed in this phase.
 
+Phase 6E.1 documented the local upload replacement plan in `docs/migration/local-upload-replacement-planning.md`. The plan inventories `/api/upload`, `FileUploadButton`, `AttachmentEditor` direct browser upload/delete, pending-to-formal move surfaces, delete/remove surfaces, archive destruction deletion, admin diagnostics/orphan cleanup, local filesystem write safety, auth transition concerns, and the interaction with opt-in internal raw preview. No runtime code, UI callers, upload behavior, preview/download defaults, move/delete behavior, Supabase Storage files, or route tree files changed in this phase.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.
