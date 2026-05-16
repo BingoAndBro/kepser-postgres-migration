@@ -318,3 +318,13 @@ This phase does not implement:
 - archive destruction changes;
 - delete/remove changes;
 - diagnostics/orphan cleanup changes.
+
+## Phase 6F.7 Follow-Up Note
+
+Phase 6F.7 added the executable route parity harness described in `docs/migration/submit-route-parity-test-harness-foundation.md`.
+
+The focused test file is `tests/unit/dokumen/submit-route-parity.test.ts`. It imports the unchanged legacy route, extracts `Route.options.server.handlers.POST`, uses synthetic `Request` objects, and mocks Supabase server/admin clients, session lookup, submit helper dependencies, and Supabase Storage `.move(...)`.
+
+The harness covers the required response/status scenarios for invalid JSON, schema validation, material nominal validation, missing session, missing kegiatan, missing Ketua Tim assignment, storage move failure, material success, and non-material success. It also covers missing required lampiran, empty attachments, create failure, update-status failure, underscore pending non-move behavior, formal path non-move behavior, and returned `insertLog(...)` error-object behavior.
+
+No submit route runtime source, route tree, local file preflight, filesystem movement, local submit repository/adapter wiring, DB scripts, migrations, seeds, route generation, or Supabase Storage migration/copy/download/backfill/sync were added.

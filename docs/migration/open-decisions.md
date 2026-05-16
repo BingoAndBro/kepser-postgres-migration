@@ -250,6 +250,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit route parity test planning foundation documented.
   Date: 2026-05-16.
   Rationale: Phase 6F.6 documented the planned route-level parity test contract in `docs/migration/submit-route-parity-test-foundation.md`. The accepted direction is to test the unchanged legacy `POST /api/dokumen/submit` route contract with mocked Supabase server/admin clients, mocked session, mocked submit helpers, synthetic `Request` objects, and no live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, UI/browser tests, DB scripts, migrations, or seeds. This does not mark route parity tests implemented, submit route migration, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit route parity test harness foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.7 added focused executable parity tests for the unchanged legacy `POST /api/dokumen/submit` route in `tests/unit/dokumen/submit-route-parity.test.ts` and documented the harness in `docs/migration/submit-route-parity-test-harness-foundation.md`. The tests use synthetic `Request` objects plus mocked Supabase server/admin clients, mocked session/helper dependencies, and mocked storage `.move(...)` behavior to lock current response status/body parity without live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, DB scripts, migrations, or seeds. This does not mark submit route migration, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
 
 ## Still Open
 
@@ -262,7 +265,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
 - Pending-to-formal local move implementation for submit, update, and PPK resubmit.
-- Submit route-level parity tests and runtime submit preflight implementation.
+- Runtime submit preflight implementation and any expanded submit route parity edge cases not covered by Phase 6F.7.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
