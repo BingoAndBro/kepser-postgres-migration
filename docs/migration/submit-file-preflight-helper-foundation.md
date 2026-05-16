@@ -170,3 +170,9 @@ This phase keeps the following unchanged:
 - local storage movement helpers;
 - local submit bridge/repository/adapter helpers;
 - submit route parity tests unless a separate explicit need appears.
+
+## Phase 6F.9 Follow-Up Note
+
+Phase 6F.9 added the route-independent DB/file compensation policy foundation described in `docs/migration/submit-db-file-compensation-policy-foundation.md`.
+
+The follow-up classifies submit orchestration outcomes only. It does not wire `POST /api/dokumen/submit`, does not implement runtime disk checks, does not execute filesystem movement, does not implement real rollback or compensation, and does not add Supabase fallback.

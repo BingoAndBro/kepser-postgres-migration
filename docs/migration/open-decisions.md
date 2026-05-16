@@ -256,6 +256,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit file preflight helper foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.8 added `src/lib/dokumen/submit-file-preflight.ts` as an isolated server-only helper over the submit move plan output. The accepted direction is to preserve move-plan blocking issues, require injected logical-path-only source and target checks for move-required operations, fail closed on missing checkers, missing local sources, and unavailable targets, keep formal/no-op attachments out of movement checks, and avoid default filesystem checking until route wiring is explicitly approved. This does not mark submit route migration, route disk preflight wiring, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit DB/file compensation policy foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.9 added `src/lib/dokumen/submit-db-file-compensation.ts` as a pure route-planning decision model for future submit orchestration. The accepted direction is that preflight failures abort before DB and files, DB transaction failures abort before files, DB success plus full file movement success is the only safe submit success, and DB success plus failed or partial file movement is compensation-required and unsafe to return as success. This does not implement runtime compensation, filesystem movement, route disk preflight, submit route migration, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync.
 
 ## Still Open
 
