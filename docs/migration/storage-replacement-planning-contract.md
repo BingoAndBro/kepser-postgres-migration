@@ -657,6 +657,12 @@ Phase 6D.3 added `src/routes/api/files/access.ts` and registered `/api/files/acc
 
 Existing preview/download endpoints remain Supabase-backed and unchanged. No upload replacement, pending-to-formal move behavior, delete/remove behavior, archive destruction file deletion, storage diagnostics/orphan cleanup, local file streaming, document/archive token authorization, or Supabase Storage file migration was added.
 
+## Phase 6E.9 Rename-Pending Route Implementation Note
+
+Phase 6E.9 switched only `POST /api/dokumen/rename-pending` from Supabase Storage `.move(...)` to local filesystem movement through the Phase 6E.7 helper.
+
+This later implementation updates the Phase 6A inventory for that single route only. Submit, update, PPK resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, and `AttachmentEditor` remain governed by the original Supabase-backed behavior until their own phases.
+
 ## Backup/Restore Considerations
 
 After local filesystem storage exists, PostgreSQL backup alone is insufficient.

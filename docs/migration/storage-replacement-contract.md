@@ -134,12 +134,21 @@ The plan preserves endpoint path, request compatibility with `{ dokId, lampiranU
 
 No runtime source code changed. The route remains Supabase-backed until a later implementation phase. Submit, update, resubmit, upload, `AttachmentEditor`, delete/remove, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, and Supabase Storage retirement remain future work.
 
+## Phase 6E.9 Rename-Pending Route Implementation Note
+
+Phase 6E.9 switched only `POST /api/dokumen/rename-pending` storage move internals to local filesystem movement through `src/lib/storage/local-pending-move.ts`.
+
+The route now uses local `dms_session` authorization through `getLocalServerSession(request)`, validates body `userId` against the local session as compatibility input, preserves the existing document ownership check, supports local underscore and dash pending paths, and returns the compatible `{ success: true, renamed, errors? }` success shape with logical paths only. Missing local source files are reported as controlled local storage failures and do not trigger Supabase fetch, copy, download, backfill, or sync.
+
+Submit, update, PPK resubmit, `/api/upload`, `AttachmentEditor`, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, and Supabase Storage retirement remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
 - `/api/upload` now uploads newly submitted files to local filesystem storage and returns `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
 - `AttachmentEditor` also performs direct browser Supabase Storage upload/remove in some revision flows.
-- Submit/resubmit/update flows move pending files to formal paths.
+- `POST /api/dokumen/rename-pending` now moves local pending files to formal logical paths.
+- Submit/resubmit/update flows still use their existing Supabase-backed pending move behavior.
 - Preview/download endpoints return Supabase signed URLs.
 - Archive destruction removes files and sets archive status to `DIMUSNAHKAN`.
 - Admin storage endpoints analyze and clean orphaned bucket files.

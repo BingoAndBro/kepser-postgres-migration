@@ -416,7 +416,7 @@ Recommended next phase:
 Phase 6E.9 Rename-Pending Local Move Route Implementation
 ```
 
-This should proceed only after this plan is reviewed.
+Completed as `docs/migration/rename-pending-local-move-route-implementation.md`.
 
 Recommended Phase 6E.9 bounds:
 
@@ -435,6 +435,14 @@ Recommended Phase 6E.9 bounds:
 - Do not change `src/routeTree.gen.ts`.
 
 Another helper phase is not required before Phase 6E.9 because Phase 6E.7 already added the isolated local pending move helper and focused tests. If implementation discovers that route-level document ownership needs a local Drizzle read helper that does not exist yet, add the smallest server-only read helper or defer the route implementation rather than broad-refactoring domain reads.
+
+## 12.1 Phase 6E.9 Follow-Up Note
+
+Phase 6E.9 switched `POST /api/dokumen/rename-pending` storage move internals to local filesystem movement through the Phase 6E.7 helper.
+
+The implemented route uses `getLocalServerSession(request)` as the owner/session authority, validates body `userId` against the local session as compatibility input, keeps the existing document ownership check, supports both underscore and dash local pending files, skips formal and safe unsupported paths, and preserves the `{ success: true, renamed, errors? }` success shape with logical paths only.
+
+No submit, update, resubmit, upload, UI, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download, route tree, database script, or Supabase Storage migration behavior was added.
 
 ## 13. Explicitly Not Implemented
 

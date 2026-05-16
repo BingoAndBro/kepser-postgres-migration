@@ -107,6 +107,8 @@ Phase 6E.7 added the isolated local pending-to-formal move helper foundation in 
 
 Phase 6E.8 documented the `rename-pending` local move route plan in `docs/migration/rename-pending-local-move-route-planning.md`. The plan inventories the current Supabase-backed `POST /api/dokumen/rename-pending` behavior, locks request/response/status compatibility, defines future local `dms_session` ownership policy, maps the Phase 6E.7 helper into later route wiring, and records mixed-storage, partial-failure, testing, and boundary rules. No runtime source code changed and `rename-pending` local route wiring remains unimplemented.
 
+Phase 6E.9 switched only `POST /api/dokumen/rename-pending` storage move internals from Supabase Storage `.move(...)` to local filesystem pending-to-formal movement through `src/lib/storage/local-pending-move.ts`. The route now uses local `dms_session` via `getLocalServerSession(request)`, treats body `userId` as compatibility input validated against the local session, preserves document ownership checks, supports local underscore and dash pending files, skips already formal/safe unsupported paths, and returns the existing `{ success: true, renamed, errors? }` success shape with logical paths only. Submit, update, resubmit, upload, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, and Supabase Storage file migration remain out of scope.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

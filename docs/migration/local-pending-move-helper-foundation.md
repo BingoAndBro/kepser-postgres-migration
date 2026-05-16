@@ -110,3 +110,7 @@ The first sandboxed run failed before tests started because Vitest could not spa
 Phase 6E.8 added `docs/migration/rename-pending-local-move-route-planning.md` as a planning-only contract for using this helper in a later `POST /api/dokumen/rename-pending` route implementation.
 
 The plan recommends using `classifyLocalPendingMovePath(...)` and `moveLocalPendingFileToFormal(...)` only after local session, body compatibility, document ownership, and source owner checks pass. It keeps route wiring out of scope for Phase 6E.8 and recommends Phase 6E.9 for the narrow implementation.
+
+## Phase 6E.9 Follow-Up Note
+
+Phase 6E.9 wired this helper into `POST /api/dokumen/rename-pending` only. Other move surfaces remain unwired and must not be treated as complete until submit, update, and PPK resubmit have their own focused phases.

@@ -449,3 +449,9 @@ Phase 6E.8 added the route-specific planning contract described in `docs/migrati
 The plan keeps future `rename-pending` implementation bounded to the existing endpoint contract, maps local `dms_session` ownership and document ownership requirements, defines how to use the Phase 6E.7 helper, records current dash-only skip behavior, and requires explicit handling for underscore pending paths, formal paths, unsupported paths, missing local sources, target-exists errors, mixed storage, and partial failure.
 
 No runtime source code changed. `rename-pending` route wiring remains unimplemented.
+
+## 16. Phase 6E.9 Follow-Up Note
+
+Phase 6E.9 implemented the narrow `rename-pending` route wiring described in the Phase 6E.8 plan.
+
+`POST /api/dokumen/rename-pending` now uses local `dms_session` authorization and the Phase 6E.7 helper for local filesystem moves. This proves the smallest move route only. Submit, update, PPK resubmit, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, and Supabase Storage retirement remain separate future phases.
