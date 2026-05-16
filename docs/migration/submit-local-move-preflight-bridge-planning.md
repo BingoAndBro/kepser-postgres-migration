@@ -267,6 +267,8 @@ Reasoning:
 
 Phase 6F local document write bridge is still required before final submit route wiring if submit continues to depend on local `dms_session` and local file owner ids. The immediate smaller and safer next step is the move plan builder because it creates the preflight artifact without changing submit behavior.
 
+Follow-up: Phase 6E.13 completed the no-route-wiring move plan builder helper in `src/lib/storage/submit-move-plan.ts` and documented it in `docs/migration/submit-move-plan-builder-helper-foundation.md`. Submit route wiring remains blocked until local identity, master-data, document creation, status update, and append-only audit write compatibility is proven.
+
 ## 14. Explicitly Not Implemented
 
 Phase 6E.12 does not implement:
@@ -372,3 +374,15 @@ git status --short --branch
 ```
 
 Result: recorded in the task final response.
+
+## 16. Phase 6E.13 Follow-Up Note
+
+Phase 6E.13 added the isolated helper foundation recommended by this preflight:
+
+- `src/lib/storage/submit-move-plan.ts`
+- `tests/unit/storage/submit-move-plan.test.ts`
+- `docs/migration/submit-move-plan-builder-helper-foundation.md`
+
+The helper plans logical submit move outcomes only. It does not import filesystem modules, resolve storage roots, check file existence, call Supabase Storage, wire submit, migrate submit auth, create local document write bridges, or move files.
+
+This confirms the bridge/preflight direction without changing runtime behavior. Submit local move implementation remains blocked until the local document/master/status/audit write domain is compatible with local `dms_session` user ids and local filesystem owner segments.

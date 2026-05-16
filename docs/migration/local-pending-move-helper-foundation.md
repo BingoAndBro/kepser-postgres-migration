@@ -122,3 +122,9 @@ Phase 6E.11 documented the submit route compatibility plan for using this helper
 ## Phase 6E.12 Follow-Up Note
 
 Phase 6E.12 documented the submit local move preflight/bridge decision in `docs/migration/submit-local-move-preflight-bridge-planning.md`. The helper remains suitable for local pending moves and `temp-id` target planning, but submit route wiring remains blocked until local session identity and document/master/status/audit write compatibility are proven.
+
+## Phase 6E.13 Follow-Up Note
+
+Phase 6E.13 added `src/lib/storage/submit-move-plan.ts` as a separate pure planning helper for submit.
+
+The submit planner intentionally does not import this move helper because this move helper imports filesystem modules and performs actual local movement. The planner only creates logical move plans and blocking issue outcomes. Runtime submit wiring remains out of scope.

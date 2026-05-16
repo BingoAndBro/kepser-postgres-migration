@@ -471,3 +471,9 @@ No submit local move behavior was implemented.
 Phase 6E.12 added `docs/migration/submit-local-move-preflight-bridge-planning.md`.
 
 The preflight decision keeps submit local move route wiring out of scope because submit still depends on Supabase-backed master/document/status/audit helpers. The recommended next artifact is a no-route-wiring submit move plan builder helper, followed by local document/write compatibility work before any submit runtime implementation.
+
+## 19. Phase 6E.13 Follow-Up Note
+
+Phase 6E.13 added the no-route-wiring submit move plan builder helper in `src/lib/storage/submit-move-plan.ts`.
+
+This helper is separate from actual filesystem movement. It plans logical submit attachment outcomes and `temp-id` targets without checking source existence or moving files. The planning sequence remains conservative: no submit route wiring until local identity, document/master/status/audit writes, and DB/file consistency are proven safe.

@@ -679,3 +679,11 @@ Phase 6E.12 added `docs/migration/submit-local-move-preflight-bridge-planning.md
 The preflight concluded that submit should not directly switch to `getLocalServerSession(request)` or local filesystem moves while current submit still uses Supabase-backed master reads, document creation, status updates, and audit inserts. The recommended next step is a no-route-wiring submit move plan builder helper foundation that can plan logical moves and `temp-id` targets without touching the filesystem or changing submit behavior.
 
 Submit route wiring remains blocked until local identity, master-data, document write, status update, and audit write compatibility is proven.
+
+## 17. Phase 6E.13 Follow-Up Note
+
+Phase 6E.13 added the no-route-wiring submit move plan builder helper described in `docs/migration/submit-move-plan-builder-helper-foundation.md`.
+
+The helper can plan underscore pending paths, dash pending paths, formal unchanged paths, unsupported paths, invalid paths, `temp-id` targets, and future real-document-id targets using logical paths only. It does not perform filesystem IO, Supabase Storage calls, file existence checks, submit route wiring, auth migration, document writes, status updates, or audit writes.
+
+The compatibility position in this document remains unchanged: submit runtime implementation must still wait for local identity and document/master/status/audit write compatibility.

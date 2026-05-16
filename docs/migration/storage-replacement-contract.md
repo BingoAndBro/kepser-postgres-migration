@@ -170,6 +170,14 @@ The decision is conservative: submit should not switch directly to `getLocalServ
 
 No runtime source code changed in Phase 6E.12. Submit local move behavior, submit auth migration, local document write bridge, update/PPK resubmit local moves, upload behavior, `rename-pending` behavior, UI callers, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
 
+## Phase 6E.13 Submit Move Plan Builder Note
+
+Phase 6E.13 added `src/lib/storage/submit-move-plan.ts`, focused unit tests, and `docs/migration/submit-move-plan-builder-helper-foundation.md`.
+
+The helper is server-only and isolated from runtime routes/components. It plans logical submit attachment outcomes for underscore pending paths, dash pending paths, already formal paths, unsupported paths, invalid paths, `temp-id` targets, and future real-document-id targets. Helper output is logical-only and includes planned move mappings, planned attachment metadata, and blocking issue codes.
+
+The helper does not import filesystem modules, resolve the storage root, check source existence, check target existence, move/copy/rename/delete files, call Supabase Storage, wire submit, migrate submit auth, or create a local document write bridge. Submit, update, PPK resubmit, UI callers, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
