@@ -205,6 +205,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local `/api/upload` route implementation completed.
   Date: 2026-05-15.
   Rationale: Phase 6E.4 switched only `POST /api/upload` internals from Supabase Storage upload to local filesystem upload through the Phase 6E.2 helper while preserving the endpoint path, multipart request fields, `201` success status, and `{ url, nama, kelengkapan_id, uploaded_at }` response shape. The route uses `getLocalServerSession(request)` for the owner segment and does not trust client-supplied user ids. This does not mark UI caller migration, `AttachmentEditor` migration, pending-to-formal local moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, Supabase Storage retirement, or any Supabase Storage file migration complete.
+- Pending-to-formal local move planning completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6E.6 documented the future local move compatibility contract in `docs/migration/pending-to-formal-local-move-planning.md`. The accepted direction is to build a helper foundation before route wiring, handle both underscore `/api/upload` pending paths and dash `AttachmentEditor` pending paths deliberately, preserve logical-only metadata and UUID-based formal path semantics, treat submit `temp-id` behavior as a compatibility risk, use local `dms_session` as the future move authority, and reject or clearly report missing/unsupported Supabase-backed source files without fetching from Supabase. This does not mark local move helper implementation, submit/rename/resubmit changes, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download migration, or Supabase Storage retirement complete.
 
 ## Still Open
 
@@ -216,7 +219,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact transition strategy for old Supabase helpers.
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
-- Pending-to-formal local move behavior.
+- Pending-to-formal local move behavior implementation.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.

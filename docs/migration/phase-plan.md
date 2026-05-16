@@ -99,6 +99,10 @@ Phase 6E.3 documented the local `/api/upload` route wiring plan in `docs/migrati
 
 Phase 6E.4 switched only the internals of `POST /api/upload` to local filesystem upload in `src/routes/api/upload.ts`, using `getLocalServerSession(request)`, `createLocalUploadDescriptor(...)`, and `writeLocalUploadContent(...)`. The route path, multipart fields, `201` success status, and `{ url, nama, kelengkapan_id, uploaded_at }` response shape are preserved. UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, Supabase Storage data migration, and Supabase dependency cleanup remain future work.
 
+Phase 6E.5 verified and documented the bounded local upload runtime state in `docs/migration/local-upload-runtime-smoke-handoff.md`. It confirmed that newly uploaded `/api/upload` files are local, existing Supabase Storage files are not locally available, `AttachmentEditor` remains Supabase browser-storage based, pending-to-formal local moves are not implemented, and mixed storage state is expected.
+
+Phase 6E.6 documented the pending-to-formal local move plan in `docs/migration/pending-to-formal-local-move-planning.md`. The plan inventories submit, `rename-pending`, update, PPK resubmit, `syncDocumentAttachments()`, and `AttachmentEditor` producer boundaries; defines dash and underscore pending compatibility, `temp-id` behavior, local owner semantics, filesystem move safety, DB/file partial-failure strategy, mixed storage policy, and future test/phase sequencing. No runtime source code changed and pending-to-formal local moves remain unimplemented.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

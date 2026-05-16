@@ -104,6 +104,14 @@ The route now uses local `dms_session` authorization through `getLocalServerSess
 
 UI callers, `AttachmentEditor`, pending-to-formal moves, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, route generation, Supabase Storage retirement, and Supabase Storage file/data migration remain future work.
 
+## Phase 6E.6 Pending-To-Formal Move Planning Note
+
+Phase 6E.6 added `docs/migration/pending-to-formal-local-move-planning.md` as a planning-only contract for later local filesystem pending-to-formal move behavior.
+
+The plan inventories the current Supabase `.move(...)` surfaces, route/helper metadata behavior, dash and underscore pending path formats, formal UUID path semantics, submit `temp-id` compatibility, local owner/session direction, filesystem move safety, DB/file partial-failure risks, mixed Supabase/local storage policy, and route-specific future test strategy. It explicitly keeps `AttachmentEditor` migration, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download default migration, internal URL default enablement, and Supabase Storage retirement out of scope.
+
+No runtime source code changed. No local move helper, submit/rename/resubmit behavior, upload behavior, route tree change, DB schema change, auth/session change, or Supabase Storage migration/copy/download/backfill/sync was added.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
