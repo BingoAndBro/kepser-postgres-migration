@@ -259,6 +259,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit DB/file compensation policy foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.9 added `src/lib/dokumen/submit-db-file-compensation.ts` as a pure route-planning decision model for future submit orchestration. The accepted direction is that preflight failures abort before DB and files, DB transaction failures abort before files, DB success plus full file movement success is the only safe submit success, and DB success plus failed or partial file movement is compensation-required and unsafe to return as success. This does not implement runtime compensation, filesystem movement, route disk preflight, submit route migration, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync.
+- Submit runtime wiring readiness boundary review completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.10 documented in `docs/migration/submit-runtime-wiring-readiness-boundary-plan.md` that direct `POST /api/dokumen/submit` runtime wiring remains unsafe. Existing submit foundations are ready to compose only through a route-independent, injected-dependency boundary first. The accepted next direction is a narrow Phase 6F.11 submit runtime orchestrator or route composition boundary helper outside `src/routes/api/dokumen/submit.ts`, with direct route wiring, route disk preflight, filesystem movement, runtime DB/file compensation, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync still blocked.
 
 ## Still Open
 
