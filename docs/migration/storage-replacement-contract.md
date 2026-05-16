@@ -142,6 +142,14 @@ The route now uses local `dms_session` authorization through `getLocalServerSess
 
 Submit, update, PPK resubmit, `/api/upload`, `AttachmentEditor`, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, and Supabase Storage retirement remain future work.
 
+## Phase 6E.10 Rename-Pending Runtime Smoke Handoff Note
+
+Phase 6E.10 added `docs/migration/rename-pending-runtime-smoke-handoff.md` as verification and handoff documentation for the Phase 6E.9 route runtime state.
+
+The smoke handoff confirms that `POST /api/dokumen/rename-pending` keeps the same endpoint path, request shape `{ dokId, lampiranUrls, userId }`, and success shape `{ success: true, renamed, errors? }`; uses local `dms_session`; treats body `userId` as compatibility input that must match the session; keeps document ownership checking; returns logical-only paths; skips formal and safe unsupported paths; and reports missing local files without Supabase fallback.
+
+No runtime source code or storage behavior changed in Phase 6E.10. Submit, update, PPK resubmit, upload behavior, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
