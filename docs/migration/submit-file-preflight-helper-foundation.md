@@ -176,3 +176,9 @@ This phase keeps the following unchanged:
 Phase 6F.9 added the route-independent DB/file compensation policy foundation described in `docs/migration/submit-db-file-compensation-policy-foundation.md`.
 
 The follow-up classifies submit orchestration outcomes only. It does not wire `POST /api/dokumen/submit`, does not implement runtime disk checks, does not execute filesystem movement, does not implement real rollback or compensation, and does not add Supabase fallback.
+
+## Phase 6F.12 Follow-Up Note
+
+Phase 6F.12 added the isolated submit disk preflight checker foundation described in `docs/migration/submit-disk-preflight-checker-foundation.md`.
+
+The checker is the first submit-specific disk implementation that can satisfy this helper's injected `SubmitFilePreflightExistenceChecker` shape. It remains unwired from `POST /api/dokumen/submit`, performs no movement, and exposes only logical-path boolean checks or safe code-only diagnostics.

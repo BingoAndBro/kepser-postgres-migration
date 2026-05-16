@@ -265,6 +265,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit runtime orchestrator boundary helper foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.11 added `src/lib/dokumen/submit-runtime-orchestrator.ts` as a route-independent, injected-dependency submit orchestration classifier. The accepted direction is that submit runtime order is payload validation, actor/role boundary, master/permission boundary, move plan, preflight, local write transaction, file movement, compensation classification, then success only when safe. This does not mark route wiring, route disk preflight, filesystem movement, runtime DB/file compensation, rollback, Supabase fallback, DB scripts, or Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit disk preflight checker foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.12 added `src/lib/dokumen/submit-disk-preflight-checker.ts` as an isolated submit-specific checker that can later satisfy the `preflightSubmitFiles(...)` injected source/target checker contract. The accepted direction is logical-path-only public methods, internal safe physical path resolution through existing local storage path helpers, read-only source existence and target availability checks, fail-closed behavior for unsafe paths and check failures, no physical path/root/raw error exposure, no route wiring, no file movement, no Supabase fallback, and no Supabase Storage migration/copy/download/backfill/sync. This does not mark submit route migration, route disk preflight wiring, filesystem movement, runtime DB/file compensation, rollback, DB scripts, or Supabase removal complete.
 
 ## Still Open
 

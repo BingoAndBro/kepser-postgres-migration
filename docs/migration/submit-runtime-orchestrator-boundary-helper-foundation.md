@@ -243,3 +243,9 @@ This phase does not claim rollback is implemented against real files.
 This phase does not claim historical Supabase Storage files are locally available.
 
 This phase does not claim Supabase can be removed.
+
+## Phase 6F.12 Follow-Up Note
+
+Phase 6F.12 added the isolated submit disk preflight checker foundation described in `docs/migration/submit-disk-preflight-checker-foundation.md`.
+
+The checker can later satisfy the source and target existence checker boundary consumed by `preflightSubmitFiles(...)`, but it remains unwired from `POST /api/dokumen/submit`. It validates logical paths, resolves physical paths internally through existing local storage path helpers, and performs only read-only `stat(...)` checks. Route disk preflight wiring, filesystem movement, runtime DB/file compensation, rollback against real files, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync remain future work.
