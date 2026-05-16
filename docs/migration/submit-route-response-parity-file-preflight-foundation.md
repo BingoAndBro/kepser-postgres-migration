@@ -369,3 +369,9 @@ Phase 6F.6 added `docs/migration/submit-route-parity-test-foundation.md`.
 The follow-up documented the route-level parity test matrix and safe harness strategy for the unchanged legacy `POST /api/dokumen/submit` route. It recommends a future focused test phase using mocked Supabase server/admin clients, mocked session/helper dependencies, synthetic `Request` objects, and no live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, UI/browser tests, DB scripts, migrations, or seeds.
 
 No helper, executable submit route tests, runtime source code, filesystem movement, local disk checks, route wiring, DB scripts, migrations, seeds, route generation, Supabase calls, or Supabase Storage migration/copy/download/backfill/sync were added.
+
+## Phase 6F.8 Follow-Up Note
+
+Phase 6F.8 added the isolated helper foundation described in `docs/migration/submit-file-preflight-helper-foundation.md`.
+
+The helper evaluates submit move plan output and requires injected logical-path-only source/target checks for move-required operations without wiring `POST /api/dokumen/submit`, without implementing route disk checks, without moving files, without resolving physical paths, and without adding Supabase fallback. Runtime submit preflight and DB/file compensation remain unimplemented.

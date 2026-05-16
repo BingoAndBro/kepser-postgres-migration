@@ -155,3 +155,9 @@ This phase did not:
 - `temp-id` remains the default submit planning target.
 - Missing local files must still be treated as controlled failures with no Supabase fallback in a future runtime phase.
 - Supabase cannot be removed.
+
+## Phase 6F.8 Follow-Up Note
+
+Phase 6F.8 added `src/lib/dokumen/submit-file-preflight.ts` and `tests/unit/dokumen/submit-file-preflight.test.ts` as a route-independent helper foundation.
+
+The parity harness remains unchanged. `POST /api/dokumen/submit` is still not wired to the helper, runtime route disk checks are still not wired, and filesystem movement plus DB/file compensation remain future blockers.

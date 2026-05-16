@@ -253,6 +253,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit route parity test harness foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.7 added focused executable parity tests for the unchanged legacy `POST /api/dokumen/submit` route in `tests/unit/dokumen/submit-route-parity.test.ts` and documented the harness in `docs/migration/submit-route-parity-test-harness-foundation.md`. The tests use synthetic `Request` objects plus mocked Supabase server/admin clients, mocked session/helper dependencies, and mocked storage `.move(...)` behavior to lock current response status/body parity without live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, DB scripts, migrations, or seeds. This does not mark submit route migration, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit file preflight helper foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.8 added `src/lib/dokumen/submit-file-preflight.ts` as an isolated server-only helper over the submit move plan output. The accepted direction is to preserve move-plan blocking issues, require injected logical-path-only source and target checks for move-required operations, fail closed on missing checkers, missing local sources, and unavailable targets, keep formal/no-op attachments out of movement checks, and avoid default filesystem checking until route wiring is explicitly approved. This does not mark submit route migration, route disk preflight wiring, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
 
 ## Still Open
 
