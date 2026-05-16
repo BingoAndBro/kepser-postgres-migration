@@ -238,6 +238,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local submit document/write bridge helper foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.2 added `src/lib/dokumen/local-submit-write-bridge.ts` as a server-only, no-route-wiring helper foundation for local submit actor compatibility, submit-needed master-data reads, Ketua Tim assignment checks, document creation payloads, material/non-material status transition shapes, append-only audit payloads, and a repository transaction boundary. It intentionally does not import the live DB client, execute database writes, move files, call Supabase, wire `POST /api/dokumen/submit`, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until live local repository behavior, route response compatibility, local file preflight, and DB/file failure policy are proven.
+- Local submit live repository mapping foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.3 added `src/lib/dokumen/local-submit-repository.ts` as a server-only, no-route-wiring repository mapping foundation for the Phase 6F.2 submit bridge contract. It records the submit-specific local schema responsibility surface, maps bridge payload names to local Drizzle-shaped insert/update/read response names, preserves JSONB `lampiran_urls` array semantics, converts numeric/timestamp boundary values for a later adapter, and proves transaction shape through an injected fake adapter only. It intentionally does not import the live DB client, execute Drizzle queries, wire `POST /api/dokumen/submit`, move files, call Supabase, run DB scripts, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until a live adapter, response parity, file preflight, and DB/file failure policy are proven.
 
 ## Still Open
 

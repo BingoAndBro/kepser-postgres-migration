@@ -153,6 +153,22 @@ The helper foundation is ready for later route-specific planning or a live local
 
 ## Recommended Next Phase
 
-Recommended next work is a narrow submit route implementation plan or live local repository foundation, still without filesystem movement, unless explicitly approved otherwise.
+Phase 6F.3 added the live local repository planning/foundation layer described in `docs/migration/local-submit-live-repository-foundation.md`.
+
+Recommended next work is now a narrow live Drizzle adapter foundation behind the Phase 6F.3 injected adapter interface, still without submit route wiring or filesystem movement, unless explicitly approved otherwise.
 
 Direct route wiring should remain blocked until local repository behavior, route response compatibility, local file preflight, and DB/file failure policy are all proven.
+
+## Phase 6F.3 Follow-Up Note
+
+Phase 6F.3 added:
+
+- `src/lib/dokumen/local-submit-repository.ts`
+- `tests/unit/dokumen/local-submit-repository.test.ts`
+- `docs/migration/local-submit-live-repository-foundation.md`
+
+The repository foundation maps the Phase 6F.2 bridge contract to local Drizzle schema table and column responsibilities, provides pure payload/row mapping functions, and adapts an injected fakeable repository adapter to the bridge repository interface.
+
+It does not import the concrete live DB client, execute real Drizzle queries, run transactions against a live database, wire `POST /api/dokumen/submit`, execute filesystem movement, call Supabase, run DB scripts, or change route behavior.
+
+Submit route wiring remains blocked until live adapter behavior, route response parity, local file preflight, and DB/file failure policy are proven.
