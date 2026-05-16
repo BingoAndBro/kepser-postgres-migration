@@ -324,3 +324,11 @@ This phase does not claim rollback is implemented against real files.
 This phase does not claim historical Supabase Storage files are locally available.
 
 This phase does not claim Supabase can be removed.
+
+## 14. Phase 6F.11 Follow-Up Note
+
+Phase 6F.11 added the route-independent submit runtime orchestrator boundary helper described in `docs/migration/submit-runtime-orchestrator-boundary-helper-foundation.md`.
+
+The helper composes only injected or already-resolved stage outputs. It classifies payload, actor/role, master/permission, move-plan, preflight, DB transaction, file movement, and compensation policy states without importing the submit route, without calling live auth, without executing live database work, without checking disk, and without moving files.
+
+Direct `src/routes/api/dokumen/submit.ts` wiring remains blocked. Runtime route disk preflight, filesystem movement, runtime DB/file compensation, rollback against real files, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync remain future work.

@@ -262,6 +262,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit runtime wiring readiness boundary review completed.
   Date: 2026-05-16.
   Rationale: Phase 6F.10 documented in `docs/migration/submit-runtime-wiring-readiness-boundary-plan.md` that direct `POST /api/dokumen/submit` runtime wiring remains unsafe. Existing submit foundations are ready to compose only through a route-independent, injected-dependency boundary first. The accepted next direction is a narrow Phase 6F.11 submit runtime orchestrator or route composition boundary helper outside `src/routes/api/dokumen/submit.ts`, with direct route wiring, route disk preflight, filesystem movement, runtime DB/file compensation, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync still blocked.
+- Submit runtime orchestrator boundary helper foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.11 added `src/lib/dokumen/submit-runtime-orchestrator.ts` as a route-independent, injected-dependency submit orchestration classifier. The accepted direction is that submit runtime order is payload validation, actor/role boundary, master/permission boundary, move plan, preflight, local write transaction, file movement, compensation classification, then success only when safe. This does not mark route wiring, route disk preflight, filesystem movement, runtime DB/file compensation, rollback, Supabase fallback, DB scripts, or Supabase Storage migration/copy/download/backfill/sync complete.
 
 ## Still Open
 
