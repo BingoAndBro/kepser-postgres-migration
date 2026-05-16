@@ -325,3 +325,9 @@ Result:
 - `git diff --check` passed.
 - `git diff --name-only -- src\routeTree.gen.ts` returned no output.
 - Final status is recorded in the task final response.
+
+## 11. Phase 6F.2 Follow-Up Note
+
+Phase 6F.2 added `src/lib/dokumen/local-submit-write-bridge.ts` as the no-route-wiring local submit document/write bridge helper foundation recommended after Phase 6F.1 planning.
+
+The submit move planner remains route-independent and logical-only. The new write bridge helper proves actor/master/status/audit payload shapes and a repository transaction boundary, but it still does not execute filesystem moves, wire submit, call Supabase, or run database scripts. Submit route wiring remains blocked until live local repository behavior, route response compatibility, local file preflight, and DB/file failure policy are proven.

@@ -235,6 +235,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local submit document/write compatibility bridge planning completed.
   Date: 2026-05-16.
   Rationale: Phase 6F.1 documented in `docs/migration/local-submit-document-write-bridge-planning.md` that submit should not switch directly to local `dms_session` route wiring while submit-specific local master reads, document creation, status update, and append-only audit helpers are not implemented. The accepted next direction is a bounded Phase 6F.2 Local Submit Document/Write Bridge Helper Foundation with no route wiring, no filesystem movement, and no Supabase Storage migration/copy/download/backfill/sync.
+- Local submit document/write bridge helper foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.2 added `src/lib/dokumen/local-submit-write-bridge.ts` as a server-only, no-route-wiring helper foundation for local submit actor compatibility, submit-needed master-data reads, Ketua Tim assignment checks, document creation payloads, material/non-material status transition shapes, append-only audit payloads, and a repository transaction boundary. It intentionally does not import the live DB client, execute database writes, move files, call Supabase, wire `POST /api/dokumen/submit`, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until live local repository behavior, route response compatibility, local file preflight, and DB/file failure policy are proven.
 
 ## Still Open
 

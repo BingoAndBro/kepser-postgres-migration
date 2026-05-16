@@ -375,3 +375,22 @@ Result:
 - `git diff --check` passed. Git reported CRLF conversion warnings for migration docs only.
 - `git diff --name-only -- src/routeTree.gen.ts` returned no output.
 - `git status --short --branch` returned the status shown above.
+
+## 14. Phase 6F.2 Follow-Up Note
+
+Phase 6F.2 added the isolated helper foundation described in `docs/migration/local-submit-document-write-bridge-helper-foundation.md`.
+
+The helper implements route-independent local submit write-domain shapes only:
+
+- local actor compatibility from `LocalServerSession`;
+- submit-needed master-data repository read contracts;
+- Ketua Tim assignment check contract;
+- local document creation payload shape;
+- material `DRAFT -> IN_PPK_VALIDATION` transition shape through the existing FSM;
+- non-material `TERSIMPAN` shortcut and `STORE` audit shape;
+- append-only audit payload shape;
+- document/status/audit transaction boundary through a repository interface.
+
+No submit route wiring, live Drizzle repository implementation, filesystem movement, DB scripts, Supabase calls, route tree changes, or Supabase Storage migration/copy/download/backfill/sync was added.
+
+Submit route wiring remains blocked until live local repository behavior, route response compatibility, local file preflight, and DB/file failure policy are proven.
