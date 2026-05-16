@@ -361,3 +361,11 @@ This phase does not implement:
 - archive destruction changes;
 - delete/remove changes;
 - diagnostics/orphan cleanup changes.
+
+## Phase 6F.6 Follow-Up Note
+
+Phase 6F.6 added `docs/migration/submit-route-parity-test-foundation.md`.
+
+The follow-up documented the route-level parity test matrix and safe harness strategy for the unchanged legacy `POST /api/dokumen/submit` route. It recommends a future focused test phase using mocked Supabase server/admin clients, mocked session/helper dependencies, synthetic `Request` objects, and no live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, UI/browser tests, DB scripts, migrations, or seeds.
+
+No helper, executable submit route tests, runtime source code, filesystem movement, local disk checks, route wiring, DB scripts, migrations, seeds, route generation, Supabase calls, or Supabase Storage migration/copy/download/backfill/sync were added.

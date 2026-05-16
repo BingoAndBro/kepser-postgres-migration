@@ -247,6 +247,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit route response parity and local file preflight foundation documented.
   Date: 2026-05-16.
   Rationale: Phase 6F.5 documented the current legacy `POST /api/dokumen/submit` response/status inventory, material and non-material submit result parity, local bridge/repository/adapter issue-to-response mapping, missing-local-file policy, and conservative DB/file ordering recommendation in `docs/migration/submit-route-response-parity-file-preflight-foundation.md`. The accepted direction is to fail missing local files before DB writes and before filesystem moves, never fallback to Supabase Storage, keep `temp-id` as the default submit planning target for now, and define compensation before any runtime movement is enabled. This does not mark submit route migration, route-level tests, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit route parity test planning foundation documented.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.6 documented the planned route-level parity test contract in `docs/migration/submit-route-parity-test-foundation.md`. The accepted direction is to test the unchanged legacy `POST /api/dokumen/submit` route contract with mocked Supabase server/admin clients, mocked session, mocked submit helpers, synthetic `Request` objects, and no live Supabase, live PostgreSQL, filesystem movement, storage root resolution, route generation, UI/browser tests, DB scripts, migrations, or seeds. This does not mark route parity tests implemented, submit route migration, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
 
 ## Still Open
 
