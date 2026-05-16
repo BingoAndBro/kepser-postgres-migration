@@ -111,6 +111,8 @@ Phase 6E.9 switched only `POST /api/dokumen/rename-pending` storage move interna
 
 Phase 6E.10 verified and documented the bounded `rename-pending` runtime state in `docs/migration/rename-pending-runtime-smoke-handoff.md`. Focused tests for the route, local pending move helper, and local storage path helper passed after a sandbox `spawn EPERM` rerun with approved escalation. No runtime source code, storage behavior, submit/update/resubmit/upload behavior, UI behavior, delete/archive/diagnostics behavior, preview/download defaults, route tree, database schema, auth/session runtime, or Supabase Storage file migration changed in this phase. The recommended next phase is Phase 6E.11 Submit Local Move Compatibility Planning, not direct broad implementation.
 
+Phase 6E.11 documented the submit route local move compatibility plan in `docs/migration/submit-local-move-compatibility-planning.md`. It inventoried current `POST /api/dokumen/submit` behavior, including Supabase-session assumptions, route-local dash-only `.move(...)`, `temp-id` formal target compatibility, material vs non-material status behavior, attachment metadata persistence, audit logging, mixed storage policy, and DB/file partial-failure risks. No runtime source code, submit behavior, update/resubmit/upload/rename-pending behavior, UI behavior, delete/archive/diagnostics behavior, preview/download defaults, route tree, database schema, auth/session runtime, or Supabase Storage file migration changed in this phase. The recommended next phase is a submit preflight/bridge planning phase unless route implementation can be proven safely bounded.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

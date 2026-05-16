@@ -220,6 +220,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Rename-pending runtime smoke verification completed.
   Date: 2026-05-16.
   Rationale: Phase 6E.10 verified and documented the current `POST /api/dokumen/rename-pending` runtime state after Phase 6E.9 in `docs/migration/rename-pending-runtime-smoke-handoff.md`. The verification confirmed local `dms_session` ownership, compatibility `userId` matching, document ownership checking, local helper movement, logical-only response paths, formal/safe unsupported skips, missing-local-source failure without Supabase fallback, and no Supabase Storage migration/copy/download/backfill/sync. This does not mark submit/update/PPK resubmit local moves, `AttachmentEditor` migration, delete/remove behavior, archive destruction, diagnostics/orphan cleanup, preview/download default migration, route tree changes, database changes, auth/session runtime changes, or Supabase Storage retirement complete.
+- Submit local move compatibility planning completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6E.11 documented `POST /api/dokumen/submit` local move compatibility in `docs/migration/submit-local-move-compatibility-planning.md`. The accepted planning direction is to preserve endpoint/request/response compatibility, preserve material and non-material status behavior, treat current `temp-id` formal paths as a compatibility risk that must not be casually removed, use local `dms_session` ownership only after submit's document/workflow dependencies are safe, preflight local pending paths before moving, and never fetch/copy/download/backfill/sync Supabase Storage files. This does not mark submit/update/PPK resubmit local moves, broad document write migration, `AttachmentEditor` migration, delete/remove behavior, archive destruction, diagnostics/orphan cleanup, preview/download default migration, route tree changes, database changes, auth/session runtime changes, or Supabase Storage retirement complete.
 
 ## Still Open
 
@@ -231,7 +234,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact transition strategy for old Supabase helpers.
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
-- Pending-to-formal local move behavior planning and implementation for submit, update, and PPK resubmit.
+- Pending-to-formal local move implementation for submit, update, and PPK resubmit.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.

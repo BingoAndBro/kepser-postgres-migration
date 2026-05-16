@@ -340,10 +340,12 @@ Recommended future phases:
 1. Phase 6E.7: Local pending-to-formal move helper foundation, no route wiring. Build isolated helper tests for classification, owner checks, no-overwrite moves, missing local source, rollback hooks, and no physical path exposure.
 2. Phase 6E.8: `rename-pending` local move route planning. Completed as `docs/migration/rename-pending-local-move-route-planning.md`.
 3. Phase 6E.9: `rename-pending` local move route implementation. Wire the smallest route first because it returns renamed paths and does not directly update document rows.
-4. Phase 6E.10: submit local move compatibility implementation. Decide whether to preserve `temp-id` or replace it with a tested compatible strategy.
-5. Phase 6E.11: update/resubmit local move compatibility. Wire `PATCH /api/dokumen/$id`, `PATCH /api/ppk/resubmit/$id`, and `POST /api/ppk/resubmit/$id` after helper and route behavior are proven.
-6. Phase 6E.12: AttachmentEditor migration planning. Plan browser direct upload/delete replacement separately before implementation.
-7. Phase 6E.13: Delete/remove and local orphan diagnostics planning. Cover pending reset/cancel, replaced-file cleanup, archive destruction deletion, and admin cleanup dry-run before destructive runtime changes.
+4. Phase 6E.10: `rename-pending` runtime smoke verification. Completed as `docs/migration/rename-pending-runtime-smoke-handoff.md`.
+5. Phase 6E.11: submit local move compatibility planning. Completed as `docs/migration/submit-local-move-compatibility-planning.md`; it did not implement submit local move behavior.
+6. Phase 6E.12: submit local move preflight/bridge planning or a tightly bounded submit local move implementation only if dependencies are proven safe.
+7. Later phase: update/resubmit local move compatibility. Wire `PATCH /api/dokumen/$id`, `PATCH /api/ppk/resubmit/$id`, and `POST /api/ppk/resubmit/$id` after submit and route behavior are proven.
+8. Later phase: AttachmentEditor migration planning. Plan browser direct upload/delete replacement separately before implementation.
+9. Later phase: Delete/remove and local orphan diagnostics planning. Cover pending reset/cancel, replaced-file cleanup, archive destruction deletion, and admin cleanup dry-run before destructive runtime changes.
 
 Helper foundation should come before route wiring. The helper is where path classification, containment, no-overwrite, source existence, and partial-failure behavior can be tested without mutating workflow state.
 
@@ -455,3 +457,11 @@ No runtime source code changed. `rename-pending` route wiring remains unimplemen
 Phase 6E.9 implemented the narrow `rename-pending` route wiring described in the Phase 6E.8 plan.
 
 `POST /api/dokumen/rename-pending` now uses local `dms_session` authorization and the Phase 6E.7 helper for local filesystem moves. This proves the smallest move route only. Submit, update, PPK resubmit, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, and Supabase Storage retirement remain separate future phases.
+
+## 17. Phase 6E.11 Follow-Up Note
+
+Phase 6E.11 added `docs/migration/submit-local-move-compatibility-planning.md`.
+
+The submit-specific plan confirms current `POST /api/dokumen/submit` still has route-local Supabase `.move(...)` behavior, dash-only pending detection, and `temp-id` target path compatibility. It recommends a conservative submit preflight/bridge phase before implementation unless local auth, local document writes, status updates, audit logging, and DB/file partial-failure strategy can be safely bounded.
+
+No submit local move behavior was implemented.

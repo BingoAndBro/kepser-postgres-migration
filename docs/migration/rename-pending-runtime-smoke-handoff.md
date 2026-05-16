@@ -152,6 +152,8 @@ Reasoning:
 
 Direct implementation is not recommended as the next phase.
 
+Follow-up: Phase 6E.11 completed that planning in `docs/migration/submit-local-move-compatibility-planning.md`. It did not implement submit local move behavior and recommends a submit preflight/bridge planning phase unless route implementation can be proven safely bounded.
+
 ## 9. Explicitly Not Implemented
 
 Phase 6E.10 does not implement:

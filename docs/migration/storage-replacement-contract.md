@@ -150,6 +150,18 @@ The smoke handoff confirms that `POST /api/dokumen/rename-pending` keeps the sam
 
 No runtime source code or storage behavior changed in Phase 6E.10. Submit, update, PPK resubmit, upload behavior, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
 
+## Phase 6E.11 Submit Local Move Compatibility Planning Note
+
+Phase 6E.11 added `docs/migration/submit-local-move-compatibility-planning.md` as a route-specific planning contract for future local filesystem wiring of:
+
+```text
+POST /api/dokumen/submit
+```
+
+The plan confirms current submit still uses Supabase session auth, route-local dash-pending detection, Supabase Storage `.move(...)`, and `{userId}/temp-id/{uuid}.{ext}` targets before document creation. It preserves the endpoint path, request shape, `201 { success: true, dokumen }` success shape, material `DRAFT -> IN_PPK_VALIDATION` behavior, non-material `TERSIMPAN` shortcut, logical-only `lampiran_urls` metadata, and append-only audit expectations.
+
+No runtime source code changed in Phase 6E.11. Submit local move behavior, update/PPK resubmit local moves, upload behavior, `rename-pending` behavior, UI callers, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
