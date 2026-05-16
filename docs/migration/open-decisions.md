@@ -232,6 +232,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit move plan builder handoff/readiness review completed.
   Date: 2026-05-16.
   Rationale: Phase 6E.14 verified the Phase 6E.13 helper state in `docs/migration/submit-move-plan-builder-handoff-readiness.md`. The planner is ready as a route-independent logical planning primitive, but submit route wiring remains blocked by local identity and write-domain compatibility. The accepted next direction is Phase 6F.1 Local Submit Document/Write Compatibility Bridge Planning before any submit runtime move wiring.
+- Local submit document/write compatibility bridge planning completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.1 documented in `docs/migration/local-submit-document-write-bridge-planning.md` that submit should not switch directly to local `dms_session` route wiring while submit-specific local master reads, document creation, status update, and append-only audit helpers are not implemented. The accepted next direction is a bounded Phase 6F.2 Local Submit Document/Write Bridge Helper Foundation with no route wiring, no filesystem movement, and no Supabase Storage migration/copy/download/backfill/sync.
 
 ## Still Open
 

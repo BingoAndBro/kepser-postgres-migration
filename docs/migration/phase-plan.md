@@ -119,6 +119,8 @@ Phase 6E.13 added the isolated submit move plan builder helper in `src/lib/stora
 
 Phase 6E.14 verified and documented the submit move plan builder handoff in `docs/migration/submit-move-plan-builder-handoff-readiness.md`. The review confirmed the helper remains route-independent and logical-only, no route imports it yet, no filesystem/Supabase/env/storage-root behavior exists in the planner, and `src/routeTree.gen.ts` remains unchanged. Submit route wiring is still not ready because identity, master-data, document creation, status update, and append-only audit write compatibility are not proven in the local domain. The recommended next step is Phase 6F.1 Local Submit Document/Write Compatibility Bridge Planning, not direct submit implementation.
 
+Phase 6F.1 documented the local submit document/write compatibility bridge plan in `docs/migration/local-submit-document-write-bridge-planning.md`. It concluded that local schema and seed readiness appear sufficient for a bounded helper-foundation phase, but `POST /api/dokumen/submit` still must not be wired because local submit-specific master/document/status/audit helpers do not exist and DB/file ordering is not proven. No runtime source code, submit/update/resubmit/upload/rename-pending behavior, UI behavior, delete/archive/diagnostics behavior, preview/download defaults, route tree, database schema, DB scripts, or Supabase Storage file migration changed in this phase. The recommended next step is Phase 6F.2 Local Submit Document/Write Bridge Helper Foundation, no route wiring.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.
