@@ -104,3 +104,9 @@ pnpm test tests/unit/storage/local-pending-move.test.ts tests/unit/storage/local
 Result after the no-overwrite race-safety fix: passed, 2 test files and 37 tests.
 
 The first sandboxed run failed before tests started because Vitest could not spawn its config bundling worker (`spawn EPERM`). The same focused command passed when rerun with approved escalation.
+
+## Phase 6E.8 Follow-Up Note
+
+Phase 6E.8 added `docs/migration/rename-pending-local-move-route-planning.md` as a planning-only contract for using this helper in a later `POST /api/dokumen/rename-pending` route implementation.
+
+The plan recommends using `classifyLocalPendingMovePath(...)` and `moveLocalPendingFileToFormal(...)` only after local session, body compatibility, document ownership, and source owner checks pass. It keeps route wiring out of scope for Phase 6E.8 and recommends Phase 6E.9 for the narrow implementation.

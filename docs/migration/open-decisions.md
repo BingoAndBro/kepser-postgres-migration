@@ -211,6 +211,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local pending-to-formal move helper foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6E.7 added `src/lib/storage/local-pending-move.ts` as an isolated server-only helper for future route phases. The helper supports both underscore and dash pending path variants, validates owner segments, generates `{ownerId}/{dokumenId}/{uuid}.{ext}` targets, preserves `temp-id` as a safe document segment, resolves physical paths only internally, performs no-overwrite local moves, leaves already formal paths unchanged, and returns logical metadata only. This does not mark submit, `rename-pending`, update, resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download default migration, UI caller migration, or Supabase Storage retirement complete.
+- Rename-pending local move route planning completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6E.8 documented the future local implementation contract for `POST /api/dokumen/rename-pending` in `docs/migration/rename-pending-local-move-route-planning.md`. The accepted direction is to keep the endpoint path and `{ dokId, lampiranUrls, userId }` request compatibility, preserve `{ success: true, renamed, errors? }` success shape, use local `dms_session` as the route authority later, treat body `userId` as compatibility input only, verify document ownership before moving, use the Phase 6E.7 helper for supported local pending paths, and report missing/unsupported local sources without Supabase fetch/copy/download/backfill/sync. This does not mark route wiring, submit/update/resubmit moves, delete/remove behavior, archive destruction, diagnostics/orphan cleanup, preview/download default migration, UI caller migration, or Supabase Storage retirement complete.
 
 ## Still Open
 

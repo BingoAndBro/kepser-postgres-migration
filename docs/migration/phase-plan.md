@@ -105,6 +105,8 @@ Phase 6E.6 documented the pending-to-formal local move plan in `docs/migration/p
 
 Phase 6E.7 added the isolated local pending-to-formal move helper foundation in `src/lib/storage/local-pending-move.ts` and `tests/unit/storage/local-pending-move.test.ts`. The helper classifies supported pending/formal logical paths, validates owner segments, generates UUID-based formal target logical paths, resolves safe physical paths internally, moves local files with no-overwrite semantics, leaves already formal paths unchanged, and returns logical metadata only. Submit, `rename-pending`, update, resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, UI callers, and Supabase Storage migration remain future work.
 
+Phase 6E.8 documented the `rename-pending` local move route plan in `docs/migration/rename-pending-local-move-route-planning.md`. The plan inventories the current Supabase-backed `POST /api/dokumen/rename-pending` behavior, locks request/response/status compatibility, defines future local `dms_session` ownership policy, maps the Phase 6E.7 helper into later route wiring, and records mixed-storage, partial-failure, testing, and boundary rules. No runtime source code changed and `rename-pending` local route wiring remains unimplemented.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

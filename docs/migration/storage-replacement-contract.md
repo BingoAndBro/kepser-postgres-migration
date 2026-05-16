@@ -122,6 +122,18 @@ Helper results expose only logical metadata. Physical filesystem paths and the s
 
 Submit, `rename-pending`, update, resubmit, delete/remove, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, internal URL default enablement, UI caller migration, and Supabase Storage retirement remain future work.
 
+## Phase 6E.8 Rename-Pending Route Planning Note
+
+Phase 6E.8 added `docs/migration/rename-pending-local-move-route-planning.md` as a planning-only contract for future local filesystem wiring of:
+
+```text
+POST /api/dokumen/rename-pending
+```
+
+The plan preserves endpoint path, request compatibility with `{ dokId, lampiranUrls, userId }`, and success shape `{ success: true, renamed, errors? }`. It recommends future local `dms_session` authorization, document ownership validation, treating body `userId` as compatibility input only, using the Phase 6E.7 helper for local pending moves, supporting both underscore and dash pending path variants when files exist locally, and reporting missing or unsupported local sources without Supabase fallback.
+
+No runtime source code changed. The route remains Supabase-backed until a later implementation phase. Submit, update, resubmit, upload, `AttachmentEditor`, delete/remove, archive destruction deletion, diagnostics/orphan cleanup, preview/download defaults, internal URL default enablement, route tree changes, and Supabase Storage retirement remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.
