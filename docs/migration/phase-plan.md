@@ -127,6 +127,8 @@ Phase 6F.3 added the local submit live repository planning/foundation layer in `
 
 Phase 6F.4 added the local submit live Drizzle adapter foundation in `docs/migration/local-submit-drizzle-adapter-foundation.md`, `src/lib/dokumen/local-submit-drizzle-adapter.ts`, and `tests/unit/dokumen/local-submit-drizzle-adapter.test.ts`. The adapter implements the Phase 6F.3 injected adapter contract with local Drizzle schema table exports and explicit injected-DB/future-live factory boundaries. It does not import the live DB client at module load time, wire submit, move files, call Supabase, run DB scripts, or change route behavior. `POST /api/dokumen/submit` remains blocked until route response parity, submit file preflight, and DB/file failure compensation policy are proven.
 
+Phase 6F.5 documented submit route response parity and the local file preflight/failure-policy foundation in `docs/migration/submit-route-response-parity-file-preflight-foundation.md`. It inventories the current legacy Supabase-backed submit success/error response shapes, material and non-material workflow results, storage move failure behavior, bridge/repository/adapter outcome mapping, missing-local-file policy with no Supabase fallback, and a conservative DB/file ordering recommendation. No helper, runtime source code, filesystem movement, local disk checks, route wiring, DB scripts, migrations, seeds, route generation, or Supabase Storage migration/copy/download/backfill/sync were added. `POST /api/dokumen/submit` remains blocked until route-level tests and runtime preflight/compensation implementation are explicitly approved.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

@@ -124,3 +124,11 @@ Coverage added by Phase 6F.4:
 Do not wire `POST /api/dokumen/submit` yet.
 
 Recommended next work is a route-level submit response parity and file-preflight planning/foundation phase, still without filesystem movement, or another explicitly bounded phase that resolves the remaining blockers above before runtime submit behavior changes.
+
+## Phase 6F.5 Follow-Up Note
+
+Phase 6F.5 added `docs/migration/submit-route-response-parity-file-preflight-foundation.md`.
+
+The follow-up documented the current submit route response/status inventory, material and non-material success parity, local bridge/repository/adapter issue mapping, missing-local-file policy, and conservative DB/file failure recommendation. It did not add helper code, route tests, runtime submit wiring, local file disk checks, filesystem movement, Supabase calls, DB scripts, migrations, seeds, or Supabase Storage migration/copy/download/backfill/sync.
+
+`POST /api/dokumen/submit` remains blocked until route-level parity tests and an explicitly approved runtime preflight/compensation implementation phase.

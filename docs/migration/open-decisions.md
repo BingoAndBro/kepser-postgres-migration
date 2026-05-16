@@ -244,6 +244,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local submit live Drizzle adapter foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.4 added `src/lib/dokumen/local-submit-drizzle-adapter.ts` as a server-only, submit-specific Drizzle adapter foundation behind the Phase 6F.3 injected adapter contract. It uses local Drizzle schema table exports, requires explicit database injection for tests/future composition, and keeps the live `#/db/client` import inside an explicit async factory only. It intentionally does not wire `POST /api/dokumen/submit`, execute filesystem movement, call Supabase, run DB scripts, run migrations/seeds, change route behavior, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until route response parity, submit file preflight, and DB/file failure compensation policy are proven.
+- Submit route response parity and local file preflight foundation documented.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.5 documented the current legacy `POST /api/dokumen/submit` response/status inventory, material and non-material submit result parity, local bridge/repository/adapter issue-to-response mapping, missing-local-file policy, and conservative DB/file ordering recommendation in `docs/migration/submit-route-response-parity-file-preflight-foundation.md`. The accepted direction is to fail missing local files before DB writes and before filesystem moves, never fallback to Supabase Storage, keep `temp-id` as the default submit planning target for now, and define compensation before any runtime movement is enabled. This does not mark submit route migration, route-level tests, runtime local file preflight, filesystem movement, DB/file compensation implementation, Supabase removal, or any Supabase Storage migration/copy/download/backfill/sync complete.
 
 ## Still Open
 
@@ -256,6 +259,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
 - Pending-to-formal local move implementation for submit, update, and PPK resubmit.
+- Submit route-level parity tests and runtime submit preflight implementation.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
