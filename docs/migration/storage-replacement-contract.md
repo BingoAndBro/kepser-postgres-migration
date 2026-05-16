@@ -112,6 +112,16 @@ The plan inventories the current Supabase `.move(...)` surfaces, route/helper me
 
 No runtime source code changed. No local move helper, submit/rename/resubmit behavior, upload behavior, route tree change, DB schema change, auth/session change, or Supabase Storage migration/copy/download/backfill/sync was added.
 
+## Phase 6E.7 Local Move Helper Foundation Note
+
+Phase 6E.7 added `src/lib/storage/local-pending-move.ts`, focused unit tests, and `docs/migration/local-pending-move-helper-foundation.md`.
+
+The helper is server-only and isolated from runtime routes/components. It validates supported source logical paths, recognizes both underscore `/api/upload` pending paths and dash `AttachmentEditor` pending paths, leaves formal paths unchanged, generates UUID-based formal target logical paths, resolves physical paths internally under the local storage root, and moves local files with no-overwrite semantics.
+
+Helper results expose only logical metadata. Physical filesystem paths and the storage root are not returned. The helper does not call Supabase APIs and does not fetch, copy, download, backfill, or sync Supabase Storage files.
+
+Submit, `rename-pending`, update, resubmit, delete/remove, archive destruction deletion, diagnostics/orphan cleanup, preview/download default changes, internal URL default enablement, UI caller migration, and Supabase Storage retirement remain future work.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

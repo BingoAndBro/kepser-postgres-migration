@@ -103,6 +103,8 @@ Phase 6E.5 verified and documented the bounded local upload runtime state in `do
 
 Phase 6E.6 documented the pending-to-formal local move plan in `docs/migration/pending-to-formal-local-move-planning.md`. The plan inventories submit, `rename-pending`, update, PPK resubmit, `syncDocumentAttachments()`, and `AttachmentEditor` producer boundaries; defines dash and underscore pending compatibility, `temp-id` behavior, local owner semantics, filesystem move safety, DB/file partial-failure strategy, mixed storage policy, and future test/phase sequencing. No runtime source code changed and pending-to-formal local moves remain unimplemented.
 
+Phase 6E.7 added the isolated local pending-to-formal move helper foundation in `src/lib/storage/local-pending-move.ts` and `tests/unit/storage/local-pending-move.test.ts`. The helper classifies supported pending/formal logical paths, validates owner segments, generates UUID-based formal target logical paths, resolves safe physical paths internally, moves local files with no-overwrite semantics, leaves already formal paths unchanged, and returns logical metadata only. Submit, `rename-pending`, update, resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, UI callers, and Supabase Storage migration remain future work.
+
 ## Phase 7: Read-Only API Migration By Domain
 
 Migrate reads before writes so response compatibility can be tested without risking workflow state.

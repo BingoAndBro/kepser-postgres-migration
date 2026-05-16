@@ -432,3 +432,11 @@ git status --short --branch
 ```
 
 Result: recorded in the task final response.
+
+## 14. Phase 6E.7 Follow-Up Note
+
+Phase 6E.7 added the isolated helper foundation described in `docs/migration/local-pending-move-helper-foundation.md`.
+
+The helper implements the planned foundation only: source classification, owner validation, formal target generation, internal physical path resolution, no-overwrite local file movement, formal no-op behavior, and logical-only results.
+
+No submit, `rename-pending`, update, resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download, UI caller, route tree, database schema, auth runtime, or Supabase Storage migration behavior changed.

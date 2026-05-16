@@ -208,6 +208,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Pending-to-formal local move planning completed.
   Date: 2026-05-16.
   Rationale: Phase 6E.6 documented the future local move compatibility contract in `docs/migration/pending-to-formal-local-move-planning.md`. The accepted direction is to build a helper foundation before route wiring, handle both underscore `/api/upload` pending paths and dash `AttachmentEditor` pending paths deliberately, preserve logical-only metadata and UUID-based formal path semantics, treat submit `temp-id` behavior as a compatibility risk, use local `dms_session` as the future move authority, and reject or clearly report missing/unsupported Supabase-backed source files without fetching from Supabase. This does not mark local move helper implementation, submit/rename/resubmit changes, delete/remove behavior, archive destruction deletion, diagnostics/orphan cleanup, preview/download migration, or Supabase Storage retirement complete.
+- Local pending-to-formal move helper foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6E.7 added `src/lib/storage/local-pending-move.ts` as an isolated server-only helper for future route phases. The helper supports both underscore and dash pending path variants, validates owner segments, generates `{ownerId}/{dokumenId}/{uuid}.{ext}` targets, preserves `temp-id` as a safe document segment, resolves physical paths only internally, performs no-overwrite local moves, leaves already formal paths unchanged, and returns logical metadata only. This does not mark submit, `rename-pending`, update, resubmit, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download default migration, UI caller migration, or Supabase Storage retirement complete.
 
 ## Still Open
 
