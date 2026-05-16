@@ -465,3 +465,9 @@ Phase 6E.11 added `docs/migration/submit-local-move-compatibility-planning.md`.
 The submit-specific plan confirms current `POST /api/dokumen/submit` still has route-local Supabase `.move(...)` behavior, dash-only pending detection, and `temp-id` target path compatibility. It recommends a conservative submit preflight/bridge phase before implementation unless local auth, local document writes, status updates, audit logging, and DB/file partial-failure strategy can be safely bounded.
 
 No submit local move behavior was implemented.
+
+## 18. Phase 6E.12 Follow-Up Note
+
+Phase 6E.12 added `docs/migration/submit-local-move-preflight-bridge-planning.md`.
+
+The preflight decision keeps submit local move route wiring out of scope because submit still depends on Supabase-backed master/document/status/audit helpers. The recommended next artifact is a no-route-wiring submit move plan builder helper, followed by local document/write compatibility work before any submit runtime implementation.

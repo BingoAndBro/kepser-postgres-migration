@@ -671,3 +671,11 @@ git status --short --branch
 ```
 
 Result: recorded in the task final response.
+
+## 16. Phase 6E.12 Follow-Up Note
+
+Phase 6E.12 added `docs/migration/submit-local-move-preflight-bridge-planning.md`.
+
+The preflight concluded that submit should not directly switch to `getLocalServerSession(request)` or local filesystem moves while current submit still uses Supabase-backed master reads, document creation, status updates, and audit inserts. The recommended next step is a no-route-wiring submit move plan builder helper foundation that can plan logical moves and `temp-id` targets without touching the filesystem or changing submit behavior.
+
+Submit route wiring remains blocked until local identity, master-data, document write, status update, and audit write compatibility is proven.

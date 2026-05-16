@@ -162,6 +162,14 @@ The plan confirms current submit still uses Supabase session auth, route-local d
 
 No runtime source code changed in Phase 6E.11. Submit local move behavior, update/PPK resubmit local moves, upload behavior, `rename-pending` behavior, UI callers, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
 
+## Phase 6E.12 Submit Preflight/Bridge Planning Note
+
+Phase 6E.12 added `docs/migration/submit-local-move-preflight-bridge-planning.md` to decide whether submit can move directly to local auth and local filesystem moves.
+
+The decision is conservative: submit should not switch directly to `getLocalServerSession(request)` or local filesystem moves while its master/document/status/audit dependencies remain Supabase-helper-backed. A no-route-wiring submit move plan builder helper is recommended before runtime wiring, and route wiring remains blocked until local identity and write compatibility is proven.
+
+No runtime source code changed in Phase 6E.12. Submit local move behavior, submit auth migration, local document write bridge, update/PPK resubmit local moves, upload behavior, `rename-pending` behavior, UI callers, `AttachmentEditor`, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain out of scope.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

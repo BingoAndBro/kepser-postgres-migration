@@ -118,3 +118,7 @@ Phase 6E.9 wired this helper into `POST /api/dokumen/rename-pending` only. Other
 ## Phase 6E.11 Follow-Up Note
 
 Phase 6E.11 documented the submit route compatibility plan for using this helper later. The plan keeps submit unwired, treats `temp-id` as a compatibility risk, and recommends preflight/bridge work before using `moveLocalPendingFileToFormal(...)` in `POST /api/dokumen/submit`.
+
+## Phase 6E.12 Follow-Up Note
+
+Phase 6E.12 documented the submit local move preflight/bridge decision in `docs/migration/submit-local-move-preflight-bridge-planning.md`. The helper remains suitable for local pending moves and `temp-id` target planning, but submit route wiring remains blocked until local session identity and document/master/status/audit write compatibility are proven.
