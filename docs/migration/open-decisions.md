@@ -229,6 +229,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit move plan builder helper foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6E.13 added `src/lib/storage/submit-move-plan.ts` as a pure server-only planning helper for future submit move preflight. The helper produces logical-only planned move mappings and planned attachment metadata for underscore pending, dash pending, formal, unsupported, and invalid paths, defaults submit planning to `temp-id`, and can use deterministic UUID factories in tests. It does not import filesystem modules, resolve storage roots, check file existence, call Supabase Storage, wire submit, migrate submit auth, create local document write bridges, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until local identity, master-data, document writes, status updates, and audit writes are proven compatible.
+- Submit move plan builder handoff/readiness review completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6E.14 verified the Phase 6E.13 helper state in `docs/migration/submit-move-plan-builder-handoff-readiness.md`. The planner is ready as a route-independent logical planning primitive, but submit route wiring remains blocked by local identity and write-domain compatibility. The accepted next direction is Phase 6F.1 Local Submit Document/Write Compatibility Bridge Planning before any submit runtime move wiring.
 
 ## Still Open
 

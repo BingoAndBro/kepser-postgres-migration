@@ -178,6 +178,14 @@ The helper is server-only and isolated from runtime routes/components. It plans 
 
 The helper does not import filesystem modules, resolve the storage root, check source existence, check target existence, move/copy/rename/delete files, call Supabase Storage, wire submit, migrate submit auth, or create a local document write bridge. Submit, update, PPK resubmit, UI callers, delete/remove, archive destruction, diagnostics/orphan cleanup, preview/download defaults, route tree changes, DB schema changes, auth/session runtime changes, and Supabase Storage migration/copy/download/backfill/sync remain future work.
 
+## Phase 6E.14 Submit Planner Handoff Readiness Note
+
+Phase 6E.14 added `docs/migration/submit-move-plan-builder-handoff-readiness.md`.
+
+The readiness review confirmed that the submit planner remains logical-only and route-independent, no route imports it yet, and no filesystem, storage-root, env, Supabase, or local move executor usage exists in the planner. Submit route wiring remains blocked until local `dms_session` ids, master-data reads, document creation, status updates, Ketua Tim assignment checks, and append-only audit writes are proven compatible in the same local data domain.
+
+The recommended next phase is Phase 6F.1 Local Submit Document/Write Compatibility Bridge Planning. Direct submit route implementation remains out of scope.
+
 ## Current Supabase Storage Behavior Summary
 
 - Bucket name: `dokumen-lampiran`.

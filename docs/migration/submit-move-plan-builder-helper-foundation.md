@@ -147,3 +147,9 @@ Coverage:
 Do not wire this helper into `POST /api/dokumen/submit` yet.
 
 Recommended next work remains a local submit document/write compatibility bridge or a route-specific implementation plan that proves local `dms_session` ids, master-data reads, document creation, status update, and append-only audit writes are in the same local data domain before any local file movement is enabled.
+
+## Phase 6E.14 Follow-Up Note
+
+Phase 6E.14 added `docs/migration/submit-move-plan-builder-handoff-readiness.md` as a docs/handoff/readiness review.
+
+The review did not change this helper or any runtime source file. It confirmed the planner remains route-independent, logical-only, free of filesystem/Supabase/env/storage-root behavior, and unwired from submit. The readiness verdict remains that submit route wiring is not safe yet; the next recommended phase is Phase 6F.1 Local Submit Document/Write Compatibility Bridge Planning.
