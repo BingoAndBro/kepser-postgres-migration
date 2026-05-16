@@ -2,6 +2,14 @@
 
 This plan turns the roadmap into an execution sequence. The main rule is to stabilize the three infrastructure pillars first: database, auth, and storage. Deployment packaging should not happen too early because container/LAN decisions are cheaper after runtime behavior is stable.
 
+## Planning Principle For Remaining Work
+
+Phase 6F proved the required submit foundations, but it also became too granular. From Phase 6G onward, phases should produce direct runtime progress unless a concrete blocker is discovered. Prefer route or domain migration phases with focused tests and controlled runtime changes. Do not add new helper-only or planning-only phases just to reduce uncertainty.
+
+The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
+
+Current active area: Phase 6G submit runtime integration. If Phase 6G.2 is not yet accepted complete, finish it first; after Phase 6G.2, proceed directly to Phase 6G.3 local preflight wiring. Do not return to generic foundation mode unless a real blocker is found.
+
 ## Phase 0 To Phase 2: Planning And Audit
 
 Start by freezing compatibility expectations. The current Supabase-backed code is the reference implementation, so the audit must map actual behavior before replacements are built.
@@ -143,11 +151,52 @@ Phase 6F.11 added the submit runtime orchestrator boundary helper in `src/lib/do
 
 Phase 6F.12 added the isolated submit disk preflight checker foundation in `src/lib/dokumen/submit-disk-preflight-checker.ts`, focused tests in `tests/unit/dokumen/submit-disk-preflight-checker.test.ts`, and documentation in `docs/migration/submit-disk-preflight-checker-foundation.md`. The checker exposes logical-path-only source existence and target availability methods compatible with `preflightSubmitFiles(...)`, resolves physical paths internally through the existing local storage path helpers, uses only read-only `stat(...)` checks, and fails closed without exposing physical paths, roots, raw filesystem errors, tokens, signed URLs, or file contents. `POST /api/dokumen/submit` remains unchanged and unwired; route disk preflight wiring, filesystem movement, runtime DB/file compensation, rollback, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync remain blocked.
 
-## Phase 7: Read-Only API Migration By Domain
+Phase 6G.2 added a temporary `useLocalAuthDryRun=true` query-parameter branch to `POST /api/dokumen/submit` and documented it in `docs/migration/submit-route-local-auth-dry-run-boundary.md`. The branch validates the existing payload first, then checks the local `dms_session` boundary through `getLocalServerSession(request)`, requires PEGAWAI role compatibility, blocks ADMIN-only and non-PEGAWAI actors, and returns a non-success dry-run response before any legacy Supabase submit write path or storage move can execute. Default submit behavior remains legacy Supabase-backed; local DB writes, route disk preflight, filesystem movement, runtime DB/file compensation, Supabase fallback, DB scripts, and Supabase Storage migration/copy/download/backfill/sync remain unwired.
 
-Migrate reads before writes so response compatibility can be tested without risking workflow state.
+## Phase 6G: Submit Runtime Integration
 
-Domain split:
+Phase 6G is the active submit migration track. Keep it compressed and runtime-oriented:
+
+- Phase 6G.2: Submit Route Local Auth and Dry-Run Boundary Wiring.
+  - Goal: validate the local `dms_session`/PEGAWAI boundary in `POST /api/dokumen/submit`.
+  - Allowed scope: a narrow route branch or boundary check after existing payload validation.
+  - Non-goals: local DB writes, disk preflight, filesystem movement, Supabase submit retirement.
+  - Validation gates: submit route parity tests and guarded diffs for route tree and unrelated files.
+  - Exit criteria: default submit remains legacy; dry-run blocks missing, non-PEGAWAI, and ADMIN-only local actors without executing writes or moves.
+
+- Phase 6G.3: Submit Route Local Preflight Wiring.
+  - Goal: wire the local move plan, disk checker, and preflight helper into submit before any write or move.
+  - Allowed scope: local logical path planning and read-only source/target checks for local files.
+  - Non-goals: local DB transaction, filesystem movement, Supabase fallback, old file recovery.
+  - Validation gates: parity tests plus missing-local-source, unavailable-target, formal/no-op, and safe unsupported-path cases.
+  - Exit criteria: local preflight failures abort cleanly before DB writes and file moves, without exposing physical paths or storage roots.
+
+- Phase 6G.4: Submit Route Local DB Transaction Wiring.
+  - Goal: use the local submit bridge, repository, and Drizzle adapter for document create/status/audit.
+  - Allowed scope: local DB transaction wiring while movement remains disabled or guarded unless no move is required.
+  - Non-goals: uncontrolled file movement, runtime rollback claims, Supabase dependency removal.
+  - Validation gates: material and non-material submit parity, role behavior, append-only audit, DB error-to-response mapping.
+  - Exit criteria: local DB submit path preserves request/response shape, workflow status behavior, and `log_aktivitas` append-only behavior.
+
+- Phase 6G.5: Submit Route Controlled Local File Movement.
+  - Goal: execute controlled local pending-to-formal movement in submit.
+  - Allowed scope: local moves for preflight-approved new local files with explicit failure handling.
+  - Non-goals: Supabase fallback, old Supabase file migration, broad storage cleanup, global storage retirement.
+  - Validation gates: full-success, missing source, target conflict, partial failure, sensitive-output, and retry-relevant cases.
+  - Exit criteria: newly uploaded local files can submit through the local path; failed movement never returns false submit success.
+
+- Phase 6G.6: Submit Runtime Stabilization And Supabase Submit Path Retirement.
+  - Goal: stabilize submit parity and remove or disable the legacy Supabase submit path only after the local path passes checks.
+  - Allowed scope: submit-specific cleanup, docs updates, focused smoke checks, and removal of dead submit-only Supabase branches.
+  - Non-goals: global Supabase removal, broad endpoint migration, unrelated refactors.
+  - Validation gates: submit parity tests, material/non-material smoke checks, audit checks, role checks, and local file checks.
+  - Exit criteria: `POST /api/dokumen/submit` is locally backed for the clean local target and remaining migration gaps are assigned to later phases.
+
+## Phase 7: Read API Migration By Domain
+
+Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths or response shapes.
+
+Allowed scope:
 
 - Pegawai: document list/detail, report reads, attachment metadata reads.
 - PPK: inbox, tervalidasi, ditolak, revisi, detail reads.
@@ -155,13 +204,27 @@ Domain split:
 - Arsiparis: inbox, archive lists, search, classification reads.
 - Admin/master data: user lists, role reads, master data reads, ketua tim reads.
 
-Each domain should preserve response shapes before moving to the next domain.
+Non-goals:
 
-## Phase 8: Mutation API Migration By Domain
+- No workflow mutation migration.
+- No UI redesign.
+- No storage movement or deletion.
 
-Migrate writes after read parity is stable.
+Key validation gates:
 
-Domain split:
+- Response shapes match the legacy route contracts.
+- Role filtering remains server-side.
+- Role list/detail/report pages render against local data.
+
+Exit criteria:
+
+- Major read pages for Pegawai, PPK, Bendahara, Arsiparis, and Admin use local PostgreSQL/Drizzle reads with compatible responses.
+
+## Phase 8: Write Workflow API Migration By Domain
+
+Goal: migrate write endpoints to local PostgreSQL/Drizzle while preserving workflow, FSM, role, and audit behavior.
+
+Allowed scope:
 
 - Pegawai: create draft, submit, update, delete where currently allowed, resubmit after PPK rejection.
 - PPK: approve, reject, resubmit after Bendahara rejection, kembalikan.
@@ -169,20 +232,106 @@ Domain split:
 - Arsiparis: archive, lifecycle movements, classification mutations.
 - Admin/master data: user management, master data CRUD, ketua tim assignment.
 
-Use transactions for multi-step mutations involving document rows, attachment metadata, and audit logs. Preserve `log_aktivitas` append-only behavior.
+Non-goals:
 
-## Phase 9 To Phase 11: Deployment, Cleanup, Hardening
+- No FSM behavior drift.
+- No audit log update/delete.
+- No payload, response, route path, or UI behavior changes.
 
-Only package for LAN after DB/auth/storage and core endpoint migrations are stable.
+Key validation gates:
 
-Work order:
+- Transactions cover document rows, attachment metadata, status updates, and audit inserts where needed.
+- Submit, approve, reject, revise, archive, and admin CRUD flows pass focused checks.
+- `log_aktivitas` remains append-only.
 
-1. Add Docker Compose for PostgreSQL with persistent volume.
-2. Decide whether the app runs directly on host or in Docker.
-3. Add backup and restore scripts for PostgreSQL and `storage/`.
-4. Test access from another LAN device.
-5. Remove Supabase only after full parity is proven.
-6. Run regression and security hardening.
+Exit criteria:
+
+- Core workflow writes no longer depend on Supabase database helpers and preserve existing workflow semantics.
+
+## Phase 9: Storage Surface Completion
+
+Goal: finish local filesystem storage replacement across the remaining surfaces.
+
+Allowed scope:
+
+- Preview/download defaults and role-specific file access.
+- `AttachmentEditor` upload/remove behavior.
+- Update/resubmit pending-to-formal moves.
+- Document delete/remove file behavior.
+- Archive destruction file deletion.
+- Admin storage diagnostics and orphan cleanup.
+
+Non-goals:
+
+- No Supabase Storage migration, copy, download, backfill, or sync.
+- No public static serving of `storage/`.
+- No broad endpoint behavior changes unrelated to storage.
+
+Key validation gates:
+
+- Upload, preview, download, move, delete, archive destruction, and cleanup routes preserve user-facing contracts.
+- Unauthorized access fails.
+- `DIMUSNAHKAN` blocks preview/download even if stale files exist.
+- Path traversal and physical path leakage checks pass.
+
+Exit criteria:
+
+- Active storage behavior for new local data is local-filesystem-backed, and missing old Supabase-backed files fail cleanly without fallback.
+
+## Phase 10: Admin/User Management And Supabase Runtime Retirement
+
+Goal: replace remaining Supabase Auth Admin/user-management/runtime dependencies and prepare final Supabase retirement.
+
+Allowed scope:
+
+- User management and password provisioning/change replacements.
+- Remaining Supabase Auth Admin usage.
+- Session hardening, CSRF, and rate limiting where appropriate.
+- Supabase runtime dependency audit and cleanup planning.
+
+Non-goals:
+
+- No global Supabase dependency removal before parity is verified.
+- No cleanup mixed with unresolved behavior migration.
+- No role model changes.
+
+Key validation gates:
+
+- Admin/user-management flows work through local auth/database paths.
+- Auth/session regression checks pass.
+- Grep/audit shows remaining Supabase usage is either removed or explicitly documented as reference-only.
+
+Exit criteria:
+
+- No required Supabase Auth/Admin runtime paths remain, and final dependency/env cleanup has a verified checklist.
+
+## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
+
+Goal: complete regression, cleanup, operations, and release readiness for the local/LAN target.
+
+Allowed scope:
+
+- End-to-end regression and workflow smoke checks.
+- Backup/restore scripts and drills for PostgreSQL plus `storage/`.
+- LAN deployment runbook and local ops documentation.
+- Final Supabase dependency/env cleanup after verified parity.
+- Known-risk cleanup and security hardening.
+
+Non-goals:
+
+- No broad feature changes.
+- No late architecture rewrite.
+
+Key validation gates:
+
+- Critical Playwright/manual workflows pass for Pegawai, PPK, Bendahara, Arsiparis, and Admin.
+- Backup and restore preserve DB/file consistency.
+- LAN access smoke check passes.
+- Final Supabase usage audit is clean or contains only documented non-runtime references.
+
+Exit criteria:
+
+- The local PostgreSQL/auth/storage application is ready for the intended local/LAN deployment.
 
 ## Validation Gates
 

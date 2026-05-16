@@ -268,6 +268,15 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit disk preflight checker foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.12 added `src/lib/dokumen/submit-disk-preflight-checker.ts` as an isolated submit-specific checker that can later satisfy the `preflightSubmitFiles(...)` injected source/target checker contract. The accepted direction is logical-path-only public methods, internal safe physical path resolution through existing local storage path helpers, read-only source existence and target availability checks, fail-closed behavior for unsafe paths and check failures, no physical path/root/raw error exposure, no route wiring, no file movement, no Supabase fallback, and no Supabase Storage migration/copy/download/backfill/sync. This does not mark submit route migration, route disk preflight wiring, filesystem movement, runtime DB/file compensation, rollback, DB scripts, or Supabase removal complete.
+- Submit route local auth dry-run boundary added.
+  Date: 2026-05-16.
+  Rationale: Phase 6G.2 added a temporary `useLocalAuthDryRun=true` query-parameter branch to `POST /api/dokumen/submit` that validates the local `dms_session` boundary through `getLocalServerSession(request)` after existing payload validation, requires PEGAWAI role compatibility, blocks ADMIN-only and non-PEGAWAI actors, and returns a non-submit-success dry-run response before legacy Supabase clients, document writes, audit writes, or storage moves execute. Default submit behavior remains legacy Supabase-backed. This does not mark local submit DB writes, route disk preflight, filesystem movement, runtime DB/file compensation, Supabase fallback, or Supabase Storage migration/copy/download/backfill/sync complete.
+- Remaining migration phases should be runtime-oriented.
+  Date: 2026-05-16.
+  Rationale: Phase 6F created useful submit foundations but became too granular. From Phase 6G onward, future phases should make route/domain runtime progress unless a concrete blocker is discovered. Planning-only or helper-only phases should be rare, short, and justified by a specific blocker. The accepted submit sequence is compressed into Phase 6G.2 through Phase 6G.6, followed by domain read migration, workflow write migration, storage surface completion, Supabase runtime retirement, and final stabilization through Phase 11.
+- Clean local target remains the migration assumption.
+  Date: 2026-05-16.
+  Rationale: The local target does not import old Supabase production/current data and does not migrate, copy, download, backfill, or sync old Supabase Storage files. Local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and should fail cleanly without blocking local runtime integration or adding Supabase Storage fallback.
 
 ## Still Open
 
@@ -279,8 +288,11 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact transition strategy for old Supabase helpers.
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
-- Pending-to-formal local move implementation for submit, update, and PPK resubmit.
-- Runtime submit preflight implementation and any expanded submit route parity edge cases not covered by Phase 6F.7.
+- Phase 6G.3 submit route local preflight wiring for move plan, disk checker, missing-file response, target-conflict response, and expanded parity coverage.
+- Phase 6G.4 submit route local DB transaction wiring through the local submit bridge/repository/Drizzle adapter.
+- Phase 6G.5 submit route controlled local file movement and explicit post-DB file failure handling.
+- Phase 6G.6 submit runtime stabilization and Supabase submit path retirement.
+- Pending-to-formal local move implementation for update and PPK resubmit.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.

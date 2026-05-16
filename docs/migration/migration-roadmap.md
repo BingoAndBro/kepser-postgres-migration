@@ -2,6 +2,23 @@
 
 This roadmap keeps migration work small, reviewable, and behavior-preserving.
 
+## Remaining-Work Principles
+
+From Phase 6G onward, prefer phases that make concrete runtime progress. Do not add foundation-only, helper-only, or planning-only phases unless a specific implementation blocker is found and documented.
+
+The local target is clean: old Supabase data is not imported, old Supabase Storage files are not migrated or copied, and local workflows use seed/new local data plus newly uploaded local files. Missing old Supabase-backed files are not a migration blocker; migrated local routes should fail cleanly without Supabase fallback.
+
+Continuing guardrails:
+
+- No Supabase Storage migration, copy, download, backfill, or sync.
+- No Supabase Storage fallback for local storage paths.
+- Preserve endpoint paths, request payloads, response shapes, UI behavior, auth UX, FSM/workflow behavior, archive behavior, role behavior, and logical storage path semantics.
+- Server-side RBAC is authoritative; `dms_active_role` is UX state only.
+- `ADMIN`-only accounts must not become submit-compatible unless explicitly approved.
+- `log_aktivitas` remains append-only.
+- `DIMUSNAHKAN` blocks archive preview/download.
+- Do not remove Supabase dependencies globally until parity is verified.
+
 ## Phase 0: Planning, Best Practices, And Constitution Update
 
 Goal: Establish the migration rules before implementation.
@@ -170,7 +187,7 @@ Validation checklist:
 
 ## Phase 6: Storage Compatibility Layer
 
-Goal: Replace Supabase Storage behavior behind compatible upload/preview/download semantics.
+Goal: Replace Supabase Storage behavior behind compatible upload, move, preview, and download semantics.
 
 Allowed changes:
 
@@ -178,164 +195,226 @@ Allowed changes:
 - Upload API internals.
 - Preview/download internals.
 - Internal signed-token helpers.
+- Submit/update/resubmit move internals when their route phase allows it.
 
-Forbidden changes:
+Non-goals:
 
 - No public static serving of `storage/`.
 - No path shape drift unless compatibility mapping is documented.
+- No old Supabase Storage file migration, copy, download, backfill, or sync.
+- No Supabase fallback after a surface is intentionally local.
 
-Expected output files:
+Expected outputs:
 
 - Storage helper implementation.
 - Signed-token helper.
 - Storage tests.
+- Route-specific storage handoff docs where behavior changes.
 
-Validation checklist:
+Key validation gates:
 
 - Pending upload behavior works.
 - Formal file behavior works.
 - Preview/download require authorization.
 - Path traversal attempts fail.
+- Missing old Supabase-backed files fail cleanly.
 
-## Phase 7: Read-Only API Migration
+Exit criteria:
+
+- New local uploads, local moves, preview/download, and storage cleanup surfaces work for the clean local target without relying on Supabase Storage.
+
+Current status:
+
+- Completed foundations and partial runtime surfaces include local storage path helpers, internal token/access helpers, opt-in raw preview, `POST /api/upload`, `POST /api/dokumen/rename-pending`, and submit foundations through Phase 6F.
+- Current active area is Phase 6G submit runtime integration. If Phase 6G.2 is not accepted complete, finish it first; then proceed to Phase 6G.3 local preflight wiring.
+
+Compressed Phase 6G sequence:
+
+- 6G.2 Submit Route Local Auth and Dry-Run Boundary Wiring.
+- 6G.3 Submit Route Local Preflight Wiring.
+- 6G.4 Submit Route Local DB Transaction Wiring.
+- 6G.5 Submit Route Controlled Local File Movement.
+- 6G.6 Submit Runtime Stabilization and Supabase Submit Path Retirement.
+
+## Phase 7: Read API Migration By Domain
 
 Goal: Move read endpoints from Supabase reads to PostgreSQL/Drizzle without changing responses.
 
-Allowed changes:
+Allowed scope:
 
 - Read query helpers.
 - Endpoint internals only.
 - Response parsing tests.
+- Domain-by-domain migration for Pegawai, PPK, Bendahara, Arsiparis, Admin/master-data, laporan, and support reads.
 
-Forbidden changes:
+Non-goals:
 
 - No mutation endpoint migration in this phase.
 - No UI behavior changes.
+- No storage movement or deletion behavior changes.
 
-Expected output files:
+Expected outputs:
 
 - Domain read helpers.
 - Migrated read endpoints.
 - Contract tests or snapshots where practical.
 
-Validation checklist:
+Key validation gates:
 
 - Response shapes match old behavior.
 - Role filtering remains server-side.
 - Lists/details work for each role domain.
 
-## Phase 8: Mutation API Migration
+Exit criteria:
+
+- Major list, detail, report, archive search/list, and admin/master read pages render from local PostgreSQL/Drizzle with compatible responses.
+
+## Phase 8: Write Workflow API Migration By Domain
 
 Goal: Move write endpoints to PostgreSQL/Drizzle while preserving workflow behavior.
 
-Allowed changes:
+Allowed scope:
 
 - Mutation helpers.
 - Transaction boundaries.
 - Audit log inserts.
 - Workflow endpoint internals.
+- Domain-by-domain migration for Pegawai, PPK, Bendahara, Arsiparis, and Admin/master-data write surfaces.
 
-Forbidden changes:
+Non-goals:
 
 - No FSM behavior drift.
 - No audit log update/delete.
 - No payload shape changes.
+- No route path, response shape, role behavior, or UI behavior drift.
 
-Expected output files:
+Expected outputs:
 
 - Domain mutation helpers.
 - Migrated mutation endpoints.
 - Workflow tests.
 
-Validation checklist:
+Key validation gates:
 
 - Submit/resubmit works.
 - PPK approve/reject works.
 - Bendahara approve/reject works.
 - Arsiparis archive works.
 - Admin/master CRUD works.
+- `log_aktivitas` remains append-only.
 
-## Phase 9: LAN/Server Deployment Packaging
+Exit criteria:
 
-Goal: Package the stabilized local app for LAN/server operation.
+- Core workflow mutations no longer depend on Supabase database helpers and preserve FSM, role, archive, and audit behavior.
 
-Allowed changes:
+## Phase 9: Storage Surface Completion
 
-- Docker Compose for PostgreSQL.
-- Optional app container plan or implementation if chosen.
-- Backup/restore scripts.
-- LAN runbook.
+Goal: Complete the remaining local filesystem storage surfaces after submit and core workflow wiring are stable.
 
-Forbidden changes:
+Allowed scope:
 
-- Do not start before DB/auth/storage are stable.
-- Do not expose database broadly by default.
+- Default preview/download endpoint migration.
+- Role-specific preview/download migration.
+- `AttachmentEditor` upload/remove migration.
+- Update/resubmit pending-to-formal movement.
+- Document delete/remove file behavior.
+- Archive destruction deletion.
+- Admin diagnostics and orphan cleanup.
 
-Expected output files:
+Non-goals:
 
-- Compose file.
-- Deployment docs.
-- Backup/restore docs.
+- No Supabase Storage migration, copy, download, backfill, or sync.
+- No public static storage serving.
+- No unrelated endpoint behavior changes.
 
-Validation checklist:
+Expected outputs:
+
+- Migrated storage endpoints/components.
+- Focused storage access and failure tests.
+- Storage cleanup/diagnostics handoff docs.
+
+Key validation gates:
+
+- Upload/preview/download/move/delete behavior remains compatible.
+- Unauthorized access fails.
+- `DIMUSNAHKAN` blocks file access.
+- Missing files fail cleanly.
+- Path traversal and physical path leakage checks pass.
+
+Exit criteria:
+
+- Local filesystem storage is the active storage backend for new local data across upload, movement, access, deletion, archive destruction, and diagnostics surfaces.
+
+## Phase 10: Admin/User Management And Supabase Runtime Retirement
+
+Goal: Replace remaining Supabase Auth Admin/user-management/runtime dependencies and prepare final Supabase cleanup after parity.
+
+Allowed scope:
+
+- User management replacement.
+- Password provisioning/change replacement.
+- Remaining Supabase Auth Admin replacement.
+- Session hardening, CSRF, and rate limiting where appropriate.
+- Supabase runtime usage audit and dependency cleanup plan.
+
+Non-goals:
+
+- No global Supabase dependency removal before verified parity.
+- No cleanup mixed with unresolved behavior migration.
+- No role model changes.
+
+Expected outputs:
+
+- Local user-management implementation.
+- Auth/session hardening notes or tests.
+- Supabase runtime retirement checklist.
+
+Key validation gates:
+
+- Admin user-management flows work locally.
+- Auth/session regression passes.
+- Remaining Supabase runtime usages are removed or explicitly documented as reference-only.
+
+Exit criteria:
+
+- No required Supabase Auth/Admin runtime path remains, and final package/env cleanup has a verified checklist.
+
+## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
+
+Goal: Confirm compatibility and prepare the local/LAN release.
+
+Allowed scope:
+
+- End-to-end regression and smoke checks.
+- Docker/PostgreSQL persistence and LAN runbook finalization.
+- PostgreSQL plus `storage/` backup/restore scripts and drills.
+- Final dependency/env cleanup after verified parity.
+- Security and operational hardening.
+
+Non-goals:
+
+- No broad feature changes.
+- No late architecture rewrite.
+- No Supabase cleanup before replacement gaps are closed.
+
+Expected outputs:
+
+- Regression report.
+- Deployment and backup/restore docs.
+- Known risk list.
+- Final cleanup diff if parity permits.
+
+Key validation gates:
 
 - App accessible from another LAN device.
 - PostgreSQL data persists.
 - Files persist.
 - Backup and restore tested.
-
-## Phase 10: Supabase Removal And Cleanup
-
-Goal: Remove Supabase dependencies only after parity is proven.
-
-Allowed changes:
-
-- Delete unused Supabase clients/helpers.
-- Remove unused env vars.
-- Remove unused packages if approved.
-- Update docs and AGENTS.md.
-
-Forbidden changes:
-
-- No removal before replacement verification.
-- No cleanup mixed with behavior migration.
-
-Expected output files:
-
-- Cleanup diff.
-- Updated docs.
-
-Validation checklist:
-
-- No Supabase runtime calls remain.
-- Tests and manual workflows pass.
-- Env documentation matches runtime.
-
-## Phase 11: Regression Testing And Hardening
-
-Goal: Confirm compatibility and harden security/operations.
-
-Allowed changes:
-
-- Tests.
-- Security hardening.
-- Observability/logging improvements.
-- Backup drills.
-
-Forbidden changes:
-
-- No broad feature changes.
-
-Expected output files:
-
-- Regression test report.
-- Hardening notes.
-- Known risk list.
-
-Validation checklist:
-
 - Critical workflows tested end to end.
 - Auth/session security reviewed.
 - Storage access reviewed.
-- Backup/restore tested.
+- Final Supabase usage audit is clean or explicitly reference-only.
 
+Exit criteria:
+
+- The local PostgreSQL/auth/storage app is release-ready for the intended local/LAN deployment.
