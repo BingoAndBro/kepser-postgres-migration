@@ -433,3 +433,17 @@ Scope recommendation:
 - do not wire `POST /api/dokumen/submit` until repository behavior, file preflight, route response compatibility, and DB/file failure policy are proven.
 
 Direct submit route wiring remains not recommended.
+
+## Phase 6F.4 Follow-Up Note
+
+Phase 6F.4 added the live Drizzle adapter foundation recommended above:
+
+- `src/lib/dokumen/local-submit-drizzle-adapter.ts`
+- `tests/unit/dokumen/local-submit-drizzle-adapter.test.ts`
+- `docs/migration/local-submit-drizzle-adapter-foundation.md`
+
+The adapter remains behind the Phase 6F.3 injected adapter contract. It uses local Drizzle schema table exports, implements submit-specific select/insert/update/transaction methods, keeps `log_aktivitas` append-only by exposing insert-only audit behavior, and imports the live DB client only inside an explicit async future-live factory.
+
+No submit route wiring, filesystem movement, Supabase calls, DB scripts, migrations, seeds, route tree changes, or runtime behavior changes were added.
+
+Submit route wiring remains blocked until route-level response parity, submit local file preflight, and DB/file failure compensation policy are proven.

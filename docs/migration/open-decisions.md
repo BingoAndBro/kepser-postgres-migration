@@ -241,6 +241,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Local submit live repository mapping foundation added.
   Date: 2026-05-16.
   Rationale: Phase 6F.3 added `src/lib/dokumen/local-submit-repository.ts` as a server-only, no-route-wiring repository mapping foundation for the Phase 6F.2 submit bridge contract. It records the submit-specific local schema responsibility surface, maps bridge payload names to local Drizzle-shaped insert/update/read response names, preserves JSONB `lampiran_urls` array semantics, converts numeric/timestamp boundary values for a later adapter, and proves transaction shape through an injected fake adapter only. It intentionally does not import the live DB client, execute Drizzle queries, wire `POST /api/dokumen/submit`, move files, call Supabase, run DB scripts, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until a live adapter, response parity, file preflight, and DB/file failure policy are proven.
+- Local submit live Drizzle adapter foundation added.
+  Date: 2026-05-16.
+  Rationale: Phase 6F.4 added `src/lib/dokumen/local-submit-drizzle-adapter.ts` as a server-only, submit-specific Drizzle adapter foundation behind the Phase 6F.3 injected adapter contract. It uses local Drizzle schema table exports, requires explicit database injection for tests/future composition, and keeps the live `#/db/client` import inside an explicit async factory only. It intentionally does not wire `POST /api/dokumen/submit`, execute filesystem movement, call Supabase, run DB scripts, run migrations/seeds, change route behavior, or migrate/copy/download/backfill/sync Supabase Storage files. Submit route wiring remains blocked until route response parity, submit file preflight, and DB/file failure compensation policy are proven.
 
 ## Still Open
 
