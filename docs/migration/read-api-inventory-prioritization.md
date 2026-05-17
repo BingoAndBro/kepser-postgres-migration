@@ -31,11 +31,11 @@ This is a codebase inventory, not runtime verification.
 | `src/routes/api/master-jenis.ts` `GET /api/master-jenis` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | jenis permintaan dropdown/list | raw snake_case rows array, active filter, `nama` ordering | public read today | 7B first group migrated |
 | `src/routes/api/master-kategori.ts` `GET /api/master-kategori?jenis_id=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | kategori permintaan dropdown/list | adds `jenis_nama`, preserves nested join object if callers rely on it | public read today | 7B first group migrated |
 | `src/routes/api/master-detail.ts` `GET /api/master-detail?kategori_id=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | detail permintaan dropdown/list | adds `kategori_nama` and `jenis_nama`, preserves nested join object | public read today | 7B first group migrated |
-| `src/routes/api/master-jenis.$id.ts`, `master-kategori.$id.ts`, `master-detail.$id.ts` `GET` | Supabase-backed | admin/detail read for edit flows | single object or `404 { error }`; joined display names for kategori/detail | public read today | 7B after list reads |
-| `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` | Supabase browser/helper-backed | non-material jenis dokumen dropdown/admin page | returns `JenisDokumenRow[]`; no API route exists in current listing | currently client-helper based, not server API | 7B after route GETs |
+| `src/routes/api/master-jenis.$id.ts`, `master-kategori.$id.ts`, `master-detail.$id.ts` `GET` | Local PostgreSQL/Drizzle for GET as of Phase 7B.2; mutations in same files remain Supabase-backed | admin/detail read for edit flows | single object or `404 { error }`; joined display names and nested join objects preserved for kategori/detail | public read today | 7B.2 migrated |
+| `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` | Supabase browser/helper-backed; audited and deferred in Phase 7B.2 | non-material jenis dokumen dropdown/admin page | returns `JenisDokumenRow[]`; no API route exists in current listing | direct UI/browser helper usage prevents safe server-only Drizzle swap without a new API/UI migration | defer until a narrow API-backed jenis-dokumen read surface is scoped |
 | `src/routes/api/users/me.ts` | already local | current profile | maps local auth user fields through existing profile parser | local `dms_session` already authoritative | done before 7B |
 | `src/routes/api/users/me/ketua-tim.ts` and `src/routes/api/users/me/is-ketua-tim/$kegiatanId.ts` | already local | current-user Ketua Tim support | `{ is_ketua_tim, kegiatan }` and `{ is_ketua_tim }` | local `dms_session` already authoritative | done before 7B |
-| `src/routes/api/ketua-tim/index.ts`, `user/$userId.ts`, `kegiatan/$kegiatanId.ts` `GET` | Supabase-backed | admin Ketua Tim assignment reads | `{ assignments }` / `{ chairman }`, nested `kegiatan`, user-name enrichment via Supabase Admin | ADMIN must stay dedicated; local session/role validation needed | 7B after master reads |
+| `src/routes/api/ketua-tim/index.ts`, `user/$userId.ts`, `kegiatan/$kegiatanId.ts` `GET` | Local PostgreSQL/Drizzle for GET as of Phase 7B.2; mutations in same files remain Supabase-backed | admin Ketua Tim assignment reads | `{ assignments }` / `{ chairman }`, nested `kegiatan`, and local user-name/user-email enrichment preserved where current GET returned it | local `dms_session` ADMIN validation; ADMIN remains dedicated | 7B.2 migrated |
 
 Mutation handlers in the same master/ketua-tim files are not Phase 7 read targets.
 
@@ -102,19 +102,20 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
    - `src/routes/api/master-jenis.ts` `GET`;
    - `src/routes/api/master-kategori.ts` `GET`;
    - `src/routes/api/master-detail.ts` `GET`.
-2. Continue Phase 7B:
+2. Phase 7B.2 completed:
    - `src/routes/api/master-jenis.$id.ts` `GET`;
    - `src/routes/api/master-kategori.$id.ts` `GET`;
    - `src/routes/api/master-detail.$id.ts` `GET`;
-   - `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` and its UI callers, because no `/api/master-jenis-dokumen` route exists in the current API listing;
    - `src/routes/api/ketua-tim/index.ts` `GET`;
    - `src/routes/api/ketua-tim/user/$userId.ts` `GET`;
    - `src/routes/api/ketua-tim/kegiatan/$kegiatanId.ts` `GET`;
-   - any remaining current-user support reads discovered during 7B. Current inventory found `/api/users/me`, `/api/users/me/ketua-tim`, and `/api/users/me/is-ketua-tim/$kegiatanId` already local.
-3. Phase 7C: role inbox/list dokumen reads.
-4. Phase 7D: dokumen detail and log reads.
-5. Phase 7E: laporan, dashboard validation, archive list/detail/search/classification reads.
-6. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
+   - remaining current-user support GETs were audited and remain already local: `/api/users/me`, `/api/users/me/ketua-tim`, and `/api/users/me/is-ketua-tim/$kegiatanId`.
+3. Deferred within/after 7B:
+   - `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` remains Supabase browser-helper-backed because current callers pass a browser Supabase client directly and no API route exists to preserve behavior without UI/API surface work.
+4. Next recommended runtime target: Phase 7C role inbox/list dokumen reads, unless a narrow API-backed `master_jenis_dokumen` read route is explicitly scoped first.
+5. Phase 7D: dokumen detail and log reads.
+6. Phase 7E: laporan, dashboard validation, archive list/detail/search/classification reads.
+7. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
 
 ## Response-Shape Compatibility Notes
 
@@ -162,4 +163,16 @@ First-group response decisions:
 - public-read behavior was preserved and no auth was introduced;
 - no Supabase fallback was added for the migrated GET handlers.
 
-After those six routes, inspect and migrate the three existing detail GETs and the `jenis-dokumen` helper surface before moving to role inbox/list reads.
+Phase 7B.2 response decisions:
+
+- `GET /api/master-jenis/$id` keeps a raw single snake_case row object and `404 { error: 'Jenis permintaan tidak ditemukan' }` for a missing row.
+- `GET /api/master-kategori/$id` keeps a raw single snake_case row object plus `master_jenis_permintaan: { id, nama } | null` and `jenis_nama`.
+- `GET /api/master-detail/$id` keeps a raw single snake_case row object plus `master_kategori_permintaan`, `kategori_nama`, and `jenis_nama`.
+- The three master detail GETs preserve public-read behavior and add no auth requirement.
+- `GET /api/ketua-tim/` keeps `{ assignments }`, descending `created_at` ordering, `created_by`, and nested `kegiatan: { id, nama } | null`.
+- `GET /api/ketua-tim/user/$userId` keeps `{ assignments }`, UUID validation, descending `created_at` ordering, and nested `kegiatan: { id, nama } | null`.
+- `GET /api/ketua-tim/kegiatan/$kegiatanId` keeps `{ chairman: null }` when missing and `{ chairman: { id, user_id, kegiatan_id, created_at, user_name, user_email } }` when present, with user enrichment coming from local `auth.users`.
+- Ketua Tim GET authorization now uses local `dms_session` and ADMIN role validation; POST/PATCH/DELETE handlers in the same files remain Supabase-backed and out of Phase 7B.2 scope.
+- No Supabase fallback was added for the migrated GET handlers.
+
+After Phase 7B.2, the remaining known master/current-user read blocker is the browser-based `jenis-dokumen` helper surface. Move next to Phase 7C role inbox/list reads unless that helper is explicitly converted through a compatible API-backed route in a separate narrow task.

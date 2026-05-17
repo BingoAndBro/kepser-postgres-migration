@@ -260,8 +260,12 @@ Progress note:
 
 - First runtime group migrated only the six public master-data list GET routes: `GET /api/master-fungsi`, `GET /api/master-jenis`, `GET /api/master-kegiatan`, `GET /api/master-kategori`, `GET /api/master-detail`, and `GET /api/master-kelengkapan`.
 - The migration preserved route paths, query params, response shapes, active/filter/order behavior, and public-read behavior for those GET handlers.
+- Phase 7B.2 migrated the matching public master detail GET routes: `GET /api/master-jenis/$id`, `GET /api/master-kategori/$id`, and `GET /api/master-detail/$id`.
+- Phase 7B.2 also migrated ADMIN-only Ketua Tim read routes to local `dms_session` authorization and Drizzle reads: `GET /api/ketua-tim/`, `GET /api/ketua-tim/user/$userId`, and `GET /api/ketua-tim/kegiatan/$kegiatanId`.
+- Phase 7B.2 audited the remaining current-user support reads and found `/api/users/me`, `/api/users/me/ketua-tim`, and `/api/users/me/is-ketua-tim/$kegiatanId` already local; no runtime work was needed there.
+- The `src/lib/master-data/jenis-dokumen.ts` read helper remains deferred because current callers are UI/browser routes passing a browser Supabase client directly and no compatible API-backed read surface exists yet.
 - Mutations in the same route files remain outside this read phase and may still use Supabase until Phase 8/admin mutation work.
-- Next Phase 7B continuation target: matching detail GETs, the jenis dokumen helper/read surface, Ketua Tim admin GET reads, and any remaining current-user support reads found during audit.
+- Next recommended target: Phase 7C role inbox/list dokumen reads, unless a separate narrow task first introduces a compatible API-backed `master_jenis_dokumen` read surface.
 
 Runtime scope:
 
@@ -271,9 +275,9 @@ Runtime scope:
 - Jenis permintaan reads.
 - Kategori permintaan reads.
 - Detail permintaan reads.
-- Jenis dokumen reads where existing route/helper surfaces are present.
-- Ketua Tim read helpers still Supabase-backed.
-- Remaining current-user read endpoints not already local.
+- Jenis dokumen reads where existing route/helper surfaces are present; browser-only helper usage remains a documented 7B.2 blocker until a compatible API surface is scoped.
+- Ketua Tim admin GET reads are local as of Phase 7B.2; mutations remain later work.
+- Remaining current-user read endpoints not already local; Phase 7B.2 found none.
 
 Non-goals:
 
