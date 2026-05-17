@@ -331,7 +331,8 @@ Current planning note:
 
 - After Phase 7F closed the major server/API read migration audit, Phase 8 is planned as compact write/workflow migration by domain: 8A inventory/order, 8B Pegawai document update/revision writes, 8C PPK workflow mutations, 8D Bendahara workflow mutations, 8E Arsiparis archive metadata/lifecycle writes, 8F non-user-management master/admin CRUD writes, and 8G stabilization/audit.
 - Phase 8 may migrate database metadata writes and workflow transactions, but storage-coupled physical file movement/deletion, preview/download, storage cleanup/orphan cleanup, user-management/Auth Admin replacement, browser helper/UI retirement, package cleanup, and global Supabase dependency removal remain later-phase work.
-- The recommended first runtime group after the 8A inventory/order pass is Phase 8B Pegawai document update/revision write APIs, unless that inventory finds a concrete blocker.
+- Phase 8A completed the write/mutation inventory on 2026-05-17 without runtime changes. The inventory found no concrete blocker to starting Phase 8B, but it did mark mixed storage behavior inside document update/delete/resubmit/destruction routes as split-or-defer work for Phase 9.
+- The next runtime target is Phase 8B Pegawai document update/revision write APIs, focused on `src/routes/api/dokumen.$id.ts`, `src/routes/api/dokumen.$id.submit.ts`, `src/routes/api/dokumen/$id.nominal.ts`, and only the active old draft-create behavior in `src/routes/api/dokumen/index.ts` if verified. Do not include `src/routes/api/dokumen/submit.ts`, preview/download, physical file movement/deletion, browser helper/UI rewrites, user-management/Auth Admin, route generation, schema/migration/seed, or package work in Phase 8B.
 
 Allowed scope:
 
