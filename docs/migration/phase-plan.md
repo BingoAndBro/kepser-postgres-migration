@@ -592,6 +592,19 @@ Validation focus for the next runtime prompt:
 
 Goal: migrate Pegawai-facing document update, delete, revision, and resubmit-adjacent database writes that are not primarily storage-heavy.
 
+Status as of 2026-05-17: in progress with scoped runtime migration started.
+
+Migrated in the first Phase 8B runtime pass:
+
+- `PATCH /api/dokumen/$id` metadata-only update path in `src/routes/api/dokumen.$id.ts` now uses local `dms_session` authorization and local Drizzle writes for owner Pegawai updates. It preserves `DRAFT` exclusion, `NEED_REVISION` target `USER`, Non-Material `TERSIMPAN`, `lampiran_urls` metadata shape, and the Non-Material `UPDATE` audit insert in a local transaction. Physical attachment movement, orphan cleanup, and file deletion from the old `syncDocumentAttachments` / `deleteOrphanFiles` behavior are intentionally deferred to Phase 9; PATCH now fails closed with 400 when a submitted `lampiran_urls` entry is still a pending/move-required path.
+- `POST /api/dokumen/$id/submit` in `src/routes/api/dokumen.$id.submit.ts` now uses local `dms_session` authorization, local Drizzle reads for document and required kelengkapan metadata, FSM-compatible status updates, and append-only `log_aktivitas` insertion inside one local transaction. It preserves the existing route's `DRAFT` submit, `NEED_REVISION` target `USER` resubmit, owner-only, required-lampiran, minimum-lampiran, action name, and `{ success: true }` response behavior.
+
+Skipped or deferred in this pass:
+
+- `DELETE /api/dokumen/$id` remains deferred to Phase 9 because the legacy handler combines DB row deletion with Supabase Storage file removal, and a safe local delete policy needs the storage cleanup/orphan strategy.
+- `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is cross-role (`creator`, `ARSIPARIS`, `ADMIN`) rather than purely Pegawai-owned Phase 8B behavior.
+- `POST /api/dokumen` old draft-create remains skipped because current audited Pegawai create UI uses `POST /api/dokumen/submit`; the old draft-create route is ambiguous/redundant and still overlaps legacy Supabase helper behavior.
+
 Runtime scope:
 
 - Central document `PATCH`/`DELETE` and update-revision style writes where the current route contract can be preserved.
@@ -628,6 +641,7 @@ Key risks:
 Deferred items:
 
 - Pending-to-formal movement for update/resubmit if not already exact, attachment remove/delete behavior, preview/download, direct browser `AttachmentEditor` retirement, and old file availability.
+- Phase 9 must reconcile physical file movement/deletion for document update/delete and any orphan cleanup created by metadata-only or DB-only compatibility behavior.
 
 ### Phase 8C: PPK Workflow Mutation APIs
 
