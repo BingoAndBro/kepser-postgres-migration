@@ -75,14 +75,14 @@ Preview/download routes with `$lampiranIndex`, `preview-url`, and `download-url`
 
 | Surface | Current backing | Purpose | Shape risk | Auth/RBAC risk | Target |
 |---|---|---|---|---|---|
-| `src/routes/api/laporan/saya.ts` via `getDokumenSelesaiByUser` | Supabase-backed | current user's completed/tersimpan report | `{ dokumen }`; enriched chain names and `leaf_node_nama`; date ordering by `tanggal` | owner filter | 7E |
-| `src/routes/api/laporan/kegiatan.ts` via `getDokumenKegiatanByKetuaTim` | Supabase-backed plus Supabase Auth Admin enrichment | Ketua Tim activity report | `{ dokumen, isKetuaTim }`; `pengaju_nama` enrichment may differ under local users | Ketua Tim assignment must be server-side | 7E |
-| Dashboard pages under `src/routes/*/index.tsx` | no dedicated dashboard API found | role dashboard/stat display | appears UI-local/static or composed from existing list APIs | depends on caller endpoints | validate in 7E |
-| `src/routes/api/arsiparis/aktif.ts`, `aktif.$id.ts` | Supabase-backed | archive active list/detail | `{ aktif }` and `{ arsip }`; detail uses `lampiran_snapshot`, user-name enrichment | Arsiparis role; metadata only, not file access | 7E |
-| `src/routes/api/arsiparis/inaktif.ts`, `inaktif.$id.ts` | Supabase-backed | archive inactive list/detail | `{ inaktif }` and `{ arsip }`; same snapshot/user-name risks | Arsiparis role | 7E |
-| `src/routes/api/arsiparis/usul-musnah.ts`, `usul-musnah.$id.ts` `GET` | Supabase-backed | proposed destruction list/detail | `{ usul_musnah }`, `{ musnah, arsip }`; detail includes destruction metadata and snapshot | Arsiparis role; PATCH destruction deferred | 7E read-only GET only |
-| `src/routes/api/arsiparis/search.ts` | Supabase-backed | archive search across roles | `{ arsip, total, page, per_page }`; count/pagination and post-query filtering are high parity risk | role-specific server filtering is critical | 7E |
-| `src/routes/api/arsiparis/klasifikasi/index.ts` `GET` | Supabase-backed | classification tree | `{ klasifikasi }`; recursive tree order by code/name and `is_root` derived from code `000` | currently public read; mutations auth-gated | 7E |
+| `src/routes/api/laporan/saya.ts` | Local PostgreSQL/Drizzle as of Phase 7E | current user's completed/tersimpan report | `{ dokumen }`; enriched chain names and `leaf_node_nama`; date ordering by `tanggal` | local session owner filter | 7E migrated |
+| `src/routes/api/laporan/kegiatan.ts` | Local PostgreSQL/Drizzle as of Phase 7E | Ketua Tim activity report | `{ dokumen, isKetuaTim }`; `pengaju_nama` enriched from local `auth.users` | server-side local Ketua Tim assignment required; no ADMIN broad grant | 7E migrated |
+| Dashboard pages under `src/routes/*/index.tsx` | no dedicated dashboard API found in Phase 7E audit | role dashboard/stat display | UI-local/static or composed from existing list APIs | depends on caller endpoints | skipped: no dashboard read API to migrate |
+| `src/routes/api/arsiparis/aktif.ts`, `aktif.$id.ts` | Local PostgreSQL/Drizzle as of Phase 7E | archive active list/detail | `{ aktif }` and `{ arsip }`; detail uses `lampiran_snapshot`, local user-name enrichment | local ARSIPARIS role; metadata only, not file access | 7E migrated |
+| `src/routes/api/arsiparis/inaktif.ts`, `inaktif.$id.ts` | Local PostgreSQL/Drizzle as of Phase 7E | archive inactive list/detail | `{ inaktif }` and `{ arsip }`; same snapshot/user-name behavior | local ARSIPARIS role | 7E migrated |
+| `src/routes/api/arsiparis/usul-musnah.ts`, `usul-musnah.$id.ts` `GET` | Local PostgreSQL/Drizzle for GET as of Phase 7E; PATCH remains Supabase/storage-backed | proposed destruction list/detail | `{ usul_musnah }`, `{ musnah, arsip }`; detail includes destruction metadata and snapshot | local ARSIPARIS role for GET; PATCH destruction deferred | 7E GET migrated only |
+| `src/routes/api/arsiparis/search.ts` | Local PostgreSQL/Drizzle as of Phase 7E | archive search across roles | `{ arsip, total, page, per_page }`; count/pagination and post-query filtering preserved as closely as practical | local role-specific server filtering; `step_urutan` legacy column absent locally | 7E migrated with caveat |
+| `src/routes/api/arsiparis/klasifikasi/index.ts` `GET` | Local PostgreSQL/Drizzle for GET as of Phase 7E; POST remains Supabase-backed | classification tree | `{ klasifikasi }`; recursive tree order by code/name and `is_root` derived from code `000` | public read preserved; mutations auth-gated and deferred | 7E GET migrated only |
 
 ### Admin/User-Management Reads
 
@@ -124,8 +124,8 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
    - `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` remains Supabase browser-helper-backed because current callers pass a browser Supabase client directly and no API route exists to preserve behavior without UI/API surface work.
 4. Phase 7C role inbox/list dokumen reads migrated the scoped runtime GET group on 2026-05-17.
 5. Phase 7D dokumen detail and log reads migrated the scoped runtime GET group on 2026-05-17.
-6. Next recommended runtime target: Phase 7E laporan, dashboard validation, archive list/detail/search/classification reads.
-7. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
+6. Phase 7E migrated laporan, archive list/detail/search, and archive classification GET reads on 2026-05-17. Dashboard audit found no dedicated dashboard read API route to migrate.
+7. Next recommended runtime target: Phase 7F read API stabilization and Supabase read retirement audit, unless Phase 7E smoke testing finds a concrete report/archive response-shape parity gap.
 
 ## Response-Shape Compatibility Notes
 
@@ -247,6 +247,40 @@ Phase 7D migrated the scoped document metadata/detail and audit-log GET routes f
 - Workflow mutations remain deferred: central PATCH/DELETE, submit/resubmit, PPK approve/reject/resubmit/kembalikan, Bendahara approve/reject, and Arsiparis archive.
 - Archive active/inactive/usul-musnah detail routes that read `lampiran_snapshot`, archive list/search routes, and archive classification reads remain Phase 7E read work.
 - Archive lifecycle/destruction/delete behavior remains Phase 8/9 work.
+
+## Phase 7E Report/Dashboard/Archive Runtime Migration
+
+Date: 2026-05-17.
+
+Phase 7E migrated the scoped report and archive metadata/search/classification GET routes from Supabase-backed reads to local PostgreSQL/Drizzle reads. It did not migrate archive lifecycle mutations, destruction/delete behavior, preview/download, file streaming, storage cleanup, browser filter helper reads, or dashboard UI code.
+
+### Migrated Routes
+
+| Route | Wrapper | Local filters and joins | Compatibility notes |
+|---|---|---|---|
+| `GET /api/laporan/saya` | `{ dokumen }` | local `dms_session`, `created_by = session.user.id`, `status in ('COMPLETED','TERSIMPAN')`, joins to fungsi/kegiatan/request-chain names | preserves `tanggal desc`, chain IDs, display-name fields, `leaf_node_nama`, `pengaju_id`, and completed/tersimpan report bucket |
+| `GET /api/laporan/kegiatan` | `{ dokumen, isKetuaTim }` | local `dms_session`, local `ketua_tim_assignments.user_id`, kegiatan-scoped `COMPLETED`/`TERSIMPAN` docs, local user-name enrichment | returns `{ dokumen: [], isKetuaTim: false }` when no Ketua Tim assignment exists; ADMIN is not granted broad access |
+| `GET /api/arsiparis/aktif` | `{ aktif }` | ARSIPARIS role, `status_arsip='AKTIF'`, `is_ditolak=false`, optional `fungsi_id`, `tahun`, and `q` filters, joins to dokumen/fungsi/kegiatan | preserves active-list metadata-only shape and `archived_at desc` ordering |
+| `GET /api/arsiparis/aktif/$id` | `{ arsip }` | ARSIPARIS role, archive ID plus `status_arsip='AKTIF'`, joins to dokumen/master names and local `auth.users` | preserves nested `dokumen`, `lampiran_snapshot` as `dokumen.lampiran_urls`, retention fields, and archived user-name fallback |
+| `GET /api/arsiparis/inaktif` | `{ inaktif }` | ARSIPARIS role, `status_arsip='INAKTIF'`, `is_ditolak=false`, optional `fungsi_id` and `tahun`, joins to dokumen/fungsi/kegiatan | preserves inactive-list metadata fields and `archived_at desc` ordering |
+| `GET /api/arsiparis/inaktif/$id` | `{ arsip }` | ARSIPARIS role, archive ID plus `status_arsip='INAKTIF'`, joins to dokumen/master names and local `auth.users` | preserves inactive detail shape and `lampiran_snapshot` metadata behavior |
+| `GET /api/arsiparis/usul-musnah` | `{ usul_musnah }` | ARSIPARIS role, `status_arsip='USUL_MUSNAH'`, `is_ditolak=false`, inner join to `arsip_usul_musnah`, optional `fungsi_id` and `tahun` | preserves proposed-destruction list fields; no lifecycle write behavior changed |
+| `GET /api/arsiparis/usul-musnah/$id` | `{ musnah, arsip }` | ARSIPARIS role, `arsip_usul_musnah.id`, joins to `arsip`, dokumen/master names, and local `auth.users` for names | only GET migrated; PATCH remains Supabase/storage-backed and out of scope |
+| `GET /api/arsiparis/search` | `{ arsip, total, page, per_page }` | local authenticated session, base `arsip.is_ditolak=false` page, local role-specific document filtering, optional `fungsi_id`, `kegiatan_id`, `tahun`, and `q` post-filtering | preserves `PER_PAGE=20`, wrapper keys, and broad ADMIN/ARSIPARIS search visibility; legacy PPK `step_urutan` filter is approximated with status visibility because local schema has no `step_urutan` column |
+| `GET /api/arsiparis/klasifikasi/` | `{ klasifikasi }` | public local Drizzle read of active `master_klasifikasi_arsip`, ordered by `nama`, then recursive tree sort by `kode`/`nama` | only GET migrated; POST/PATCH/DELETE classification mutations remain Supabase-backed and deferred |
+
+### Skipped Or Deferred In 7E
+
+- Dashboard counts/statistics: no dedicated `src/routes/api/dashboard*` or role dashboard count/stat API route was found. Dashboard cards appear UI-local/static or composed from already scoped list APIs, so no runtime dashboard API migration was performed.
+- Browser filter reads in laporan/archive pages still use Supabase browser helpers for dropdown data. They are not server authorization boundaries and remain a later helper/UI retirement task.
+- `src/routes/api/arsiparis/aktif.$id/pindahkan.ts`, `src/routes/api/arsiparis/inaktif.$id/musnahkan.ts`, `POST /api/arsiparis/dokumen/$id/archive`, and `PATCH /api/arsiparis/usul-musnah/$id` remain lifecycle/destruction/write surfaces.
+- Preview/download/file routes remain storage/file-access work. Phase 7E does not complete `DIMUSNAHKAN` file-access blocking.
+
+### Phase 7E Compatibility Caveats
+
+- Archive metadata routes can still expose `status_arsip='DIMUSNAHKAN'` through search metadata when present, matching the metadata/search boundary. File preview/download blocking remains a storage/file-access phase responsibility.
+- `GET /api/arsiparis/search` preserves the legacy broad count and post-page filtering behavior as closely as practical, but the old PPK `step_urutan >= 5` predicate cannot be reproduced exactly because local `dokumen.dokumen_transaksi` does not model `step_urutan`. The local replacement uses status-based PPK visibility for documents past PPK.
+- Local user-name enrichment uses `auth.users.display_name`, then `nama_lengkap`, then `email`, instead of Supabase Auth Admin metadata.
 
 ## Phase 7B.3 Browser Master Data Read Surface Inventory
 

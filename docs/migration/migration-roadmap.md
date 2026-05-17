@@ -232,7 +232,8 @@ Current status:
 - Phase 7B has started. The first runtime group migrated the six public master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail GETs plus Ketua Tim admin GET reads, and Phase 7B.3 classified browser master-data helper read surfaces while leaving master/admin mutations and broader read domains for later phases.
 - Phase 7C migrated the scoped role inbox/list dokumen GET routes to local PostgreSQL/Drizzle on 2026-05-17.
 - Phase 7D migrated the scoped dokumen detail/log GET routes to local PostgreSQL/Drizzle on 2026-05-17.
-- Mixed write handlers, preview/download/file-access routes, report/dashboard reads, archive metadata/search reads beyond Arsiparis inbox and pre-archive document detail, storage, and mutations remain later phases.
+- Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes to local PostgreSQL/Drizzle on 2026-05-17. Dashboard audit found no dedicated dashboard read API route to migrate.
+- Mixed write handlers, preview/download/file-access routes, browser filter helper reads, archive lifecycle/destruction behavior, storage, and mutations remain later phases.
 
 Completed compressed Phase 6G sequence:
 
@@ -297,10 +298,12 @@ Subphases:
 
 - Phase 7E Report, Dashboard, And Archive Read APIs.
   Goal: migrate broader read-only reporting, dashboard, and archive metadata surfaces.
+  Progress: scoped GET routes migrated on 2026-05-17 for laporan saya, laporan kegiatan, archive active/inactive/usul-musnah list/detail reads, archive search, and classification tree reads. Dashboard audit found no dedicated dashboard read API route.
   Runtime scope: laporan saya, laporan kegiatan, dashboard counts/statistics where present, archive list/detail/search aggregates, read-only archive metadata, and read-only archive classification.
   Non-goals: archive destruction/delete behavior, archive lifecycle mutations, storage cleanup, preview/download migration.
   Validation gates: aggregate/count parity, Ketua Tim report authorization, archive status filter parity, and response shape parity.
-  Exit criteria: report, dashboard, and archive read pages render from local PostgreSQL/Drizzle.
+  Caveats: `GET /api/arsiparis/search` uses status-based PPK visibility because local schema has no legacy `step_urutan` column; `DIMUSNAHKAN` file-access blocking remains storage/file-access work; mixed archive/classification mutations remain deferred.
+  Exit criteria: report and archive read pages render from local PostgreSQL/Drizzle, with dashboard API migration skipped because no dashboard API exists in the audited route set.
 
 - Phase 7F Read API Stabilization and Supabase Read Retirement.
   Goal: mark read migration complete only when supported by audit.
@@ -316,7 +319,7 @@ Expected outputs:
 - Focused response-shape and authorization checks where practical.
 - Phase 7F audit/handoff notes before Phase 8.
 
-Current next recommended target after Phase 7D: Phase 7E report/dashboard/archive read APIs, unless a focused Phase 7D stabilization pass finds a concrete response-shape or authorization parity issue.
+Current next recommended target after Phase 7E: Phase 7F read API stabilization and Supabase read retirement audit, unless manual smoke checks find a concrete Phase 7E report/archive parity gap.
 
 ## Phase 8: Write Workflow API Migration By Domain
 
