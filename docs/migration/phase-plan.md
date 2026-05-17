@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current next phase: Phase 7B Master Data And Current User Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`; proceed directly to runtime migration in 7B unless a concrete route/domain blocker is documented. Do not return to foundation-only mode by default.
+Current active phase: Phase 7B Master Data And Current User Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle; continue Phase 7B with the remaining master/current-user read surfaces unless a concrete route/domain blocker is documented.
 
 Phase 7 guardrails:
 
@@ -255,6 +255,13 @@ Exit criteria:
 ### Phase 7B: Master Data And Current User Read APIs
 
 Goal: migrate low-risk, frequently used master/current-user read APIs to local PostgreSQL/Drizzle.
+
+Progress note:
+
+- First runtime group migrated only the six public master-data list GET routes: `GET /api/master-fungsi`, `GET /api/master-jenis`, `GET /api/master-kegiatan`, `GET /api/master-kategori`, `GET /api/master-detail`, and `GET /api/master-kelengkapan`.
+- The migration preserved route paths, query params, response shapes, active/filter/order behavior, and public-read behavior for those GET handlers.
+- Mutations in the same route files remain outside this read phase and may still use Supabase until Phase 8/admin mutation work.
+- Next Phase 7B continuation target: matching detail GETs, the jenis dokumen helper/read surface, Ketua Tim admin GET reads, and any remaining current-user support reads found during audit.
 
 Runtime scope:
 

@@ -25,12 +25,12 @@ This is a codebase inventory, not runtime verification.
 
 | Surface | Current backing | Purpose | Shape risk | Auth/RBAC risk | Target |
 |---|---|---|---|---|---|
-| `src/routes/api/master-fungsi.ts` `GET /api/master-fungsi` | Supabase-backed | active fungsi dropdown/list | returns raw snake_case rows array; active filter and `nama` ordering | public read today | 7B first |
-| `src/routes/api/master-kegiatan.ts` `GET /api/master-kegiatan?fungsi_id=` | Supabase-backed | kegiatan dropdown/list | adds `fungsi_nama` while preserving nested `master_fungsi` row data | public read today | 7B first |
-| `src/routes/api/master-kelengkapan.ts` `GET /api/master-kelengkapan?kegiatan_id=&is_ketua_tim=` | Supabase-backed | required document checklist | adds `kegiatan_nama` and `fungsi_nama`; no `is_active` filter in current route | public read today | 7B first |
-| `src/routes/api/master-jenis.ts` `GET /api/master-jenis` | Supabase-backed | jenis permintaan dropdown/list | raw snake_case rows array, active filter, `nama` ordering | public read today | 7B first |
-| `src/routes/api/master-kategori.ts` `GET /api/master-kategori?jenis_id=` | Supabase-backed | kategori permintaan dropdown/list | adds `jenis_nama`, preserves nested join object if callers rely on it | public read today | 7B first |
-| `src/routes/api/master-detail.ts` `GET /api/master-detail?kategori_id=` | Supabase-backed | detail permintaan dropdown/list | adds `kategori_nama` and `jenis_nama`, preserves nested join object | public read today | 7B first |
+| `src/routes/api/master-fungsi.ts` `GET /api/master-fungsi` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | active fungsi dropdown/list | returns raw snake_case rows array; active filter and `nama` ordering | public read today | 7B first group migrated |
+| `src/routes/api/master-kegiatan.ts` `GET /api/master-kegiatan?fungsi_id=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | kegiatan dropdown/list | adds `fungsi_nama` while preserving nested `master_fungsi` row data | public read today | 7B first group migrated |
+| `src/routes/api/master-kelengkapan.ts` `GET /api/master-kelengkapan?kegiatan_id=&is_ketua_tim=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | required document checklist | adds `kegiatan_nama` and `fungsi_nama`; no `is_active` filter in current route | public read today | 7B first group migrated |
+| `src/routes/api/master-jenis.ts` `GET /api/master-jenis` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | jenis permintaan dropdown/list | raw snake_case rows array, active filter, `nama` ordering | public read today | 7B first group migrated |
+| `src/routes/api/master-kategori.ts` `GET /api/master-kategori?jenis_id=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | kategori permintaan dropdown/list | adds `jenis_nama`, preserves nested join object if callers rely on it | public read today | 7B first group migrated |
+| `src/routes/api/master-detail.ts` `GET /api/master-detail?kategori_id=` | Local PostgreSQL/Drizzle for GET as of Phase 7B first group; mutations in same file remain Supabase-backed | detail permintaan dropdown/list | adds `kategori_nama` and `jenis_nama`, preserves nested join object | public read today | 7B first group migrated |
 | `src/routes/api/master-jenis.$id.ts`, `master-kategori.$id.ts`, `master-detail.$id.ts` `GET` | Supabase-backed | admin/detail read for edit flows | single object or `404 { error }`; joined display names for kategori/detail | public read today | 7B after list reads |
 | `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` | Supabase browser/helper-backed | non-material jenis dokumen dropdown/admin page | returns `JenisDokumenRow[]`; no API route exists in current listing | currently client-helper based, not server API | 7B after route GETs |
 | `src/routes/api/users/me.ts` | already local | current profile | maps local auth user fields through existing profile parser | local `dms_session` already authoritative | done before 7B |
@@ -95,7 +95,7 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
 
 ## Prioritized Runtime Order
 
-1. Phase 7B first: read-only master data GET endpoints:
+1. Phase 7B first group completed: read-only master data GET endpoints:
    - `src/routes/api/master-fungsi.ts` `GET`;
    - `src/routes/api/master-kegiatan.ts` `GET`;
    - `src/routes/api/master-kelengkapan.ts` `GET`;
@@ -117,6 +117,8 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
 6. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
 
 ## Response-Shape Compatibility Notes
+
+Phase 7B first-group caveat: the six migrated GET routes project explicit snake_case keys from Drizzle and rebuild the same nested join objects used by the previous Supabase responses. Timestamps are still returned as JSON strings through `Response.json(...)`; manual route smoke should verify exact timestamp formatting against local runtime data if a UI depends on string formatting beyond normal JSON date strings.
 
 - Preserve existing snake_case response fields. Do not silently camelCase route output except where a route already does so, such as `stepUrutan` and `createdAt` in `/api/dokumen/$id/log`.
 - Preserve added display-name fields: `fungsi_nama`, `kegiatan_nama`, `jenis_nama`, `kategori_nama`, `jenis_permintaan_nama`, `kategori_permintaan_nama`, `detail_permintaan_nama`, and `jenis_dokumen_nama`.
@@ -142,7 +144,7 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
 
 ## First Runtime Target For Phase 7B
 
-Start Phase 7B with master data GET reads in this exact order:
+Phase 7B first-group migration completed the master data GET reads in this exact order:
 
 1. `src/routes/api/master-fungsi.ts` `GET /api/master-fungsi`.
 2. `src/routes/api/master-jenis.ts` `GET /api/master-jenis`.
@@ -151,12 +153,13 @@ Start Phase 7B with master data GET reads in this exact order:
 5. `src/routes/api/master-detail.ts` `GET /api/master-detail`.
 6. `src/routes/api/master-kelengkapan.ts` `GET /api/master-kelengkapan`.
 
-Expected first-group response risks:
+First-group response decisions:
 
-- active filtering and ordering parity;
-- preserving raw snake_case row fields;
-- preserving derived display-name fields from manual joins;
-- preserving query params `fungsi_id`, `jenis_id`, `kategori_id`, `kegiatan_id`, and `is_ketua_tim`;
-- preserving public-read behavior unless the runtime phase explicitly decides to tighten access with compatible UI impact.
+- active filtering and ordering parity were preserved;
+- raw snake_case row fields were preserved through explicit projections;
+- derived display-name fields from manual joins were preserved;
+- query params `fungsi_id`, `jenis_id`, `kategori_id`, `kegiatan_id`, and `is_ketua_tim` were preserved;
+- public-read behavior was preserved and no auth was introduced;
+- no Supabase fallback was added for the migrated GET handlers.
 
 After those six routes, inspect and migrate the three existing detail GETs and the `jenis-dokumen` helper surface before moving to role inbox/list reads.
