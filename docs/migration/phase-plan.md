@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. The next runtime phase is Phase 7D Dokumen Detail Read API unless a Phase 7C stabilization follow-up finds a concrete role-list parity gap. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. The next runtime phase is Phase 7E Report, Dashboard, And Archive Read APIs unless a Phase 7D stabilization follow-up finds a concrete detail/log parity gap. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current active phase: Phase 7D Dokumen Detail Read API, after Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only, and Phase 7C migrated role list/inbox reads.
+Current active phase: Phase 7E Report, Dashboard, And Archive Read APIs, after Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only, Phase 7C migrated role list/inbox reads, and Phase 7D migrated detail/log reads.
 
 Phase 7 guardrails:
 
@@ -339,6 +339,15 @@ Phase 7C caveats:
 ### Phase 7D: Dokumen Detail Read API
 
 Goal: migrate central and role-specific document detail reads without behavior drift.
+
+Status: scoped runtime GET group migrated on 2026-05-17 for `GET /api/dokumen/$id`, `GET /api/dokumen/$id/log`, `GET /api/ppk/dokumen/$id`, `GET /api/bendahara/dokumen/$id`, and `GET /api/arsiparis/dokumen/$id`.
+
+Phase 7D caveats:
+
+- PATCH/DELETE/mutation handlers in mixed route files remain deferred to write/storage phases.
+- Preview/download/file-access routes remain deferred to storage phases.
+- Archive active/inactive/usul-musnah detail routes and `lampiran_snapshot` metadata remain Phase 7E archive read work.
+- Central detail/log authorization now fails closed to owner or relevant non-admin workflow roles; `ADMIN` is not merged into role detail behavior.
 
 Runtime scope:
 

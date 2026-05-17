@@ -230,7 +230,9 @@ Current status:
 - Global Supabase retirement is not complete; many read APIs, workflow endpoints, storage surfaces, and user-management/admin surfaces may still be Supabase-backed.
 - Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`.
 - Phase 7B has started. The first runtime group migrated the six public master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail GETs plus Ketua Tim admin GET reads, and Phase 7B.3 classified browser master-data helper read surfaces while leaving master/admin mutations and broader read domains for later phases.
-- Phase 7C migrated the scoped role inbox/list dokumen GET routes to local PostgreSQL/Drizzle on 2026-05-17. Mixed write handlers, detail/log reads, report/dashboard reads, archive metadata/search reads beyond Arsiparis inbox, storage, and mutations remain later phases.
+- Phase 7C migrated the scoped role inbox/list dokumen GET routes to local PostgreSQL/Drizzle on 2026-05-17.
+- Phase 7D migrated the scoped dokumen detail/log GET routes to local PostgreSQL/Drizzle on 2026-05-17.
+- Mixed write handlers, preview/download/file-access routes, report/dashboard reads, archive metadata/search reads beyond Arsiparis inbox and pre-archive document detail, storage, and mutations remain later phases.
 
 Completed compressed Phase 6G sequence:
 
@@ -286,9 +288,11 @@ Subphases:
 
 - Phase 7D Dokumen Detail Read API.
   Goal: migrate central and role-specific document detail reads.
+  Progress: scoped runtime GET group migrated on 2026-05-17 for `GET /api/dokumen/$id`, `GET /api/dokumen/$id/log`, `GET /api/ppk/dokumen/$id`, `GET /api/bendahara/dokumen/$id`, and `GET /api/arsiparis/dokumen/$id`.
   Runtime scope: document detail, lampiran metadata, `log_aktivitas`, status/current_step/revision_target, and role authorization.
   Non-goals: preview/download route migration, file streaming, storage movement, workflow mutations.
   Validation gates: detail response parity, audit log ordering/field parity, and server-side authorization.
+  Caveats: mixed central PATCH/DELETE, role approve/reject/archive mutations, preview/download routes, and archive active/inactive/usul-musnah snapshot detail routes remain deferred.
   Exit criteria: role detail pages read metadata and audit logs from local PostgreSQL/Drizzle.
 
 - Phase 7E Report, Dashboard, And Archive Read APIs.
@@ -311,6 +315,8 @@ Expected outputs:
 - Domain-based migrated read endpoints in 7B through 7E.
 - Focused response-shape and authorization checks where practical.
 - Phase 7F audit/handoff notes before Phase 8.
+
+Current next recommended target after Phase 7D: Phase 7E report/dashboard/archive read APIs, unless a focused Phase 7D stabilization pass finds a concrete response-shape or authorization parity issue.
 
 ## Phase 8: Write Workflow API Migration By Domain
 

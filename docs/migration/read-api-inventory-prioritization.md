@@ -63,11 +63,11 @@ Phase 7C status update, 2026-05-17:
 
 | Surface | Current backing | Purpose | Shape risk | Auth/RBAC risk | Target |
 |---|---|---|---|---|---|
-| `src/routes/api/dokumen.$id.ts` `GET` via `getDokumenById` | Supabase-backed | central document detail | `{ dokumen }`; parsed `lampiran_urls`, chain names, `jenis_dokumen_nama` for non-material | owner or approver role must be local and server-side | 7D |
-| `src/routes/api/dokumen.$id.log.ts` | Supabase-backed plus Supabase Auth Admin user lookup | document audit log | `{ logs }`; camelCase output `stepUrutan`, `createdAt`, `userNama`, `userEmail`; timestamp order ascending | owner or approver role check currently broad | 7D |
-| `src/routes/api/ppk/dokumen/$id.ts` | Supabase-backed | PPK detail | `{ dokumen, logs }`; status/current_step/revision_target/lampiran fields | PPK role plus allowed statuses | 7D |
-| `src/routes/api/bendahara/dokumen/$id.ts` | Supabase-backed | Bendahara detail | `{ dokumen, ppkValidation, logs }`; PPK approval log is single-object/null | Bendahara role plus detail visibility | 7D |
-| `src/routes/api/arsiparis/dokumen.$id.ts` | Supabase-backed | Arsiparis review detail before archive | `{ dokumen, bendahara_approve, arsip }`; nested `fungsi`/`kegiatan` objects | Arsiparis role and `COMPLETED` status check | 7D or 7E |
+| `src/routes/api/dokumen.$id.ts` `GET` via local Drizzle select | Local PostgreSQL/Drizzle for GET as of Phase 7D; PATCH/DELETE in same file remain Supabase/storage-backed and out of scope | central document detail | `{ dokumen }`; parsed `lampiran_urls`, chain names, `jenis_dokumen_nama` for non-material | local `dms_session`; owner or relevant non-admin workflow role | 7D migrated |
+| `src/routes/api/dokumen.$id.log.ts` | Local PostgreSQL/Drizzle as of Phase 7D | document audit log | `{ logs }`; camelCase output `stepUrutan`, `createdAt`, `userNama`, `userEmail`; timestamp order ascending | local `dms_session`; owner or relevant non-admin workflow role | 7D migrated |
+| `src/routes/api/ppk/dokumen/$id.ts` | Local PostgreSQL/Drizzle as of Phase 7D | PPK detail | `{ dokumen, logs }`; status/current_step/revision_target/lampiran fields | local `dms_session` PPK role plus allowed statuses | 7D migrated |
+| `src/routes/api/bendahara/dokumen/$id.ts` | Local PostgreSQL/Drizzle as of Phase 7D | Bendahara detail | `{ dokumen, ppkValidation, logs }`; PPK approval log is single-object/null | local `dms_session` BENDAHARA role plus Bendahara-relevant statuses | 7D migrated |
+| `src/routes/api/arsiparis/dokumen.$id.ts` | Local PostgreSQL/Drizzle as of Phase 7D | Arsiparis review detail before archive | `{ dokumen, bendahara_approve, arsip }`; nested `fungsi`/`kegiatan` objects | local `dms_session` ARSIPARIS role and `COMPLETED` status check | 7D migrated |
 
 Preview/download routes with `$lampiranIndex`, `preview-url`, and `download-url` are storage/file-access surfaces and are deferred.
 
@@ -123,8 +123,8 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
 3. Deferred within/after 7B:
    - `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` remains Supabase browser-helper-backed because current callers pass a browser Supabase client directly and no API route exists to preserve behavior without UI/API surface work.
 4. Phase 7C role inbox/list dokumen reads migrated the scoped runtime GET group on 2026-05-17.
-5. Next recommended runtime target: Phase 7D dokumen detail and log reads.
-6. Phase 7E: laporan, dashboard validation, archive list/detail/search/classification reads.
+5. Phase 7D dokumen detail and log reads migrated the scoped runtime GET group on 2026-05-17.
+6. Next recommended runtime target: Phase 7E laporan, dashboard validation, archive list/detail/search/classification reads.
 7. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
 
 ## Response-Shape Compatibility Notes
@@ -213,6 +213,40 @@ Phase 7C migrated the scoped role inbox/list GET routes from Supabase-backed rea
 - Dokumen detail routes, log detail routes, role-specific detail routes, preview/download, storage routes, workflow mutations, report/dashboard reads, archive active/inactive/usul-musnah/search reads, and archive lifecycle/destruction behavior remain deferred to later phases.
 - Role list UI pages still contain browser Supabase reads for `master_fungsi` filter dropdowns. These are not the security boundary and remain deferred to the owning UI/helper retirement phase or a later narrow filter-read cleanup.
 - `src/lib/master-data/jenis-dokumen.ts` remains deferred as recorded in Phase 7B.3.
+
+## Phase 7D Dokumen Detail/Log Runtime Migration
+
+Date: 2026-05-17.
+
+Phase 7D migrated the scoped document metadata/detail and audit-log GET routes from Supabase-backed reads to local PostgreSQL/Drizzle reads while preserving endpoint paths, response wrappers, and the existing metadata-only behavior.
+
+### Migrated Routes
+
+| Route | Wrapper | Local filters and joins | Compatibility notes |
+|---|---|---|---|
+| `GET /api/dokumen/$id` | `{ dokumen }` | local `dms_session`, owner or relevant non-admin workflow role, left joins to fungsi/kegiatan/request-chain/jenis-dokumen names | only GET changed; PATCH/DELETE in the same route file remain deferred write/storage scope |
+| `GET /api/dokumen/$id/log` | `{ logs }` | local `dms_session`, same owner/relevant-role visibility as central detail, left join to local `auth.users` for actor display | preserves ascending `timestamp` ordering and camelCase log fields |
+| `GET /api/ppk/dokumen/$id` | `{ dokumen, logs }` | PPK role, status in `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, `NEED_REVISION`, `COMPLETED`, `ARCHIVED`, left joins to master display names | preserves PPK wrapper and raw log rows; no approve/reject migration |
+| `GET /api/bendahara/dokumen/$id` | `{ dokumen, ppkValidation, logs }` | BENDAHARA role, status in Bendahara-relevant states, `PPK_APPROVE` metadata lookup, left joins to master display names | preserves `ppkValidation` single-object/null shape and raw log rows; no approve/reject migration |
+| `GET /api/arsiparis/dokumen/$id` | `{ dokumen, bendahara_approve, arsip }` | ARSIPARIS role, `status='COMPLETED'`, `BENDAHARA_APPROVE` metadata lookup, read-only existing `arsip` lookup | preserves pre-archive review shape and does not touch archive mutation/lifecycle behavior |
+
+### Phase 7D Compatibility Decisions
+
+- No Supabase fallback was added for migrated GET handlers.
+- Local authorization uses `dms_session` assigned roles through `getLocalServerSession(...)` and `hasLocalRole(...)`; `dms_active_role` is not trusted as proof.
+- `ADMIN` is not treated as a substitute for PEGAWAI, PPK, BENDAHARA, or ARSIPARIS detail visibility.
+- Central detail/log now fail closed to owner or relevant non-admin workflow role visibility instead of preserving the old broad approver/Admin behavior.
+- `lampiran_urls` remains metadata-only JSON from `dokumen_transaksi`; the routes do not validate physical file existence and do not stream, sign, copy, or migrate files.
+- Log reads remain append-only and read-only; actor enrichment uses local `auth.users.display_name`, `nama_lengkap`, then `email`, with `Unknown` fallback.
+- Numeric `nominal_realisasi` is normalized to a JSON number or `null` in migrated detail responses where the legacy UI expects numeric formatting.
+- Invalid UUID params are treated as not found for these metadata reads to avoid exposing database errors.
+
+### Deferred From Phase 7D
+
+- Preview/download/file-access routes remain storage/file-streaming work: central `$lampiranIndex` preview/download, raw `preview-url`/`download-url`, and role-specific PPK/Bendahara preview/download.
+- Workflow mutations remain deferred: central PATCH/DELETE, submit/resubmit, PPK approve/reject/resubmit/kembalikan, Bendahara approve/reject, and Arsiparis archive.
+- Archive active/inactive/usul-musnah detail routes that read `lampiran_snapshot`, archive list/search routes, and archive classification reads remain Phase 7E read work.
+- Archive lifecycle/destruction/delete behavior remains Phase 8/9 work.
 
 ## Phase 7B.3 Browser Master Data Read Surface Inventory
 
