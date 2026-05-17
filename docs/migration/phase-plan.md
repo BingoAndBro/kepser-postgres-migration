@@ -703,6 +703,18 @@ Deferred items:
 
 Goal: migrate Bendahara approval, rejection, and nominal-related writes to local PostgreSQL/Drizzle.
 
+Status as of 2026-05-18: in progress with scoped runtime migration completed for pure Bendahara decision writes.
+
+Migrated in this pass:
+
+- `POST /api/bendahara/dokumen/$id/approve` in `src/routes/api/bendahara/dokumen/$id/approve.ts` now uses local `dms_session` authorization, assigned BENDAHARA role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction. It preserves the empty-body validation, `IN_BENDAHARA_APPROVAL` status guard, FSM `APPROVE` transition to `COMPLETED`, cleared `current_step`, cleared `revision_target`, cleared `revision_notes`, `BENDAHARA_APPROVE`, `stepUrutan=2`, and `{ success: true, message: 'Dokumen disetujui', redirectTo: '/bendahara/selesai' }`.
+- `POST /api/bendahara/dokumen/$id/reject` in `src/routes/api/bendahara/dokumen/$id/reject.ts` now uses local `dms_session` authorization, assigned BENDAHARA role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction. It preserves the required `catatan` payload validation, `IN_BENDAHARA_APPROVAL` status guard, FSM `REJECT` transition to `NEED_REVISION`, `current_step='BENDAHARA'`, `revision_target='PPK'`, `revision_notes=catatan`, `BENDAHARA_REJECT`, `stepUrutan=1`, and `{ success: true, message: 'Dokumen dikembalikan ke PPK', redirectTo: '/bendahara/ditolak' }`.
+
+Skipped or deferred in this pass:
+
+- `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is central/cross-role (`creator`, `ARSIPARIS`, `ADMIN`/legacy `SUPERADMIN`) rather than Bendahara-owned. It should be migrated in a later cross-role/admin-compatible phase without silently narrowing role semantics.
+- Bendahara preview/download routes remain deferred to Phase 9 storage/file-access work.
+
 Runtime scope:
 
 - Bendahara approve/reject writes.
@@ -728,7 +740,7 @@ Validation gates:
 
 Exit criteria:
 
-- Bendahara approval, rejection, and scoped nominal database writes are local-backed for seed/new local data.
+- Bendahara approval and rejection database writes are local-backed for seed/new local data. The scoped nominal route is intentionally deferred because ownership is cross-role rather than Bendahara-compatible.
 
 Key risks:
 
@@ -737,7 +749,7 @@ Key risks:
 
 Deferred items:
 
-- Bendahara preview/download, storage/file-access behavior, and any browser helper/UI cleanup.
+- Cross-role nominal update migration, Bendahara preview/download, storage/file-access behavior, and any browser helper/UI cleanup.
 
 ### Phase 8E: Arsiparis Archive Metadata/Lifecycle Write APIs
 
