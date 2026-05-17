@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; the next runtime phase is Phase 7B Master Data And Current User Read APIs. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. The next runtime phase is Phase 7C Role Inbox/List Dokumen Read APIs unless a later accepted decision explicitly carves out a narrow `master_jenis_dokumen` read route first. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current active phase: Phase 7B Master Data And Current User Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle; continue Phase 7B with the remaining master/current-user read surfaces unless a concrete route/domain blocker is documented.
+Current active phase: Phase 7C Role Inbox/List Dokumen Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, and Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only.
 
 Phase 7 guardrails:
 
@@ -263,9 +263,11 @@ Progress note:
 - Phase 7B.2 migrated the matching public master detail GET routes: `GET /api/master-jenis/$id`, `GET /api/master-kategori/$id`, and `GET /api/master-detail/$id`.
 - Phase 7B.2 also migrated ADMIN-only Ketua Tim read routes to local `dms_session` authorization and Drizzle reads: `GET /api/ketua-tim/`, `GET /api/ketua-tim/user/$userId`, and `GET /api/ketua-tim/kegiatan/$kegiatanId`.
 - Phase 7B.2 audited the remaining current-user support reads and found `/api/users/me`, `/api/users/me/ketua-tim`, and `/api/users/me/is-ketua-tim/$kegiatanId` already local; no runtime work was needed there.
+- Phase 7B.3 completed a docs-only browser master-data read surface inventory in `docs/migration/read-api-inventory-prioritization.md`.
 - The `src/lib/master-data/jenis-dokumen.ts` read helper remains deferred because current callers are UI/browser routes passing a browser Supabase client directly and no compatible API-backed read surface exists yet.
+- Phase 7B.3 does not recommend an immediate Phase 7B.4: a future `GET /api/master-jenis-dokumen` read route is justified eventually, but a one-route carve-out would not by itself make `/pegawai/dokumen/aju` API-backed because that page also uses other browser Supabase master-data helpers.
 - Mutations in the same route files remain outside this read phase and may still use Supabase until Phase 8/admin mutation work.
-- Next recommended target: Phase 7C role inbox/list dokumen reads, unless a separate narrow task first introduces a compatible API-backed `master_jenis_dokumen` read surface.
+- Next recommended target: Phase 7C role inbox/list dokumen reads. If `master_jenis_dokumen` is later accepted as a concrete blocker before Phase 10/11, create a narrow Phase 7B.4 only for that read surface and minimal direct read callers.
 
 Runtime scope:
 

@@ -229,7 +229,7 @@ Current status:
 - Phase 6G.6 made `POST /api/dokumen/submit` local-backed by default for the clean local target and removed the submit-route legacy Supabase execution branch.
 - Global Supabase retirement is not complete; many read APIs, workflow endpoints, storage surfaces, and user-management/admin surfaces may still be Supabase-backed.
 - Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`.
-- Phase 7B has started. The first runtime group migrated the six public master-data list GET routes to local PostgreSQL/Drizzle, and Phase 7B.2 migrated matching master detail GETs plus Ketua Tim admin GET reads while leaving master/admin mutations and broader read domains for later phases.
+- Phase 7B has started. The first runtime group migrated the six public master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail GETs plus Ketua Tim admin GET reads, and Phase 7B.3 classified browser master-data helper read surfaces while leaving master/admin mutations and broader read domains for later phases.
 
 Completed compressed Phase 6G sequence:
 
@@ -266,12 +266,12 @@ Subphases:
 
 - Phase 7B Master Data and Current User Read APIs.
   Goal: migrate low-risk frequently used master/current-user reads.
-  Progress: first runtime group migrated `GET /api/master-fungsi`, `GET /api/master-jenis`, `GET /api/master-kegiatan`, `GET /api/master-kategori`, `GET /api/master-detail`, and `GET /api/master-kelengkapan`; Phase 7B.2 migrated matching master detail GETs and Ketua Tim admin GET reads.
+  Progress: first runtime group migrated `GET /api/master-fungsi`, `GET /api/master-jenis`, `GET /api/master-kegiatan`, `GET /api/master-kategori`, `GET /api/master-detail`, and `GET /api/master-kelengkapan`; Phase 7B.2 migrated matching master detail GETs and Ketua Tim admin GET reads; Phase 7B.3 inventoried browser helper/caller placement only.
   Runtime scope: master fungsi, kegiatan, kelengkapan dokumen, jenis permintaan, kategori permintaan, detail permintaan, jenis dokumen reads where present, Ketua Tim admin GET reads, and remaining current-user read endpoints.
   Non-goals: master/admin mutations, user-management mutations, password flows, route path changes, UI changes.
   Validation gates: response shape parity, active/filter/order parity, and local `dms_session` authorization where required.
-  Remaining 7B caveat: the browser-based `src/lib/master-data/jenis-dokumen.ts` helper is deferred until a compatible API-backed read surface is scoped; current-user support GETs are already local.
-  Next target: Phase 7C role inbox/list dokumen reads, unless the jenis dokumen read surface is explicitly carved out first.
+  Remaining 7B caveat: the browser-based `src/lib/master-data/jenis-dokumen.ts` helper is deferred until a compatible API-backed read surface is scoped; current-user support GETs are already local. Phase 7B.3 does not recommend an immediate 7B.4 because `jenis_dokumen` is not the only browser master-data dependency in the submit form.
+  Next target: Phase 7C role inbox/list dokumen reads. A future `GET /api/master-jenis-dokumen` route remains justified, but should be implemented only in a narrow accepted carve-out or during Phase 10/11 Supabase client retirement.
   Exit criteria: form/navigation/support read surfaces use local PostgreSQL/Drizzle.
 
 - Phase 7C Role Inbox/List Dokumen Read APIs.

@@ -176,3 +176,59 @@ Phase 7B.2 response decisions:
 - No Supabase fallback was added for the migrated GET handlers.
 
 After Phase 7B.2, the remaining known master/current-user read blocker is the browser-based `jenis-dokumen` helper surface. Move next to Phase 7C role inbox/list reads unless that helper is explicitly converted through a compatible API-backed route in a separate narrow task.
+
+## Phase 7B.3 Browser Master Data Read Surface Inventory
+
+Date: 2026-05-17.
+
+Phase 7B.3 is docs/inventory only. It did not migrate browser helpers, did not add API routes, did not touch `src/routeTree.gen.ts`, and did not remove Supabase client usage. The inventory was created from lightweight listings/searches of `src/lib/master-data`, `src/routes`, and `src/components`.
+
+### Helper Inventory
+
+| Helper file | Exported read functions | Browser Supabase dependency | Read-only or mixed | Known active callers | Safe later API-backed read route? | Recommended placement |
+|---|---|---|---|---|---|---|
+| `src/lib/master-data/shared.ts` | none; row types only | none | type-only | `src/components/dokumen/form/dokumen-form-types.ts` re-exports row types | no route needed | keep temporarily |
+| `src/lib/master-data/fungsi.ts` | `getAllFungsi`, `getFungsiById`, `getFungsiWithKegiatanCount` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation | `admin.master-data.fungsi.tsx`, `admin.master-data.kegiatan.tsx`, `admin.master-data.kelengkapan.tsx`, `pegawai/dokumen/aju.tsx`, `HierarchicalFilter.tsx` | yes for active list reads via existing `GET /api/master-fungsi`; count/id helper parity needs explicit scope | admin mixed pages: Phase 10/11; report filter: Phase 7E; Pegawai submit form only if a future narrow form-read phase is approved |
+| `src/lib/master-data/kegiatan.ts` | `getAllKegiatan`, `getKegiatanByFungsi`, `getKegiatanById` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation | `admin.master-data.kegiatan.tsx`, `admin.master-data.kelengkapan.tsx`, `pegawai/dokumen/aju.tsx`, `HierarchicalFilter.tsx` | yes for list/filter reads via existing `GET /api/master-kegiatan?fungsi_id=`; id helper parity needs explicit scope | admin mixed pages: Phase 10/11; report filter: Phase 7E; Pegawai submit form only if a future narrow form-read phase is approved |
+| `src/lib/master-data/jenis.ts` | `getAllJenis`, `getAllJenisWithCount` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation | `admin.master-data.jenis.tsx`, `admin.master-data.kategori.tsx`, `admin.master-data.detail.tsx`, `admin.master-data.kelengkapan.tsx`, `pegawai/dokumen/aju.tsx`, `HierarchicalFilter.tsx` | yes for active list reads via existing `GET /api/master-jenis`; count helper parity needs explicit scope | admin mixed pages: Phase 10/11; report filter: Phase 7E; Pegawai submit form only if a future narrow form-read phase is approved |
+| `src/lib/master-data/kategori.ts` | `getAllKategoriWithCount`, `getKategoriByJenis` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation | `admin.master-data.kategori.tsx`, `admin.master-data.detail.tsx`, `admin.master-data.kelengkapan.tsx`, `pegawai/dokumen/aju.tsx`, `HierarchicalFilter.tsx` | yes for filtered list reads via existing `GET /api/master-kategori?jenis_id=`; count helper parity needs explicit scope | admin mixed pages: Phase 10/11; report filter: Phase 7E; Pegawai submit form only if a future narrow form-read phase is approved |
+| `src/lib/master-data/detail.ts` | `getDetailByKategori`, `hasDetailChildren`, `getAllDetailWithInfo` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation/validation | `admin.master-data.detail.tsx`, `admin.master-data.kelengkapan.tsx`, `pegawai/dokumen/aju.tsx`, `HierarchicalFilter.tsx`; no active caller found for `hasDetailChildren` | yes for filtered list reads via existing `GET /api/master-detail?kategori_id=`; all-info/count-like parity needs explicit scope | admin mixed pages: Phase 10/11; report filter: Phase 7E; Pegawai submit form only if a future narrow form-read phase is approved; validation helper stays temporary |
+| `src/lib/master-data/kelengkapan.ts` | `getAllKelengkapan`, `getKelengkapanByKegiatan`, `getKelengkapanByKegiatanWithInfo`, `getKelengkapanByChain` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation/validation | `admin.master-data.kelengkapan.tsx` through helper; separate direct browser queries exist in `KelengkapanChecklist.tsx`, `pegawai/dokumen/$id/revisi.tsx`, and `ppk/dokumen/$id/resubmit.tsx` | partial: existing `GET /api/master-kelengkapan?kegiatan_id=&is_ketua_tim=` covers basic list reads, but chain-filter parity needs explicit API scope | direct revision/resubmit/checklist surfaces belong with owning workflow/detail phases; admin mixed page stays Phase 10/11 |
+| `src/lib/master-data/jenis-dokumen.ts` | `getAllJenisDokumen` | accepts caller-provided `SupabaseClient`; current browser callers create it with `getBrowserClient()` | mixed read/mutation | `pegawai/dokumen/aju.tsx` non-material branch and `admin.master-data.jenis-dokumen.tsx` | yes, but no existing `GET /api/master-jenis-dokumen` route was found | justified as a future API-backed read surface, but not an immediate 7B.4 blocker because the current form also depends on other browser Supabase master-data reads |
+
+### Caller And Phase Placement
+
+| Caller surface | Uses | Placement | Reason |
+|---|---|---|---|
+| `src/routes/pegawai/dokumen/aju.tsx` | helper-based browser reads for fungsi, kegiatan, jenis, kategori, detail, and jenis dokumen | no immediate 7B.4; future narrow form-read phase only if explicitly accepted | this is a real local-runtime concern for form dropdowns, but migrating it safely requires more than one helper/read surface; do not repeat the broad helper/UI rewrite |
+| `src/components/dokumen/KelengkapanChecklist.tsx` | direct browser `master_kelengkapan_dokumen` query with chain filters | owning workflow/detail phase, likely Phase 7D or later workflow/storage phase | tied to submit/revision attachment behavior, required-item validation, and upload state rather than a standalone master list |
+| `src/routes/pegawai/dokumen/$id/revisi.tsx` | direct browser `master_kelengkapan_dokumen` query | Phase 7C/7D owning-domain migration | revision workflow screen should move with Pegawai revision/detail reads, not as a generic helper migration |
+| `src/routes/ppk/dokumen/$id/resubmit.tsx` | direct browser `master_kelengkapan_dokumen` query | Phase 7C/7D owning-domain migration | PPK resubmit is a role workflow/detail surface with attachment editing |
+| `src/components/laporan/HierarchicalFilter.tsx` | helper-based browser reads for report filters | Phase 7E | report filter reads should move with laporan/dashboard read migration |
+| `src/routes/ppk/inbox.tsx` and `src/routes/bendahara/inbox.tsx` | direct browser `master_fungsi` filter reads | Phase 7C | these are role inbox/list filters and should move with the role list APIs |
+| `src/routes/arsiparis/inbox.tsx` | direct browser `master_fungsi` filter read | Phase 7C or Phase 7E depending on archive grouping | it is both a role inbox and archive intake list; keep with the owning list/archive phase instead of helper migration |
+| `src/routes/arsiparis/aktif/index.tsx`, `inaktif/index.tsx`, `usul-musnah/index.tsx`, `search.tsx` | direct browser `master_fungsi`, and `search.tsx` also reads `master_kegiatan` | Phase 7E | archive/report filters should move with archive metadata/search reads |
+| `src/routes/admin.master-data.*.tsx` | helper-based browser reads plus browser mutations in the same pages | Phase 10/11 for browser client retirement; mutations remain Phase 8/admin write work | these pages are mixed CRUD surfaces; do not rewrite admin pages during a read inventory phase |
+| `src/components/dokumen/form/dokumen-form-types.ts` | type-only row exports | keep temporarily | no runtime read dependency |
+
+### Phase 7B.4 Decision
+
+Do not create an immediate Phase 7B.4 from this inventory. A `master_jenis_dokumen` API-backed read route is justified eventually because `getAllJenisDokumen(...)` has active browser callers and no existing `GET /api/master-jenis-dokumen` route was found, but it is not the only browser master-data dependency in the current submit form. A one-route `jenis_dokumen` carve-out would not by itself make `/pegawai/dokumen/aju` API-backed because the same page still reads fungsi, kegiatan, jenis, kategori, and detail through browser Supabase helpers.
+
+The current next runtime phase should remain Phase 7C role inbox/list dokumen reads. If `jenis_dokumen` is later accepted as a concrete blocker before Phase 10/11, create a narrow Phase 7B.4 with only this scope:
+
+- add `GET /api/master-jenis-dokumen` or reuse an existing route if one exists by then;
+- migrate only `src/lib/master-data/jenis-dokumen.ts` read behavior and its minimal direct read callers if safe;
+- allow `src/routeTree.gen.ts` changes only in that future route-creation phase;
+- do not migrate broad master-data helpers;
+- do not rewrite admin pages;
+- do not migrate role, report, archive, or workflow callers.
+
+### Guardrails From 7B.3
+
+- Do not import Drizzle or `db` into browser-reachable helper modules.
+- Browser callers should move through API-backed read surfaces, not direct local database imports.
+- Caller migration should happen with the owning domain phase when broad UI context is involved.
+- No Supabase fallback for migrated read endpoints.
+- No old Supabase Storage migration, copy, download, backfill, or sync.
+- Global Supabase client retirement remains later Phase 10/11 work.
