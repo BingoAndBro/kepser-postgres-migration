@@ -163,7 +163,7 @@ Phase 6G.6 made the local submit runtime the default for `POST /api/dokumen/subm
 
 ## Phase 6G: Submit Runtime Integration
 
-Phase 6G is the active submit migration track. Keep it compressed and runtime-oriented:
+Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 - Phase 6G.2: Submit Route Local Auth and Dry-Run Boundary Wiring.
   - Goal: validate the local `dms_session`/PEGAWAI boundary in `POST /api/dokumen/submit`.
@@ -202,31 +202,205 @@ Phase 6G is the active submit migration track. Keep it compressed and runtime-or
 
 ## Phase 7: Read API Migration By Domain
 
-Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths or response shapes.
+Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Allowed scope:
+Current next phase: Phase 7A Read API Inventory and Prioritization. After 7A, proceed directly to runtime migration in 7B unless a concrete route/domain blocker is documented. Do not return to foundation-only mode by default.
 
-- Pegawai: document list/detail, report reads, attachment metadata reads.
-- PPK: inbox, tervalidasi, ditolak, revisi, detail reads.
-- Bendahara: inbox, ditolak, selesai, detail reads.
-- Arsiparis: inbox, archive lists, search, classification reads.
-- Admin/master data: user lists, role reads, master data reads, ketua tim reads.
+Phase 7 guardrails:
+
+- Preserve endpoint paths, request query/body shapes, response shapes, and UI behavior.
+- Server-side authorization and filtering are authoritative; do not rely on UI filtering.
+- `dms_active_role` is UX state only and must be validated against the local server session/assigned roles.
+- `ADMIN` remains dedicated and must not be merged with other roles.
+- `log_aktivitas` remains append-only.
+- No Supabase fallback for migrated read endpoints.
+- No old Supabase Storage migration, copy, download, backfill, or sync.
+- Do not remove global Supabase dependencies until later Phase 10/11 after parity.
+- `DIMUSNAHKAN` must block preview/download in relevant archive/file phases, but Phase 7 must not overclaim preview/download migration.
+- Archive destruction/delete behavior is not part of Phase 7 read migration.
+
+### Phase 7A: Read API Inventory And Prioritization
+
+Goal: produce a short domain inventory and runtime order for Supabase-backed read endpoints.
+
+Runtime scope:
+
+- No runtime code.
+- List Supabase-backed read endpoints by domain.
+- Record rough priority order, response shape compatibility notes, intentionally deferred endpoints, and test/validation strategy.
+- Recommend the exact first runtime endpoint group for Phase 7B.
 
 Non-goals:
 
-- No workflow mutation migration.
-- No UI redesign.
-- No storage movement or deletion.
+- No helper creation.
+- No endpoint migration.
+- No route edits.
+- No test implementation.
+- No broad planning rabbit hole beyond the inventory needed to start 7B.
 
-Key validation gates:
+Validation gates:
 
-- Response shapes match the legacy route contracts.
-- Role filtering remains server-side.
-- Role list/detail/report pages render against local data.
+- Inventory covers master/current-user, role list, detail, report/dashboard, and archive read surfaces.
+- Deferred endpoints are explicitly named with a reason.
+- Response-shape parity risks are noted before runtime migration.
+- First runtime group is selected.
 
 Exit criteria:
 
-- Major read pages for Pegawai, PPK, Bendahara, Arsiparis, and Admin use local PostgreSQL/Drizzle reads with compatible responses.
+- Phase 7B is ready to start with read-only master data `GET` endpoints first: master fungsi, master kegiatan, master kelengkapan dokumen, jenis permintaan, kategori permintaan, and detail permintaan.
+- Then continue within 7B to matching detail reads, available jenis dokumen reads, Ketua Tim read helpers still Supabase-backed, and remaining current-user support reads if any are found.
+
+### Phase 7B: Master Data And Current User Read APIs
+
+Goal: migrate low-risk, frequently used master/current-user read APIs to local PostgreSQL/Drizzle.
+
+Runtime scope:
+
+- Master fungsi reads.
+- Master kegiatan reads.
+- Master kelengkapan dokumen reads.
+- Jenis permintaan reads.
+- Kategori permintaan reads.
+- Detail permintaan reads.
+- Jenis dokumen reads where existing route/helper surfaces are present.
+- Ketua Tim read helpers still Supabase-backed.
+- Remaining current-user read endpoints not already local.
+
+Non-goals:
+
+- No master/admin mutations.
+- No user-management mutations or password flows.
+- No route path changes.
+- No UI behavior changes.
+
+Validation gates:
+
+- Preserve existing route paths, query/body shapes, status categories, and response shapes.
+- Preserve active-row/filter behavior and existing ordering where UI-visible.
+- Use local `dms_session` server authorization where authorization is required.
+- Confirm `ADMIN` remains dedicated and is not made compatible with non-admin read assumptions accidentally.
+
+Exit criteria:
+
+- Master/current-user read surfaces needed by forms, navigation, and support badges use local PostgreSQL/Drizzle with compatible responses.
+
+### Phase 7C: Role Inbox/List Dokumen Read APIs
+
+Goal: migrate role/status-filtered document list APIs.
+
+Runtime scope:
+
+- Pegawai document lists, including revision list reads.
+- PPK inbox, tervalidasi, ditolak, and revisi list reads.
+- Bendahara inbox, selesai, and ditolak list reads.
+- Arsiparis inbox and list/search reads when they are list-only and do not require archive destruction/delete behavior.
+
+Non-goals:
+
+- No dokumen detail migration.
+- No approve/reject/resubmit/archive mutations.
+- No preview/download migration.
+- No storage movement or deletion.
+
+Validation gates:
+
+- Server-side RBAC and status filtering are preserved.
+- `current_step`, `revision_target`, status filters, owner filters, and role-specific visibility match the legacy behavior.
+- Response shapes remain compatible for each role page.
+- UI filtering must not be the security boundary.
+
+Exit criteria:
+
+- Role list/inbox pages render from local PostgreSQL/Drizzle reads with compatible responses and server-side filtering.
+
+### Phase 7D: Dokumen Detail Read API
+
+Goal: migrate central and role-specific document detail reads without behavior drift.
+
+Runtime scope:
+
+- Document detail reads.
+- Lampiran metadata reads from `lampiran_urls`/archive snapshots where the endpoint returns metadata only.
+- `log_aktivitas` reads.
+- Status, `current_step`, and `revision_target` fields.
+- Role authorization for Pegawai, PPK, Bendahara, and Arsiparis detail views.
+
+Non-goals:
+
+- No preview/download route migration unless a route is metadata-only.
+- No file streaming.
+- No storage movement.
+- No workflow mutations.
+
+Validation gates:
+
+- Detail response shape matches current route contracts.
+- Audit log ordering and fields remain compatible.
+- Role authorization is enforced server-side.
+- Missing local old files are not treated as a detail-read blocker; no Supabase fallback is added.
+
+Exit criteria:
+
+- Pegawai, PPK, Bendahara, and Arsiparis detail pages can read document metadata, lampiran metadata, status, and audit logs from local PostgreSQL/Drizzle.
+
+### Phase 7E: Report, Dashboard, And Archive Read APIs
+
+Goal: migrate broader read-only reporting, dashboard, and archive metadata surfaces.
+
+Runtime scope:
+
+- Laporan saya.
+- Laporan kegiatan.
+- Dashboard counts/statistics where present.
+- Archive list/detail/search aggregates and read-only archive metadata.
+- Archive classification reads where they are read-only.
+
+Non-goals:
+
+- No archive destruction/delete behavior.
+- No archive lifecycle mutations.
+- No storage cleanup.
+- No preview/download migration.
+
+Validation gates:
+
+- Report and dashboard counts/aggregates match current semantics.
+- Ketua Tim report authorization remains server-side.
+- Archive `status_arsip` filters and metadata response shapes remain compatible.
+- `DIMUSNAHKAN` handling is documented where metadata touches file availability, without claiming Phase 7 completes preview/download blocking.
+
+Exit criteria:
+
+- Report, dashboard, and archive read pages render from local PostgreSQL/Drizzle reads with compatible responses.
+
+### Phase 7F: Read API Stabilization And Supabase Read Retirement
+
+Goal: close the read migration only when supported by audit and focused validation.
+
+Runtime scope:
+
+- Audit remaining Supabase-backed read endpoints.
+- Add or run focused read API tests/contract checks where practical.
+- Check response shape parity for migrated domains.
+- Update migration docs with completed read status and deferred blockers.
+
+Non-goals:
+
+- No global Supabase dependency removal.
+- No write workflow migration.
+- No storage surface completion.
+- No Phase 10/11 cleanup.
+
+Validation gates:
+
+- Grep/audit confirms migrated read domains no longer use Supabase-backed reads, or each remaining read is explicitly deferred with a blocker.
+- Focused role read pages are manually or automatically checked against local seed/new data.
+- No Supabase fallback was introduced.
+- Guarded diffs confirm no unrelated route tree, submit route, DB script, migration, seed, package, or test changes were included unless explicitly required by that runtime subphase.
+
+Exit criteria:
+
+- Major read pages for Pegawai, PPK, Bendahara, Arsiparis, and Admin/master data use local PostgreSQL/Drizzle reads with compatible responses, and any remaining read blockers are documented before Phase 8 starts.
 
 ## Phase 8: Write Workflow API Migration By Domain
 
