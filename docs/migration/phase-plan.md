@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. The next runtime phase is Phase 7F read API stabilization and Supabase read retirement audit unless Phase 7E smoke testing finds a concrete report/archive parity gap. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 8 write/workflow migration planning/runtime. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current active phase: Phase 7F Read API Stabilization And Supabase Read Retirement, after Phase 7E migrated scoped laporan and archive metadata/search/classification GET reads on 2026-05-17. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only, Phase 7C migrated role list/inbox reads, Phase 7D migrated detail/log reads, and Phase 7E found no dedicated dashboard read API route to migrate.
+Current phase: Phase 8 Write Workflow API Migration By Domain, after Phase 7F closed the major read-domain migration audit on 2026-05-17. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only, Phase 7C migrated role list/inbox reads, Phase 7D migrated detail/log reads, Phase 7E migrated laporan and archive metadata/search/classification reads, and Phase 7F found no true remaining blocker for the scoped major read domains.
 
 Phase 7 guardrails:
 
@@ -419,6 +419,8 @@ Exit criteria:
 
 Goal: close the read migration only when supported by audit and focused validation.
 
+Status: completed on 2026-05-17 as a docs/audit-only stabilization pass. No true remaining Phase 7 major-read blocker was found.
+
 Runtime scope:
 
 - Audit remaining Supabase-backed read endpoints.
@@ -443,6 +445,15 @@ Validation gates:
 Exit criteria:
 
 - Major read pages for Pegawai, PPK, Bendahara, Arsiparis, and Admin/master data use local PostgreSQL/Drizzle reads with compatible responses, and any remaining read blockers are documented before Phase 8 starts.
+
+Phase 7F closure notes:
+
+- Major server/API read domains from Phase 7B through 7E are considered migrated to local PostgreSQL/Drizzle for their scoped `GET` handlers.
+- Remaining Supabase usages are classified as mixed mutation leftovers, storage/file-access surfaces, workflow/write mutations, admin/user-management/auth-admin surfaces, or browser helper/UI reads.
+- No Supabase fallback was introduced for migrated reads.
+- Dashboard API migration remains skipped because no dedicated dashboard read API route was found.
+- Known caveats remain assigned: browser dropdown/helper reads, mixed route mutations, preview/download/storage, user-management/auth-admin replacement, archive search PPK `step_urutan` approximation, and `DIMUSNAHKAN` file-access blocking.
+- Next recommended phase: Phase 8 write/workflow migration planning/runtime, unless manual smoke checks expose a concrete Phase 7F read-contract blocker.
 
 ## Phase 8: Write Workflow API Migration By Domain
 

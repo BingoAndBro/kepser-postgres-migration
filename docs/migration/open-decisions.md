@@ -289,6 +289,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Clean local target remains the migration assumption.
   Date: 2026-05-16.
   Rationale: The local target does not import old Supabase production/current data and does not migrate, copy, download, backfill, or sync old Supabase Storage files. Local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and should fail cleanly without blocking local runtime integration or adding Supabase Storage fallback.
+- Phase 7 major read-domain migration is closed for server/API `GET` routes.
+  Date: 2026-05-17.
+  Rationale: Phase 7F audit found no true remaining blocker for the scoped major read domains migrated in Phase 7B through 7E. Remaining Supabase usages are not global blockers for Phase 8 because they are assigned to mixed mutation leftovers, storage/file-access, workflow/write mutations, admin/user-management/auth-admin, or browser helper/UI retirement. This does not mark global Supabase retirement, browser helper retirement, preview/download/storage migration, user-management/Auth Admin replacement, archive lifecycle/destruction behavior, or mutation migration complete.
 
 ## Still Open
 
@@ -313,7 +316,7 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Real password provisioning workflow for production/bootstrap users.
 - Supabase Auth runtime retirement.
 - Non-auth API authorization migration to local `dms_session`.
-- Read-only domain API migration.
+- Browser helper/UI read replacement strategy after server/API read migration closure.
 - Mutation API migration.
 - Supabase Auth Admin replacement for user management and user-name enrichment.
 - User management and password-change replacement.

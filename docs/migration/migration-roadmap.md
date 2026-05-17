@@ -233,6 +233,7 @@ Current status:
 - Phase 7C migrated the scoped role inbox/list dokumen GET routes to local PostgreSQL/Drizzle on 2026-05-17.
 - Phase 7D migrated the scoped dokumen detail/log GET routes to local PostgreSQL/Drizzle on 2026-05-17.
 - Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes to local PostgreSQL/Drizzle on 2026-05-17. Dashboard audit found no dedicated dashboard read API route to migrate.
+- Phase 7F stabilized and closed the major read-domain migration audit on 2026-05-17. No true remaining Phase 7 read blocker was found; remaining Supabase usages are assigned to mixed mutation, storage/file-access, workflow/write, admin/user-management/auth-admin, or browser helper/UI retirement buckets.
 - Mixed write handlers, preview/download/file-access routes, browser filter helper reads, archive lifecycle/destruction behavior, storage, and mutations remain later phases.
 
 Completed compressed Phase 6G sequence:
@@ -310,7 +311,8 @@ Subphases:
   Runtime scope: audit remaining Supabase-backed read endpoints, focused tests/contract checks, response shape parity checks, docs updates, and deferred blocker list.
   Non-goals: global Supabase dependency removal, write workflow migration, storage surface completion.
   Validation gates: grep/audit confirms migrated read domains no longer use Supabase-backed reads or remaining reads are explicitly deferred; no Supabase fallback was introduced.
-  Exit criteria: major read pages for Pegawai, PPK, Bendahara, Arsiparis, and Admin/master data use local reads, with any remaining blockers documented before Phase 8.
+  Status: complete as of 2026-05-17 for major server/API read domains. Dashboard API migration remains skipped because no dedicated dashboard read API route was found.
+  Exit criteria: met for scoped major read domains; browser helper/dropdown reads, mixed route mutations, preview/download/storage, user-management/auth-admin, archive lifecycle/destruction, archive search PPK `step_urutan` caveat, and `DIMUSNAHKAN` file-access blocking remain assigned to later phases.
 
 Expected outputs:
 
@@ -319,7 +321,7 @@ Expected outputs:
 - Focused response-shape and authorization checks where practical.
 - Phase 7F audit/handoff notes before Phase 8.
 
-Current next recommended target after Phase 7E: Phase 7F read API stabilization and Supabase read retirement audit, unless manual smoke checks find a concrete Phase 7E report/archive parity gap.
+Current next recommended target after Phase 7F: Phase 8 write/workflow migration planning/runtime, unless manual smoke checks find a concrete Phase 7F read-contract blocker.
 
 ## Phase 8: Write Workflow API Migration By Domain
 

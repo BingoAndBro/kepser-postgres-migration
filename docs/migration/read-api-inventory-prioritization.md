@@ -125,7 +125,7 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
 4. Phase 7C role inbox/list dokumen reads migrated the scoped runtime GET group on 2026-05-17.
 5. Phase 7D dokumen detail and log reads migrated the scoped runtime GET group on 2026-05-17.
 6. Phase 7E migrated laporan, archive list/detail/search, and archive classification GET reads on 2026-05-17. Dashboard audit found no dedicated dashboard read API route to migrate.
-7. Next recommended runtime target: Phase 7F read API stabilization and Supabase read retirement audit, unless Phase 7E smoke testing finds a concrete report/archive response-shape parity gap.
+7. Phase 7F stabilization/audit completed on 2026-05-17. No true remaining blocker was found for the Phase 7 major read domains, so the next recommended runtime target is Phase 8 write/workflow migration planning/runtime.
 
 ## Response-Shape Compatibility Notes
 
@@ -281,6 +281,79 @@ Phase 7E migrated the scoped report and archive metadata/search/classification G
 - Archive metadata routes can still expose `status_arsip='DIMUSNAHKAN'` through search metadata when present, matching the metadata/search boundary. File preview/download blocking remains a storage/file-access phase responsibility.
 - `GET /api/arsiparis/search` preserves the legacy broad count and post-page filtering behavior as closely as practical, but the old PPK `step_urutan >= 5` predicate cannot be reproduced exactly because local `dokumen.dokumen_transaksi` does not model `step_urutan`. The local replacement uses status-based PPK visibility for documents past PPK.
 - Local user-name enrichment uses `auth.users.display_name`, then `nama_lengkap`, then `email`, instead of Supabase Auth Admin metadata.
+
+## Phase 7F Read API Stabilization And Supabase Read Retirement Audit
+
+Date: 2026-05-17.
+
+Phase 7F was docs/audit only. It did not change runtime routes, helper implementations, UI/browser helpers, storage helpers, schema/migrations/seeds, package files, generated routes, submit route behavior, preview/download behavior, or workflow mutations.
+
+### Audit Method
+
+The stabilization pass used targeted repository searches only:
+
+- `rg "createServerSupabaseClient|createAdminClient|getServerSession|supabase\.from|storage\.from|admin\.storage|auth\.admin" src/routes src/lib`
+- `rg "GET:" src/routes/api`
+- `rg "createFileRoute\('/api" src/routes/api`
+- `rg "from\('master_|from\('dokumen_transaksi'|from\('arsip'|from\('log_aktivitas'|from\('ketua_tim_assignments'" src/routes src/lib`
+- `rg "getBrowserClient|createBrowserClient|supabase\.from" src/lib src/routes src/components`
+- targeted follow-up searches for mixed route files where a migrated `GET` coexists with Supabase-backed `POST`, `PATCH`, or `DELETE`.
+
+This is a code audit and contract review, not live DB verification.
+
+### Major Read Domains Considered Migrated
+
+The following Phase 7 domains are considered migrated to local PostgreSQL/Drizzle for their scoped server/API read endpoints:
+
+- Master/current-user support reads from Phase 7B: public master list/detail `GET` routes, ADMIN Ketua Tim assignment `GET` routes, and current-user support `GET` routes.
+- Role inbox/list reads from Phase 7C: Pegawai document/revision lists, PPK inbox/tervalidasi/ditolak/revisi, Bendahara inbox/selesai/ditolak, and Arsiparis completed-unarchived inbox.
+- Detail/log reads from Phase 7D: central document detail/log, PPK detail, Bendahara detail, and Arsiparis pre-archive detail.
+- Laporan reads from Phase 7E: laporan saya and laporan kegiatan.
+- Archive metadata/search/classification reads from Phase 7E: active/inactive/usul-musnah list/detail metadata, archive search, and classification tree `GET`.
+
+The audit did not find a true remaining Phase 7 major-read blocker. No Supabase fallback was added to migrated reads.
+
+### Remaining Supabase Usage Inventory By Bucket
+
+| Bucket | Remaining surfaces | Classification |
+|---|---|---|
+| A. Migrated `GET` with out-of-scope mutation leftovers | Mixed master data files such as `master-fungsi`, `master-kegiatan`, `master-kelengkapan`, `master-jenis`, `master-kategori`, `master-detail`; mixed Ketua Tim files; `dokumen/index.ts`; `dokumen.$id.ts`; `arsiparis/usul-musnah.$id.ts`; `arsiparis/klasifikasi/index.ts` | `GET` handlers are local for Phase 7 scope; Supabase imports remain for deferred `POST`, `PATCH`, `DELETE`, delete, or storage behavior in the same files. |
+| B. Storage/file-access surfaces | `dokumen/preview-url`, `dokumen/download-url`, central `$lampiranIndex` preview/download, role-specific PPK/Bendahara preview/download, `/api/files/access` token path, admin storage diagnostics/cleanup, and storage removal calls inside destruction/update flows | Deferred to Phase 9 storage surface completion and related file-access hardening. `DIMUSNAHKAN` preview/download blocking remains in this bucket. |
+| C. Workflow/write mutations | `dokumen.$id` `PATCH`/`DELETE`, `dokumen/$id/submit`, `dokumen/$id/nominal`, PPK approve/reject/resubmit/kembalikan, Bendahara approve/reject, Arsiparis archive, aktif pindahkan, inaktif musnahkan, usul-musnah decision `PATCH`, classification writes, master/admin CRUD writes | Deferred to Phase 8 write/workflow migration or Phase 9 where file movement/deletion is the owning risk. `GET /api/ppk/resubmit/$id` remains in the PPK resubmit workflow surface because the same endpoint owns attachment edit/resubmit behavior and storage movement. |
+| D. Admin/user-management/auth-admin | `users/index.ts`, `users/$id.ts`, activate/deactivate/reset-password, current-user change-password, `src/lib/user-helpers.ts`, Supabase Auth Admin `listUsers`, `createUser`, `updateUserById` | Deferred to Phase 10 admin/user-management and Supabase Auth Admin replacement. |
+| E. Browser helper/UI reads | `src/lib/master-data/*`, `src/lib/master-data/jenis-dokumen.ts`, admin master-data pages, Pegawai submit form dropdowns, laporan/role/archive filter dropdowns, `KelengkapanChecklist`, Pegawai revisi and PPK resubmit page helper reads, role dashboard pages with browser client usage | Deferred as browser helper/UI retirement or owning-domain form/workflow cleanup. These are not server authorization boundaries and must not import Drizzle/db directly into browser-reachable modules. |
+| F. True remaining read blockers | None found for the Phase 7 major read domains | If manual smoke finds a response-shape/runtime gap, open a narrow Phase 7F follow-up instead of starting broad cleanup. |
+
+### Response-Shape And Authorization Review
+
+- Wrappers remain scoped to existing route contracts: `{ dokumen }`, `{ inbox }`, `{ logs }`, `{ assignments }`, `{ chairman }`, `{ aktif }`, `{ inaktif }`, `{ usul_musnah }`, `{ musnah, arsip }`, `{ arsip, total, page, per_page }`, and `{ klasifikasi }`.
+- Migrated routes preserve snake_case fields where legacy route output was snake_case. CamelCase remains only where legacy output already used it, notably log fields such as `stepUrutan`, `createdAt`, `userNama`, and `userEmail`.
+- Document status filters remain within the known set: `DRAFT`, `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, `NEED_REVISION`, `COMPLETED`, `TERSIMPAN`, and `ARCHIVED`.
+- Archive status filters remain within `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, with `DIMUSNAHKAN` treated as archive metadata/search boundary only until file-access blocking is completed.
+- Migrated protected reads use `getLocalServerSession(request)` plus `hasLocalRole(...)` or local assignment checks. `dms_active_role` alone is not authorization proof.
+- `ADMIN` remains dedicated. Migrated non-admin reads do not treat ADMIN as a substitute role, while archive search intentionally preserves broad ADMIN/ARSIPARIS metadata visibility.
+- Laporan kegiatan remains Ketua Tim assignment-gated; non-Ketua Tim callers receive the existing compatible empty result shape.
+- Archive search keeps the Phase 7E caveat that legacy PPK `step_urutan >= 5` cannot be reproduced because local schema lacks `step_urutan`; local behavior uses status-based past-PPK visibility.
+- Dashboard API migration remains skipped because the audit found no dedicated dashboard read API route.
+
+### Focused Validation Checklist
+
+No heavy tests are required for Phase 7F. Before starting Phase 8, use local seed/new data to smoke:
+
+- Master data `GET` list/detail routes.
+- Pegawai list, detail, and log routes.
+- PPK inbox/detail routes.
+- Bendahara inbox/detail routes.
+- Arsiparis inbox, active/inactive/usul-musnah metadata, search, and classification routes.
+- Laporan saya.
+- Laporan kegiatan as Ketua Tim and as non-Ketua Tim.
+- One unauthenticated and one wrong-role request per protected domain.
+- Invalid `tahun` query for archive list/search reads.
+- Confirm preview/download/storage routes are still deferred and do not get treated as Phase 7 read parity.
+
+### Phase 7F Recommendation
+
+Phase 7 read migration is closed for the major server/API read domains listed above. Start Phase 8 write/workflow migration planning/runtime next, unless manual smoke checks expose a concrete Phase 7F read-contract blocker.
 
 ## Phase 7B.3 Browser Master Data Read Surface Inventory
 
