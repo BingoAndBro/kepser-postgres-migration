@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. The next runtime phase is Phase 7C Role Inbox/List Dokumen Read APIs unless a later accepted decision explicitly carves out a narrow `master_jenis_dokumen` read route first. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B has migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. The next runtime phase is Phase 7D Dokumen Detail Read API unless a Phase 7C stabilization follow-up finds a concrete role-list parity gap. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current active phase: Phase 7C Role Inbox/List Dokumen Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, and Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only.
+Current active phase: Phase 7D Dokumen Detail Read API, after Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. The first Phase 7B runtime group migrated the six master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail and Ketua Tim GET reads, Phase 7B.3 documented remaining browser master-data helper surfaces as inventory/planning only, and Phase 7C migrated role list/inbox reads.
 
 Phase 7 guardrails:
 
@@ -303,6 +303,8 @@ Exit criteria:
 
 Goal: migrate role/status-filtered document list APIs.
 
+Status: runtime GET group migrated on 2026-05-17 for `GET /api/dokumen`, `GET /api/pegawai/revisi`, PPK inbox/list reads, Bendahara inbox/list reads, and `GET /api/arsiparis/inbox`.
+
 Runtime scope:
 
 - Pegawai document lists, including revision list reads.
@@ -327,6 +329,12 @@ Validation gates:
 Exit criteria:
 
 - Role list/inbox pages render from local PostgreSQL/Drizzle reads with compatible responses and server-side filtering.
+
+Phase 7C caveats:
+
+- `POST /api/dokumen` remains Supabase-backed because it is a mutation in the same mixed route file and is not part of role list reads.
+- Role list pages still have browser Supabase `master_fungsi` filter dropdown reads; server-side API filtering is local and authoritative, while filter UI helper retirement remains later cleanup.
+- Dokumen detail/log, report/dashboard, archive active/inactive/usul-musnah/search/detail, storage, and mutations remain later phases.
 
 ### Phase 7D: Dokumen Detail Read API
 

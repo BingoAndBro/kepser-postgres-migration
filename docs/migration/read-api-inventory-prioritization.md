@@ -49,6 +49,16 @@ Mutation handlers in the same master/ketua-tim files are not Phase 7 read target
 | `src/routes/api/bendahara/inbox.ts`, `selesai.ts`, `ditolak.ts` | Supabase-backed | Bendahara role lists | `{ dokumen }`; inbox includes `ppk_user_id` and `ppk_validated_at` from `log_aktivitas` | Bendahara role check and status filters | 7C |
 | `src/routes/api/arsiparis/inbox.ts` | Supabase-backed | completed documents awaiting archive | `{ inbox }`; excludes existing `arsip`, includes `bendahara_approve_at` | Arsiparis role check and completed/unarchived filter | 7C or 7E if grouped with archive |
 
+Phase 7C status update, 2026-05-17:
+
+- `GET /api/dokumen` is migrated to local PostgreSQL/Drizzle for the Pegawai-owned document list. The mixed-file `POST /api/dokumen` handler remains Supabase-backed and deferred to write phases.
+- `GET /api/pegawai/revisi` is migrated to local PostgreSQL/Drizzle.
+- `GET /api/ppk/inbox`, `GET /api/ppk/tervalidasi`, `GET /api/ppk/ditolak`, and `GET /api/ppk/revisi` are migrated to local PostgreSQL/Drizzle.
+- `GET /api/bendahara/inbox`, `GET /api/bendahara/selesai`, and `GET /api/bendahara/ditolak` are migrated to local PostgreSQL/Drizzle.
+- `GET /api/arsiparis/inbox` is migrated to local PostgreSQL/Drizzle as the Arsiparis completed-unarchived intake list only.
+- No Supabase fallback was added for migrated GET handlers.
+- Browser-side `master_fungsi` filter reads in role list pages remain deferred UI/helper work. They are dropdown/filter data only and do not replace server-side role/status filtering in the migrated APIs.
+
 ### Dokumen Detail Reads
 
 | Surface | Current backing | Purpose | Shape risk | Auth/RBAC risk | Target |
@@ -112,8 +122,8 @@ These are deferred because Phase 7 is read migration only, and storage/Auth Admi
    - remaining current-user support GETs were audited and remain already local: `/api/users/me`, `/api/users/me/ketua-tim`, and `/api/users/me/is-ketua-tim/$kegiatanId`.
 3. Deferred within/after 7B:
    - `src/lib/master-data/jenis-dokumen.ts` `getAllJenisDokumen(...)` remains Supabase browser-helper-backed because current callers pass a browser Supabase client directly and no API route exists to preserve behavior without UI/API surface work.
-4. Next recommended runtime target: Phase 7C role inbox/list dokumen reads, unless a narrow API-backed `master_jenis_dokumen` read route is explicitly scoped first.
-5. Phase 7D: dokumen detail and log reads.
+4. Phase 7C role inbox/list dokumen reads migrated the scoped runtime GET group on 2026-05-17.
+5. Next recommended runtime target: Phase 7D dokumen detail and log reads.
 6. Phase 7E: laporan, dashboard validation, archive list/detail/search/classification reads.
 7. Phase 7F: stabilization, audit, response-shape checks, and deferred-read documentation.
 
@@ -176,6 +186,33 @@ Phase 7B.2 response decisions:
 - No Supabase fallback was added for the migrated GET handlers.
 
 After Phase 7B.2, the remaining known master/current-user read blocker is the browser-based `jenis-dokumen` helper surface. Move next to Phase 7C role inbox/list reads unless that helper is explicitly converted through a compatible API-backed route in a separate narrow task.
+
+## Phase 7C Role Inbox/List Dokumen Runtime Migration
+
+Date: 2026-05-17.
+
+Phase 7C migrated the scoped role inbox/list GET routes from Supabase-backed reads to local PostgreSQL/Drizzle reads while preserving endpoint paths, query parameters, wrappers, and list-specific field names.
+
+### Migrated Routes
+
+| Route | Wrapper | Local filters and joins | Compatibility notes |
+|---|---|---|---|
+| `GET /api/dokumen` | `{ dokumen }` | local `dms_session`, PEGAWAI role, `created_by = session.user.id`, `created_at desc`, left joins to fungsi/kegiatan names | only GET changed; `POST /api/dokumen` remains deferred write scope |
+| `GET /api/pegawai/revisi` | `{ dokumen }` | PEGAWAI role, owner filter, `status='NEED_REVISION'`, `revision_target='USER'`, `updated_at desc` | preserves revision list fields and name fallback |
+| `GET /api/ppk/inbox` | `{ dokumen }` | PPK role, `status='IN_PPK_VALIDATION'`, optional `fungsi_id`, `start_date`, `end_date`, `created_at desc` | preserves the PPK-specific forbidden message with `bukan PPK` |
+| `GET /api/ppk/tervalidasi` | `{ dokumen }` | PPK role, `status in ('IN_BENDAHARA_APPROVAL','COMPLETED','ARCHIVED')`, `created_at desc` | preserves status in each row |
+| `GET /api/ppk/ditolak` | `{ dokumen }` | PPK role, `status='NEED_REVISION'`, `revision_target='USER'`, `updated_at desc` | preserves `revision_notes` |
+| `GET /api/ppk/revisi` | `{ dokumen }` | PPK role, `status='NEED_REVISION'`, `revision_target='PPK'`, `updated_at desc` | preserves compact revision row shape |
+| `GET /api/bendahara/inbox` | `{ dokumen }` | BENDAHARA role, `status='IN_BENDAHARA_APPROVAL'`, optional `fungsi_id`, `start_date`, `end_date`, `created_at desc`, read-only `PPK_APPROVE` log lookup | preserves `ppk_user_id` and `ppk_validated_at` |
+| `GET /api/bendahara/selesai` | `{ dokumen }` | BENDAHARA role, `status='COMPLETED'`, `updated_at desc` | preserves completed-list row shape |
+| `GET /api/bendahara/ditolak` | `{ dokumen }` | BENDAHARA role, `status='NEED_REVISION'`, `revision_target='PPK'`, `updated_at desc` | preserves `revision_notes` |
+| `GET /api/arsiparis/inbox` | `{ inbox }` | ARSIPARIS role, `status='COMPLETED'`, anti-join against `arsip.dokumen_id`, optional `fungsi_id`, `start_date`, `end_date`, `created_at desc`, read-only `BENDAHARA_APPROVE` log lookup | preserves completed-unarchived intake semantics, `nama_pegawai`, and `bendahara_approve_at` |
+
+### Deferred From Phase 7C
+
+- Dokumen detail routes, log detail routes, role-specific detail routes, preview/download, storage routes, workflow mutations, report/dashboard reads, archive active/inactive/usul-musnah/search reads, and archive lifecycle/destruction behavior remain deferred to later phases.
+- Role list UI pages still contain browser Supabase reads for `master_fungsi` filter dropdowns. These are not the security boundary and remain deferred to the owning UI/helper retirement phase or a later narrow filter-read cleanup.
+- `src/lib/master-data/jenis-dokumen.ts` remains deferred as recorded in Phase 7B.3.
 
 ## Phase 7B.3 Browser Master Data Read Surface Inventory
 

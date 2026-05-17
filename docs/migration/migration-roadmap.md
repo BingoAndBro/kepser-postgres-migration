@@ -230,6 +230,7 @@ Current status:
 - Global Supabase retirement is not complete; many read APIs, workflow endpoints, storage surfaces, and user-management/admin surfaces may still be Supabase-backed.
 - Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`.
 - Phase 7B has started. The first runtime group migrated the six public master-data list GET routes to local PostgreSQL/Drizzle, Phase 7B.2 migrated matching master detail GETs plus Ketua Tim admin GET reads, and Phase 7B.3 classified browser master-data helper read surfaces while leaving master/admin mutations and broader read domains for later phases.
+- Phase 7C migrated the scoped role inbox/list dokumen GET routes to local PostgreSQL/Drizzle on 2026-05-17. Mixed write handlers, detail/log reads, report/dashboard reads, archive metadata/search reads beyond Arsiparis inbox, storage, and mutations remain later phases.
 
 Completed compressed Phase 6G sequence:
 
@@ -276,9 +277,11 @@ Subphases:
 
 - Phase 7C Role Inbox/List Dokumen Read APIs.
   Goal: migrate role/status-filtered document list APIs.
+  Progress: scoped runtime GET group migrated on 2026-05-17 for `GET /api/dokumen`, `GET /api/pegawai/revisi`, `GET /api/ppk/inbox`, `GET /api/ppk/tervalidasi`, `GET /api/ppk/ditolak`, `GET /api/ppk/revisi`, `GET /api/bendahara/inbox`, `GET /api/bendahara/selesai`, `GET /api/bendahara/ditolak`, and `GET /api/arsiparis/inbox`.
   Runtime scope: Pegawai document lists and revision list, PPK inbox/tervalidasi/ditolak/revisi, Bendahara inbox/selesai/ditolak, and Arsiparis inbox/list/search reads where list-only.
   Non-goals: detail endpoints, workflow mutations, preview/download, storage movement/deletion.
   Validation gates: server-side RBAC and status/owner/current_step/revision_target filtering remain compatible.
+  Caveats: `POST /api/dokumen` remains Supabase-backed in the mixed route file; role list UI `master_fungsi` filter dropdowns still use browser Supabase reads and are not security boundaries.
   Exit criteria: role list/inbox pages render from local PostgreSQL/Drizzle without relying on UI filtering.
 
 - Phase 7D Dokumen Detail Read API.
