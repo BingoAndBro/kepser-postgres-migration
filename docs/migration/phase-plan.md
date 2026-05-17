@@ -457,31 +457,317 @@ Phase 7F closure notes:
 
 ## Phase 8: Write Workflow API Migration By Domain
 
-Goal: migrate write endpoints to local PostgreSQL/Drizzle while preserving workflow, FSM, role, and audit behavior.
+Goal: migrate write/workflow endpoints to local PostgreSQL/Drizzle by practical domain groups while preserving endpoint contracts, FSM/status behavior, role enforcement, and audit behavior.
 
-Allowed scope:
+Phase 8 starts after Phase 7F closed the major server/API read-domain migration audit. It should not re-open read migration except when a write route needs a small local read inside the same transaction or authorization check.
 
-- Pegawai: create draft, submit, update, delete where currently allowed, resubmit after PPK rejection.
-- PPK: approve, reject, resubmit after Bendahara rejection, kembalikan.
-- Bendahara: approve and reject.
-- Arsiparis: archive, lifecycle movements, classification mutations.
-- Admin/master data: user management, master data CRUD, ketua tim assignment.
+Phase 8 invariants:
+
+- Endpoint paths, HTTP methods, request payloads, response shapes, route/UI behavior, and visible status/error categories stay unchanged.
+- Server-side RBAC is authoritative. `dms_active_role` remains UX state only and must be validated against local `dms_session` roles.
+- `ADMIN` remains dedicated and is not made workflow-compatible with non-admin roles.
+- FSM/status/current_step/revision_target behavior is preserved, including material approval, revision target, non-material `TERSIMPAN`, and archive linkage.
+- `log_aktivitas` stays append-only; no `UPDATE` or `DELETE` audit behavior is introduced.
+- `arsip.lampiran_snapshot` metadata shape is preserved.
+- Migrated write endpoints must not keep Supabase fallback paths.
+- No old Supabase data or Supabase Storage file migration, copy, download, backfill, or sync.
+- No broad refactor, dependency cleanup, global Supabase removal, browser helper/UI rewrite, tests-only phase, or `src/routeTree.gen.ts` change unless a later explicitly scoped route-generation phase allows it.
+
+Storage boundary:
+
+- Writes that only update database metadata may belong to Phase 8.
+- Writes requiring physical file movement, file deletion, preview/download, storage cleanup, orphan cleanup, or `DIMUSNAHKAN` file-access hardening belong to Phase 9 unless the existing local storage helper fully supports the exact behavior and the runtime subphase explicitly scopes it.
+- Existing old Supabase-backed files are not copied, migrated, fetched, or used as fallback. Missing old files must fail cleanly or keep the storage-coupled route deferred.
+
+Recommended order:
+
+1. Phase 8A short inventory/order.
+2. Phase 8B Pegawai document update/revision writes.
+3. Phase 8C PPK workflow decision writes.
+4. Phase 8D Bendahara workflow decision and nominal writes.
+5. Phase 8E Arsiparis archive metadata/lifecycle writes.
+6. Phase 8F non-user-management master/admin CRUD writes if still appropriate before Phase 10.
+7. Phase 8G stabilization/audit.
+
+Do not start Phase 8 with archive physical destruction, preview/download, user-management/Auth Admin, browser helper/UI retirement, package cleanup, or broad Supabase removal.
+
+### Phase 8A: Write Workflow Inventory And Runtime Order
+
+Goal: produce a short execution inventory for remaining Supabase-backed writes and select the first runtime write group.
+
+Runtime scope:
+
+- Docs/audit only.
+- Inventory remaining mutation endpoints by domain:
+  - Pegawai edit/update/revision/resubmit-adjacent writes, including examples such as `src/routes/api/dokumen.$id.ts`, `src/routes/api/dokumen.$id.submit.ts`, and `src/routes/api/dokumen/$id.nominal.ts`.
+  - PPK approve/reject/kembalikan/resubmit writes, including `src/routes/api/ppk/dokumen/$id/approve.ts`, `src/routes/api/ppk/dokumen/$id/reject.ts`, `src/routes/api/ppk/kembalikan/$id.ts`, and `src/routes/api/ppk/resubmit/$id.ts`.
+  - Bendahara approve/reject/nominal writes, including `src/routes/api/bendahara/dokumen/$id/approve.ts`, `src/routes/api/bendahara/dokumen/$id/reject.ts`, and nominal update surfaces.
+  - Arsiparis archive/lifecycle writes, including `src/routes/api/arsiparis/dokumen.$id.archive.ts`, `src/routes/api/arsiparis/aktif.$id/pindahkan.ts`, `src/routes/api/arsiparis/inaktif.$id/musnahkan.ts`, and `src/routes/api/arsiparis/usul-musnah.$id.ts`.
+  - Master/admin CRUD and Ketua Tim writes that do not depend on Supabase Auth Admin.
+  - Storage-coupled writes deferred or split to Phase 9.
+  - User-management/Auth Admin writes deferred to Phase 10.
+- Select Phase 8B as the first runtime group unless the inventory finds a concrete blocker.
 
 Non-goals:
 
-- No FSM behavior drift.
-- No audit log update/delete.
-- No payload, response, route path, or UI behavior changes.
+- No runtime code, helper creation, route edits, tests, schema/migration/seed changes, package changes, route generation, or Supabase removal.
 
-Key validation gates:
+Validation gates:
 
-- Transactions cover document rows, attachment metadata, status updates, and audit inserts where needed.
-- Submit, approve, reject, revise, archive, and admin CRUD flows pass focused checks.
-- `log_aktivitas` remains append-only.
+- Every remaining write surface is classified as Phase 8, Phase 9, Phase 10, or Phase 11.
+- Storage-coupled endpoints are marked split-or-defer.
+- First runtime group is selected with a short reason.
 
 Exit criteria:
 
-- Core workflow writes no longer depend on Supabase database helpers and preserve existing workflow semantics.
+- Phase 8B can be executed from one bounded prompt without further planning.
+
+Key risks:
+
+- Mixed route files may combine migrated `GET` handlers with Supabase-backed `POST`, `PATCH`, or `DELETE` handlers.
+- Some mutation routes may include storage movement or deletion hidden inside otherwise database-like writes.
+
+Deferred items:
+
+- Preview/download/file streaming, storage cleanup/orphan cleanup, physical destruction, user-management/Auth Admin, password flows, browser helper/UI retirement, package cleanup, and global Supabase dependency removal.
+
+### Phase 8B: Pegawai Document Update/Revision Write APIs
+
+Goal: migrate Pegawai-facing document update, delete, revision, and resubmit-adjacent database writes that are not primarily storage-heavy.
+
+Runtime scope:
+
+- Central document `PATCH`/`DELETE` and update-revision style writes where the current route contract can be preserved.
+- Owner checks and allowed-status checks for `DRAFT`, `NEED_REVISION`, and non-material `TERSIMPAN` behavior.
+- Metadata-only `lampiran_urls` updates where local file metadata is already valid or no physical movement is needed.
+- Append-only `log_aktivitas` inserts inside local Drizzle transactions.
+- Local `dms_session` role enforcement for PEGAWAI-compatible write actions.
+
+Non-goals:
+
+- No preview/download migration.
+- No old Supabase file fallback.
+- No physical file movement/deletion unless the exact behavior is already locally supported and explicitly scoped.
+- No submit route rework beyond compatibility with the already local-backed `POST /api/dokumen/submit`.
+- No browser helper/UI rewrite.
+
+Validation gates:
+
+- Paths, payloads, success responses, and UI-visible error behavior match current routes.
+- Owner and role checks are server-side and use local `dms_session`.
+- `NEED_REVISION` target `USER`, non-material `TERSIMPAN`, `lampiran_urls`, and audit behavior remain compatible.
+- Local transactions cover document row updates plus audit inserts where both are part of one logical write.
+- Migrated handlers have no Supabase write fallback.
+
+Exit criteria:
+
+- Pegawai document update/revision database writes are local-backed for the clean local target, and storage-coupled leftovers are explicitly listed for Phase 9.
+
+Key risks:
+
+- Document delete and attachment edits can be storage-coupled.
+- Revision/resubmit screens may still use browser Supabase helper reads or direct attachment editing outside server write contracts.
+
+Deferred items:
+
+- Pending-to-formal movement for update/resubmit if not already exact, attachment remove/delete behavior, preview/download, direct browser `AttachmentEditor` retirement, and old file availability.
+
+### Phase 8C: PPK Workflow Mutation APIs
+
+Goal: migrate PPK decision writes to local PostgreSQL/Drizzle while preserving FSM, revision target, and audit contracts.
+
+Runtime scope:
+
+- PPK approve/reject/kembalikan/resubmit decision writes where practical.
+- Preserve `IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL`.
+- Preserve PPK rejection to `NEED_REVISION` with revision target `USER`.
+- Preserve Bendahara-rejected/PPK-targeted revision handling and `kembalikan` behavior where applicable.
+- Preserve audit action names, notes, timestamps, and response wrappers.
+- Use local Drizzle write transactions and local `dms_session` PPK role enforcement.
+
+Non-goals:
+
+- No role-specific preview/download migration.
+- No storage movement inside PPK resubmit unless the exact local movement behavior is already available and explicitly scoped.
+- No browser resubmit page rewrite.
+- No user-management/Auth Admin replacement.
+
+Validation gates:
+
+- FSM transitions, `current_step`, `revision_target`, and rejection notes match the legacy route behavior.
+- Duplicate/invalid decision attempts preserve current status/error categories.
+- `log_aktivitas` inserts are append-only and transactional with status updates.
+- Migrated PPK writes have no Supabase write fallback.
+
+Exit criteria:
+
+- PPK approve/reject/kembalikan and safe resubmit metadata writes are local-backed, with any storage-coupled resubmit movement split to Phase 9.
+
+Key risks:
+
+- PPK resubmit may combine metadata writes with attachment movement.
+- Existing routes may read audit state to prevent duplicate actions; parity needs to be preserved.
+
+Deferred items:
+
+- PPK preview/download, attachment movement not exactly supported locally, browser helper reads, and global Supabase cleanup.
+
+### Phase 8D: Bendahara Workflow Mutation APIs
+
+Goal: migrate Bendahara approval, rejection, and nominal-related writes to local PostgreSQL/Drizzle.
+
+Runtime scope:
+
+- Bendahara approve/reject writes.
+- Nominal-related document writes when they are part of Bendahara-compatible workflow behavior.
+- Preserve `IN_BENDAHARA_APPROVAL -> COMPLETED`.
+- Preserve Bendahara rejection to `NEED_REVISION` with revision target `PPK`.
+- Preserve `nominal_realisasi`, approval/rejection notes, audit actions, and response shapes.
+- Use local Drizzle transactions and local `dms_session` BENDAHARA role enforcement.
+
+Non-goals:
+
+- No preview/download migration.
+- No physical storage movement/deletion.
+- No PPK resubmit storage handling unless scoped in 8C and backed by local helpers.
+- No broad report/list read work already closed by Phase 7.
+
+Validation gates:
+
+- Status/current_step/revision_target outcomes match the FSM behavior.
+- Nominal validation and response/error shapes remain compatible.
+- Audit insert behavior remains append-only and transactional with workflow updates.
+- Migrated Bendahara writes have no Supabase write fallback.
+
+Exit criteria:
+
+- Bendahara approval, rejection, and scoped nominal database writes are local-backed for seed/new local data.
+
+Key risks:
+
+- Nominal update routes may be shared by other role screens or route categories.
+- Approval may depend on previous PPK audit rows for response context.
+
+Deferred items:
+
+- Bendahara preview/download, storage/file-access behavior, and any browser helper/UI cleanup.
+
+### Phase 8E: Arsiparis Archive Metadata/Lifecycle Write APIs
+
+Goal: migrate archive creation and safe archive metadata lifecycle writes that are not primarily physical file destruction.
+
+Runtime scope:
+
+- Archive creation from completed documents, including `COMPLETED -> ARCHIVED` document linkage.
+- `arsip` row creation with retained metadata, retention fields, `nominal_realisasi`, and `lampiran_snapshot`.
+- Safe lifecycle metadata transitions such as `AKTIF -> INAKTIF` and `INAKTIF -> USUL_MUSNAH` when they do not require physical file deletion.
+- Append-only `log_aktivitas` behavior for archive actions.
+- Local Drizzle transactions and local `dms_session` ARSIPARIS role enforcement.
+
+Non-goals:
+
+- No physical file deletion/destruction.
+- No preview/download/file streaming migration.
+- No storage diagnostics/orphan cleanup.
+- No archive scheduler replacement.
+- No global Supabase dependency removal.
+
+Validation gates:
+
+- Archive creation preserves document status, archive metadata, `lampiran_snapshot`, and response shape.
+- Lifecycle metadata transitions preserve `status_arsip`, proposal rows, rejection/approval notes, and audit behavior.
+- `DIMUSNAHKAN` file-access hardening is not claimed unless a later Phase 9 storage subphase completes it.
+- Migrated archive metadata writes have no Supabase write fallback.
+
+Exit criteria:
+
+- Archive creation and safe lifecycle metadata writes are local-backed, and physical destruction/file-access work is clearly deferred to Phase 9.
+
+Key risks:
+
+- `usul-musnah` decisions and `inaktif.$id/musnahkan` may combine metadata updates with physical storage removal.
+- Archive behavior must not silently drop `lampiran_snapshot` because preview/download hardening is still later.
+
+Deferred items:
+
+- Physical file deletion, `DIMUSNAHKAN` preview/download blocking, archive file-access checks, storage cleanup/orphan cleanup, and scheduler replacement.
+
+### Phase 8F: Master/Admin CRUD Write APIs, Non-User Management
+
+Goal: migrate master data and non-user-management admin CRUD writes that can move safely before Phase 10.
+
+Runtime scope:
+
+- Master fungsi, kegiatan, jenis permintaan, kategori, detail, kelengkapan, jenis dokumen, classification writes, and Ketua Tim assignment writes where they do not depend on Supabase Auth Admin.
+- Local `dms_session` ADMIN authorization with dedicated ADMIN behavior preserved.
+- Request/response shape parity for existing `POST`, `PATCH`, and `DELETE` or soft-delete behavior.
+- Local Drizzle transactions where writes affect multiple tables or assignment replacement semantics.
+
+Non-goals:
+
+- No user creation, user update, activation/deactivation, reset-password, change-password, Auth Admin replacement, password provisioning, or auth-role administration.
+- No browser admin page rewrite unless a future UI phase explicitly scopes it.
+- No package cleanup or global Supabase removal.
+
+Validation gates:
+
+- ADMIN-only access remains server-enforced and dedicated.
+- Existing active/soft-delete/hard-delete behavior is preserved per master route.
+- Duplicate/constraint errors preserve UI-compatible status categories and response shapes.
+- Migrated master/admin writes have no Supabase write fallback.
+
+Exit criteria:
+
+- Non-user-management master/admin CRUD writes selected for Phase 8 are local-backed, with user-management/Auth Admin surfaces explicitly left for Phase 10.
+
+Key risks:
+
+- Admin master pages may still use browser Supabase helpers for reads or mutations.
+- Ketua Tim mutation routes may use user-name enrichment or Auth Admin lookups that should not pull user-management into Phase 8.
+
+Deferred items:
+
+- `/api/users/*`, password/change-password/reset-password flows, Supabase Auth Admin replacement, browser admin helper/UI retirement, and final Supabase dependency cleanup.
+
+### Phase 8G: Write API Stabilization And Supabase Write Retirement Audit
+
+Goal: close Phase 8 only after migrated write domains are audited and remaining writes are assigned to later phases.
+
+Runtime scope:
+
+- Audit migrated Phase 8 write domains for Supabase-backed writes and fallback paths.
+- Run or document focused workflow/manual checks for Pegawai, PPK, Bendahara, Arsiparis, and selected master/admin writes.
+- Confirm local `dms_session` role enforcement, transaction boundaries, FSM behavior, and append-only audit behavior.
+- Update migration docs with completed status and deferred items.
+
+Non-goals:
+
+- No preview/download/storage migration.
+- No user-management/Auth Admin replacement.
+- No browser helper/UI retirement.
+- No package cleanup, global Supabase dependency removal, route generation, DB scripts, migrations, or seeds unless a preceding runtime subphase explicitly required them.
+
+Validation gates:
+
+- Grep/audit confirms migrated write domains no longer use Supabase-backed writes or Supabase fallback.
+- Remaining writes are explicitly deferred to Phase 9 storage, Phase 10 admin/user-management/Auth Admin, or Phase 11 global cleanup.
+- Focused checks cover submit/update/revision, PPK decision, Bendahara decision, archive metadata lifecycle, and selected master/admin CRUD where migrated.
+- Guarded diffs confirm no unrelated `src/routeTree.gen.ts`, submit route, DB scripts, migrations, seeds, package files, or tests changed unless explicitly in scope for a runtime subphase.
+
+Exit criteria:
+
+- Core workflow writes selected for Phase 8 are local-backed for the clean local target, and the next phase can start with storage/file-access completion rather than another broad write audit.
+
+Key risks:
+
+- Supabase imports may remain in mixed files for storage, Auth Admin, or browser helper reasons and must be classified rather than removed blindly.
+- A migrated write may still call a Supabase-backed helper indirectly.
+
+Deferred items:
+
+- Phase 9: preview/download/file streaming, update/resubmit physical movement, attachment remove/delete, archive physical destruction, storage diagnostics/orphan cleanup, and `DIMUSNAHKAN` file-access hardening.
+- Phase 10: user-management, passwords, Supabase Auth Admin replacement, and Supabase runtime retirement planning.
+- Phase 11: final dependency/env cleanup, regression, backup/restore, LAN release readiness, and global Supabase removal after parity.
 
 ## Phase 9: Storage Surface Completion
 

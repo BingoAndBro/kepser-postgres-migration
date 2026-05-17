@@ -327,6 +327,12 @@ Current next recommended target after Phase 7F: Phase 8 write/workflow migration
 
 Goal: Move write endpoints to PostgreSQL/Drizzle while preserving workflow behavior.
 
+Current planning note:
+
+- After Phase 7F closed the major server/API read migration audit, Phase 8 is planned as compact write/workflow migration by domain: 8A inventory/order, 8B Pegawai document update/revision writes, 8C PPK workflow mutations, 8D Bendahara workflow mutations, 8E Arsiparis archive metadata/lifecycle writes, 8F non-user-management master/admin CRUD writes, and 8G stabilization/audit.
+- Phase 8 may migrate database metadata writes and workflow transactions, but storage-coupled physical file movement/deletion, preview/download, storage cleanup/orphan cleanup, user-management/Auth Admin replacement, browser helper/UI retirement, package cleanup, and global Supabase dependency removal remain later-phase work.
+- The recommended first runtime group after the 8A inventory/order pass is Phase 8B Pegawai document update/revision write APIs, unless that inventory finds a concrete blocker.
+
 Allowed scope:
 
 - Mutation helpers.
