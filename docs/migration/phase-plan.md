@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 7 read API migration by domain. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 7 read API migration by domain. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; the next runtime phase is Phase 7B Master Data And Current User Read APIs. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -204,7 +204,7 @@ Phase 6G is complete. It was kept compressed and runtime-oriented:
 
 Goal: migrate read endpoints from Supabase reads to local PostgreSQL/Drizzle without changing endpoint paths, request query/body shapes, response shapes, or UI behavior.
 
-Current next phase: Phase 7A Read API Inventory and Prioritization. After 7A, proceed directly to runtime migration in 7B unless a concrete route/domain blocker is documented. Do not return to foundation-only mode by default.
+Current next phase: Phase 7B Master Data And Current User Read APIs. Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`; proceed directly to runtime migration in 7B unless a concrete route/domain blocker is documented. Do not return to foundation-only mode by default.
 
 Phase 7 guardrails:
 
@@ -222,6 +222,8 @@ Phase 7 guardrails:
 ### Phase 7A: Read API Inventory And Prioritization
 
 Goal: produce a short domain inventory and runtime order for Supabase-backed read endpoints.
+
+Status: complete. See `docs/migration/read-api-inventory-prioritization.md`.
 
 Runtime scope:
 

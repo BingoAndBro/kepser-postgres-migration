@@ -228,7 +228,7 @@ Current status:
 - Completed foundations and runtime surfaces include local storage path helpers, internal token/access helpers, opt-in raw preview, `POST /api/upload`, `POST /api/dokumen/rename-pending`, submit foundations through Phase 6F, and Phase 6G submit runtime integration.
 - Phase 6G.6 made `POST /api/dokumen/submit` local-backed by default for the clean local target and removed the submit-route legacy Supabase execution branch.
 - Global Supabase retirement is not complete; many read APIs, workflow endpoints, storage surfaces, and user-management/admin surfaces may still be Supabase-backed.
-- Current next phase is Phase 7A Read API Inventory and Prioritization, followed directly by runtime read migration in Phase 7B.
+- Phase 7A Read API Inventory and Prioritization is complete in `docs/migration/read-api-inventory-prioritization.md`. Current next phase is Phase 7B Master Data and Current User Read APIs.
 
 Completed compressed Phase 6G sequence:
 
@@ -257,6 +257,7 @@ Subphases:
 
 - Phase 7A Read API Inventory and Prioritization.
   Goal: produce a short inventory of Supabase-backed read endpoints by domain, rough priority order, response compatibility notes, deferred endpoints, and validation strategy.
+  Status: complete in `docs/migration/read-api-inventory-prioritization.md`.
   Runtime scope: none.
   Non-goals: no runtime code, no helper creation, no endpoint migration.
   Validation gates: inventory covers master/current-user, role list, detail, report/dashboard, and archive reads; first runtime group is selected.
