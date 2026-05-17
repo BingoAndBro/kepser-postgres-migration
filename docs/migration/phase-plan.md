@@ -755,6 +755,20 @@ Deferred items:
 
 Goal: migrate archive creation and safe archive metadata lifecycle writes that are not primarily physical file destruction.
 
+Status as of 2026-05-18: in progress with scoped runtime migration completed for safe archive metadata/lifecycle writes.
+
+Migrated in this pass:
+
+- `POST /api/arsiparis/dokumen/$id/archive` in `src/routes/api/arsiparis/dokumen.$id.archive.ts` now uses local `dms_session` authorization, assigned ARSIPARIS role enforcement, local Drizzle archive creation, `COMPLETED -> ARCHIVED` document status update through the existing FSM result, and append-only `log_aktivitas` insert in one transaction. It preserves the legacy required archive metadata payload, duplicate-archive guard, `lampiran_snapshot` metadata copy from `dokumen_transaksi.lampiran_urls`, `nominal_realisasi`, `ARCHIVE`, `stepUrutan=null`, and `{ success: true, message: 'Dokumen berhasil diarsipkan' }`.
+- `POST /api/arsiparis/aktif/$id/pindahkan` in `src/routes/api/arsiparis/aktif.$id/pindahkan.ts` now uses local `dms_session` authorization, assigned ARSIPARIS role enforcement, local Drizzle `AKTIF -> INAKTIF` status update, and append-only `log_aktivitas` insert in one transaction. It preserves optional `catatan`, `PINDAHKAN_INAKTIF`, `stepUrutan=null`, and `{ success: true, message: 'Arsip dipindahkan ke inaktif' }`.
+- `POST /api/arsiparis/inaktif/$id/musnahkan` in `src/routes/api/arsiparis/inaktif.$id/musnahkan.ts` now uses local `dms_session` authorization, assigned ARSIPARIS role enforcement, local Drizzle `arsip_usul_musnah` proposal insert, `INAKTIF -> USUL_MUSNAH` status update, duplicate-proposal guard, and append-only `log_aktivitas` insert in one transaction. It preserves optional `catatan`, proposal status `MENUNGGU`, `PINDAHKAN_USUL_MUSNAH`, `stepUrutan=null`, and `{ success: true, message: 'Arsip diusulkan untuk dimusnahkan' }`.
+
+Skipped or deferred in this pass:
+
+- `PATCH /api/arsiparis/usul-musnah/$id` remains Phase 9 storage-coupled work because the legacy handler approves destruction by deleting Supabase Storage objects, clearing `lampiran_snapshot`, setting `status_arsip='DIMUSNAHKAN'`, and appending audit. Migrating only the metadata portion would not preserve destruction/file-access behavior.
+- Arsiparis classification `POST/PATCH/DELETE` routes remain Phase 8F non-user-management master/admin CRUD work.
+- Preview/download, archive file-access blocking for `DIMUSNAHKAN`, physical file deletion, storage diagnostics/orphan cleanup, and scheduler replacement remain Phase 9 or later as listed below.
+
 Runtime scope:
 
 - Archive creation from completed documents, including `COMPLETED -> ARCHIVED` document linkage.
