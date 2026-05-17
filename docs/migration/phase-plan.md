@@ -647,6 +647,21 @@ Deferred items:
 
 Goal: migrate PPK decision writes to local PostgreSQL/Drizzle while preserving FSM, revision target, and audit contracts.
 
+Status as of 2026-05-18: in progress with scoped runtime migration completed for pure/safe PPK decision writes.
+
+Migrated in this pass:
+
+- `POST /api/ppk/dokumen/$id/approve` in `src/routes/api/ppk/dokumen/$id/approve.ts` now uses local `dms_session` authorization, assigned PPK role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction. It preserves the legacy empty-body validation, `IN_PPK_VALIDATION` status guard, FSM `APPROVE` transition to `IN_BENDAHARA_APPROVAL`, `current_step='BENDAHARA'`, cleared `revision_target`, `PPK_APPROVE`, `stepUrutan=2`, and `{ success: true, message: 'Dokumen diteruskan ke Bendahara' }`.
+- `POST /api/ppk/dokumen/$id/reject` in `src/routes/api/ppk/dokumen/$id/reject.ts` now uses local `dms_session` authorization, assigned PPK role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction. It preserves the required `catatan` payload validation, `IN_PPK_VALIDATION` status guard, FSM `REJECT` transition to `NEED_REVISION`, `revision_target='USER'`, `revision_notes=catatan`, `PPK_REJECT`, `stepUrutan=1`, and `{ success: true, message: 'Dokumen dikembalikan ke pegawai' }`.
+- `POST /api/ppk/kembalikan/$id` in `src/routes/api/ppk/kembalikan/$id.ts` now uses local `dms_session` authorization, assigned PPK role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction. It preserves the legacy meaning: Bendahara-rejected `NEED_REVISION` rows targeted to PPK are returned to Pegawai by setting `revision_target='USER'`, fixed note `Dikembalikan ke pegawai oleh PPK`, `PPK_KEMBALIKAN`, `stepUrutan=1`, and `{ success: true }`.
+- `POST /api/ppk/resubmit/$id` in `src/routes/api/ppk/resubmit/$id.ts` now uses local `dms_session` authorization, assigned PPK role enforcement, local Drizzle document status update, and append-only `log_aktivitas` insert in one transaction for the safe decision path. It preserves the optional body parsing behavior, `NEED_REVISION` plus `revision_target='PPK'` guard, FSM `RESUBMIT_PPK` transition to `IN_BENDAHARA_APPROVAL`, `current_step='BENDAHARA'`, cleared `revision_target`, optional `nominalRealisasi` metadata update, `RESUBMIT_PPK`, `stepUrutan=2`, and `{ success: true }`.
+
+Skipped or deferred in this pass:
+
+- `GET /api/ppk/resubmit/$id` remains a mixed read/detail support surface in the same file and was not part of this write-only pass.
+- `PATCH /api/ppk/resubmit/$id` remains deferred because it is storage-coupled attachment save behavior using `syncDocumentAttachments` and `deleteOrphanFiles`.
+- `POST /api/ppk/resubmit/$id` intentionally fails closed when submitted `lampiranUrls` contain pending paths or a changed URL set requiring file movement, deletion, or path synchronization. Full update/resubmit attachment movement and orphan cleanup remain Phase 9 work.
+
 Runtime scope:
 
 - PPK approve/reject/kembalikan/resubmit decision writes where practical.
@@ -682,6 +697,7 @@ Key risks:
 Deferred items:
 
 - PPK preview/download, attachment movement not exactly supported locally, browser helper reads, and global Supabase cleanup.
+- Remaining PPK resubmit attachment save/move/delete behavior belongs to Phase 9 storage surface completion.
 
 ### Phase 8D: Bendahara Workflow Mutation APIs
 
