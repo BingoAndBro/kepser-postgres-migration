@@ -10,7 +10,7 @@ Foundation-only work should stop unless a real route integration blocker appears
 
 ## Current Submit Route Reality
 
-`src/routes/api/dokumen/submit.ts` is still legacy Supabase-backed. It currently:
+Historical Phase 6G.1 baseline: `src/routes/api/dokumen/submit.ts` was still legacy Supabase-backed. It previously:
 
 - parses and validates the create-and-submit payload;
 - validates material `nominal_realisasi`;
@@ -21,6 +21,8 @@ Foundation-only work should stop unless a real route integration blocker appears
 - updates status through the Supabase admin client;
 - appends audit through `insertLog(...)`;
 - returns the existing `201 { success: true, dokumen }` success shape or current error shapes.
+
+Phase 6G.6 update: default `POST /api/dokumen/submit` is now local-backed. The submit-route legacy Supabase execution branch was removed, and no Supabase fallback was kept.
 
 Exact surfaces to replace gradually:
 
@@ -105,12 +107,10 @@ Do not add another planning-only or helper-only phase unless a concrete blocker 
 
 ## Still Blocked
 
-- Local preflight route response mapping for missing files and target conflicts.
-- Live local DB write verification in the route.
-- Controlled file movement failure behavior.
-- Append-log failure parity.
-- Runtime DB/file compensation or recovery after post-DB file failure.
-- Supabase submit path retirement.
+- Real DB/file compensation or operational recovery after post-DB file failure.
+- Partial movement cleanup or retry policy.
+- Submit path validation through human-run focused tests.
+- Preview/download, update/resubmit movement, and other storage surfaces.
 
 ## Validation Results
 

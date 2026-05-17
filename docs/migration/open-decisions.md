@@ -280,6 +280,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Submit route controlled local file movement added.
   Date: 2026-05-16.
   Rationale: Phase 6G.5 updated the controlled `useLocalDbSubmit=true` branch so preflight-approved move-required local pending files can complete submit after local DB transaction success. The branch uses the existing local pending move helper, preserves planned final logical `lampiran_urls`, returns success only after full movement success, and returns safe non-success for movement or partial movement failure without claiming rollback. Default submit behavior remains legacy Supabase-backed. This does not mark runtime DB/file compensation, Supabase fallback, default submit retirement, global storage migration, or Supabase Storage migration/copy/download/backfill/sync complete.
+- Submit runtime stabilization and Supabase submit path retirement completed.
+  Date: 2026-05-16.
+  Rationale: Phase 6G.6 made the local submit runtime the default for `POST /api/dokumen/submit`, removed the submit-route legacy Supabase execution branch, and kept no diagnostic legacy fallback. The route now uses local `dms_session` auth, submit move planning, read-only local disk preflight, local DB transaction, and controlled local pending-to-formal movement for normal submit requests. `useLocalAuthDryRun=true` and `useLocalPreflightDryRun=true` remain temporary diagnostics; `useLocalDbSubmit=true` is a redundant alias. This does not mark global Supabase runtime retirement, preview/download migration, update/resubmit movement, real DB/file rollback, or Supabase Storage migration/copy/download/backfill/sync complete.
 - Remaining migration phases should be runtime-oriented.
   Date: 2026-05-16.
   Rationale: Phase 6F created useful submit foundations but became too granular. From Phase 6G onward, future phases should make route/domain runtime progress unless a concrete blocker is discovered. Planning-only or helper-only phases should be rare, short, and justified by a specific blocker. The accepted submit sequence is compressed into Phase 6G.2 through Phase 6G.6, followed by domain read migration, workflow write migration, storage surface completion, Supabase runtime retirement, and final stabilization through Phase 11.
@@ -297,7 +300,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact transition strategy for old Supabase helpers.
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
-- Phase 6G.6 submit runtime stabilization and Supabase submit path retirement.
 - Pending-to-formal local move implementation for update and PPK resubmit.
 - Archive destruction local delete behavior.
 - Storage diagnostics/orphan cleanup local implementation.

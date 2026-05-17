@@ -146,6 +146,8 @@ Without `useLocalDbSubmit=true`, the route still uses legacy Supabase session, S
 
 Supabase imports and dependencies remain because other paths still need them during migration.
 
+Phase 6G.6 follow-up: this statement is historical for Phase 6G.5. The default `POST /api/dokumen/submit` path is now local-backed, and the submit-route legacy Supabase execution branch was removed. Supabase imports and dependencies still remain elsewhere in the app because global Supabase retirement is outside Phase 6G.6.
+
 ## Explicit Non-Implementation
 
 No Supabase fallback was added.
@@ -183,10 +185,11 @@ Coverage added or retained:
 
 ## Remaining Blockers Before Submit Stabilization
 
+Phase 6G.6 follow-up: default submit stabilization and submit-route Supabase branch retirement are complete for `POST /api/dokumen/submit`.
+
 - Runtime DB/file compensation and recovery are still incomplete.
 - Partial movement cleanup or retry policy remains unresolved.
 - `temp-id` remains the submit planning target.
-- Default submit is still legacy Supabase-backed until Phase 6G.6 explicitly retires or disables it.
 - Preview/download defaults and other storage surfaces remain outside this phase.
 - Update/resubmit local pending movement remains future work.
 - Historical Supabase Storage files are not locally available.
