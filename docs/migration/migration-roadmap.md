@@ -378,6 +378,11 @@ Exit criteria:
 
 Goal: Complete the remaining local filesystem storage surfaces after submit and core workflow wiring are stable.
 
+Current planning note:
+
+- Phase 9.0 planned storage/file-access completion on 2026-05-18 as compact runtime-oriented subphases: 9A inventory/order, 9B raw preview/download internal URL migration, 9C role/document preview/download routes, 9D update/revision/resubmit attachment movement, 9E document delete and attachment remove/delete, 9F destructive archive approval plus `DIMUSNAHKAN` hardening, and 9G diagnostics/orphan cleanup/stabilization.
+- Phase 9 starts after Phase 8G closed selected clean-local write domains. It does not include user-management/Auth Admin, password flows, package/env cleanup, global Supabase dependency removal, old Supabase file migration/copy/download/backfill/sync, or broad browser helper/UI retirement.
+
 Allowed scope:
 
 - Default preview/download endpoint migration.

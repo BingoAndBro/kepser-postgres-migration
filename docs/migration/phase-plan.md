@@ -942,20 +942,302 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Allowed scope:
+Status as of 2026-05-18: Phase 9.0 planning complete. Phase 9 is split into practical runtime-oriented subphases below. The next recommended task is Phase 9A Storage Surface Inventory And Runtime Order.
 
-- Preview/download defaults and role-specific file access.
-- `AttachmentEditor` upload/remove behavior.
-- Update/resubmit pending-to-formal moves.
-- Document delete/remove file behavior.
-- Archive destruction file deletion.
-- Admin storage diagnostics and orphan cleanup.
+Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
+
+Phase 9 must not repeat the earlier helper-only over-fragmentation pattern. Each runtime subphase should move one user-visible storage/file-access domain to the local target, then verify it before moving to more destructive behavior.
 
 Non-goals:
 
 - No Supabase Storage migration, copy, download, backfill, or sync.
 - No public static serving of `storage/`.
 - No broad endpoint behavior changes unrelated to storage.
+- No user-management/Auth Admin, password, package/env cleanup, global Supabase dependency removal, DB schema redesign, browser admin helper retirement, or broad UI rewrite.
+- No `src/routeTree.gen.ts` changes unless a later explicitly scoped route-generation task approves them.
+
+Critical invariants:
+
+- Existing endpoint paths, HTTP methods, request payloads, response wrappers, and UI behavior stay compatible.
+- `{ signedUrl }` response shape is preserved where current callers expect it.
+- Internal signed URLs point to an internal API route such as `/api/files/access?token=...`, never to a filesystem path.
+- Server-side RBAC is authoritative; `dms_active_role` remains UX state only; `ADMIN` remains dedicated.
+- Migrated storage routes must not keep or add Supabase Storage fallback.
+- Old Supabase-backed files are not migrated, copied, downloaded, backfilled, synced, or fetched on demand. Missing old files fail cleanly.
+- Absolute physical paths, storage roots, secrets, DB URLs, Supabase URLs, signed-token internals, and raw filesystem errors are never exposed to clients.
+- Logical path validation, path traversal prevention, and local storage root containment are required before any file read, move, or delete.
+- Token verification alone is not authorization. File access must revalidate the current session, role/owner access, document/archive metadata, logical path safety, and relevant archive state before serving.
+- `DIMUSNAHKAN` must block preview/download/file access even if stale files or stale unexpired tokens exist.
+- `log_aktivitas` remains append-only where a storage action is also a workflow action.
+- `lampiran_snapshot` must not be silently dropped except in the explicitly scoped destructive archive approval behavior that preserves legacy semantics.
+- If DB mutation and file mutation are not fully atomic, the route must not claim full rollback. It must use explicit failure handling and safe final states.
+
+Recommended order:
+
+1. Phase 9A inventory/order.
+2. Phase 9B raw preview/download URL generation.
+3. Phase 9C role/document preview/download routes.
+4. Phase 9D update/revision/resubmit attachment movement.
+5. Phase 9E document delete and attachment remove/delete.
+6. Phase 9F destructive archive approval and `DIMUSNAHKAN` hardening.
+7. Phase 9G diagnostics, orphan cleanup, and stabilization.
+
+Reason: preview/download and authorization hardening must be stable before delete/destruction behavior is migrated.
+
+### Phase 9A: Storage Surface Inventory And Runtime Order
+
+Goal: produce the final Phase 9 storage/file-access inventory and select the first runtime group.
+
+Runtime scope:
+
+- Docs/audit only.
+- Inventory remaining Supabase-backed or mixed storage/file-access routes and helpers.
+- Classify preview/download endpoints, raw signed URL replacement endpoints, update/revision/resubmit attachment movement, delete/remove/cleanup, destructive archive approval, browser `AttachmentEditor` surfaces, and admin diagnostics/orphan cleanup.
+- Confirm existing local helper readiness and any route-specific gaps.
+- Select Phase 9B as the first runtime group unless the inventory finds a concrete blocker.
+
+Non-goals:
+
+- No runtime code, helper creation, route edits, UI rewrite, tests, route generation, DB scripts, migrations, seeds, package changes, Supabase removal, or file migration.
+
+Validation gates:
+
+- Every remaining storage/file-access surface is assigned to Phase 9B through 9G or explicitly deferred.
+- Supabase references are classified by purpose rather than removed.
+- Route paths and response shapes needing `{ signedUrl }` compatibility are listed.
+- Guarded diffs confirm docs-only changes.
+
+Exit criteria:
+
+- Phase 9B can be executed from one bounded prompt without another broad planning loop.
+
+Key risks:
+
+- Mixed files may contain both already-local reads/writes and deferred storage code.
+- Browser `AttachmentEditor` behavior may require server route support before UI callers can be safely switched.
+
+Deferred items:
+
+- Runtime preview/download, movement, deletion, archive destruction, diagnostics, and UI caller changes remain later Phase 9 subphases.
+
+### Phase 9B: Preview/Download Internal URL Route Migration
+
+Goal: migrate raw preview/download URL-generation surfaces away from Supabase signed URLs.
+
+Runtime scope:
+
+- `GET /api/dokumen/preview-url?url=...`.
+- `GET /api/dokumen/download-url?url=...`.
+- Generate internal `/api/files/access?token=...` URLs for local logical paths.
+- Preserve current request query parameters, response shapes, filename behavior, expiry intent, and `{ signedUrl }` field names.
+- Use existing token and internal access URL foundations where practical.
+
+Non-goals:
+
+- No physical file movement or deletion.
+- No document/role preview route migration beyond shared helper work needed for raw URL parity.
+- No browser UI rewrite unless a tiny caller compatibility adjustment is strictly required and explicitly scoped.
+- No Supabase fallback for migrated raw URL paths.
+
+Validation gates:
+
+- Authorized local raw preview/download returns an internal API URL in `signedUrl`.
+- Unauthorized and unauthenticated requests preserve compatible 401/403 categories.
+- Unsafe logical paths fail closed without physical path exposure.
+- Missing old files fail cleanly when the internal access URL is used.
+- Internal token payloads do not contain physical paths, roots, secrets, DB URLs, or Supabase signed URLs.
+
+Exit criteria:
+
+- Raw preview/download URL-generation for local logical paths no longer depends on Supabase signed URLs.
+
+Key risks:
+
+- Raw path endpoints are high-risk because they accept a query-provided logical path.
+- Current clients may fetch the returned `signedUrl` directly, so internal access response headers must remain browser-compatible.
+
+Deferred items:
+
+- Role/document preview/download routes, update/resubmit movement, delete/remove behavior, archive destruction, and diagnostics.
+
+### Phase 9C: Role-Specific Preview/Download Route Migration
+
+Goal: migrate document and role preview/download routes to local internal file access.
+
+Runtime scope:
+
+- Central document routes: `/api/dokumen/$id/preview/$lampiranIndex` and `/api/dokumen/$id/download/$lampiranIndex`.
+- PPK and Bendahara role-specific preview/download routes where present.
+- Arsiparis preview/download behavior through the existing central document route callers.
+- Document/archive-aware token generation or direct internal access behavior, as needed to preserve existing `{ signedUrl }` contracts.
+- Revalidate local session, role, owner/workflow authorization, document status, archive status, lampiran index, logical path safety, and physical root containment.
+- Preserve preview/download filename and content-disposition behavior.
+
+Non-goals:
+
+- No physical file movement or deletion.
+- No `AttachmentEditor` rewrite.
+- No broad UI rewrite.
+- No Supabase fallback.
+
+Validation gates:
+
+- Pegawai owner, PPK, Bendahara, and Arsiparis-compatible callers get authorized preview/download results for local files.
+- Wrong role and unauthenticated requests fail with compatible categories.
+- Invalid lampiran index and missing file fail cleanly.
+- `DIMUSNAHKAN` blocks preview/download.
+- Stale internal tokens cannot bypass current authorization or archive status.
+
+Exit criteria:
+
+- Role/document preview/download routes serve local files through internal API access without Supabase signed URLs.
+
+Key risks:
+
+- Existing callers rely on role-specific endpoints and central Arsiparis-through-document behavior.
+- Archive detail reads use `lampiran_snapshot`, while document detail routes use `lampiran_urls`; the route must choose the correct metadata source.
+
+Deferred items:
+
+- Attachment movement, delete/remove, destructive archive approval, diagnostics, and global Supabase cleanup.
+
+### Phase 9D: Update/Revision/Resubmit Attachment Movement
+
+Goal: complete storage-coupled attachment movement deferred from Phase 8.
+
+Runtime scope:
+
+- Update-time pending-to-formal movement for Pegawai update/revision paths.
+- PPK resubmit attachment save/move/delete behavior in the mixed resubmit route.
+- Server route support needed for `AttachmentEditor` pending/local semantics.
+- Use existing local pending move and path safety helpers where practical.
+- Explicitly define DB/file operation ordering, partial failure responses, and recovery expectations for each route touched.
+
+Non-goals:
+
+- No preview/download migration unless already completed by 9B/9C.
+- No document delete or archive destructive approval.
+- No broad `AttachmentEditor` UI rewrite beyond the minimum server API compatibility required by the scoped route behavior.
+- No Supabase fallback.
+
+Validation gates:
+
+- Pending dash and upload-API pending paths are handled according to the local helper support matrix.
+- Already formal paths remain unchanged.
+- Missing source, unsafe source, target conflict, owner mismatch, and partial movement fail safely.
+- DB metadata is not updated to paths that cannot be satisfied without explicit compensation handling.
+- No physical path or storage root is exposed.
+
+Exit criteria:
+
+- Update/revision/resubmit attachment movement for new local files is local-filesystem-backed and no longer relies on Supabase Storage movement/deletion.
+
+Key risks:
+
+- DB and filesystem updates are not naturally atomic.
+- Attachment replacement can create orphan files if partial failure handling is loose.
+
+Deferred items:
+
+- Document delete, archive destruction, broad orphan cleanup, final browser helper retirement, and global Supabase cleanup.
+
+### Phase 9E: Document Delete And Attachment Remove/Delete Storage Behavior
+
+Goal: migrate storage-coupled document deletion and attachment remove/delete behavior.
+
+Runtime scope:
+
+- `DELETE /api/dokumen/$id` where it remains storage-coupled.
+- Attachment remove/delete behavior that currently removes or schedules removal of physical files.
+- Local filesystem deletion semantics for files referenced by document metadata.
+- Preserve legacy route contracts and status/error categories where callers rely on them.
+- Prefer safe metadata-only behavior only if it preserves the existing contract; otherwise define local deletion explicitly.
+
+Non-goals:
+
+- No destructive archive approval.
+- No admin-wide orphan cleanup.
+- No old Supabase file lookup or fallback.
+- No broad UI rewrite.
+
+Validation gates:
+
+- Deletion never targets paths outside local storage root.
+- Missing local files fail cleanly or are handled as compatible no-op only when explicitly documented.
+- Owner and role authorization remain server-enforced.
+- Partial file deletion does not return a misleading full-success response.
+- No raw physical paths, roots, or filesystem errors leak to clients.
+
+Exit criteria:
+
+- Document delete and attachment remove/delete behavior is local-backed for new local files.
+
+Key risks:
+
+- Hard deletion can conflict with auditability and archive snapshot expectations.
+- Fire-and-forget deletion can hide partial failures.
+
+Deferred items:
+
+- Archive destruction, diagnostics/orphan cleanup, and final Supabase cleanup.
+
+### Phase 9F: Archive Destructive Approval And DIMUSNAHKAN Hardening
+
+Goal: migrate destructive archive approval and enforce destroyed-archive file-access blocking.
+
+Runtime scope:
+
+- `PATCH /api/arsiparis/usul-musnah/$id` or equivalent destructive approval route.
+- Preserve legacy metadata semantics: `status_arsip='DIMUSNAHKAN'`, proposal decision fields, `musnah_at`, `musnah_by`, `musnah_catatan`, append-only `log_aktivitas`, and legacy `lampiran_snapshot` clearing behavior if the scoped route currently clears it.
+- Implement local file deletion or safe file-access blocking according to the route's accepted destructive behavior.
+- Ensure `DIMUSNAHKAN` blocks preview/download/file access even if stale files or tokens exist.
+
+Non-goals:
+
+- No admin-wide cleanup sweep.
+- No scheduler replacement.
+- No Supabase Storage fallback.
+- No old file migration or recovery.
+
+Validation gates:
+
+- ARSIPARIS authorization is enforced with local `dms_session`.
+- Approved destruction updates archive/proposal metadata and appends audit consistently.
+- Destroyed archive preview/download returns compatible blocked/unavailable behavior.
+- Stale internal access tokens cannot serve destroyed archive files.
+- Physical deletion, if implemented, is root-contained and safe on missing files.
+
+Exit criteria:
+
+- Archive destructive approval and `DIMUSNAHKAN` file-access blocking are local-backed and compatible for new local files.
+
+Key risks:
+
+- Legacy behavior both deletes files and clears `lampiran_snapshot`; dropping snapshot metadata outside this route would break archive traceability.
+- File deletion and DB updates can partially fail.
+
+Deferred items:
+
+- Storage diagnostics/orphan cleanup, archive scheduler replacement, and global Supabase cleanup.
+
+### Phase 9G: Storage Diagnostics, Orphan Cleanup, And Runtime Stabilization
+
+Goal: finish storage diagnostics/cleanup after core file access and destructive flows are stable.
+
+Runtime scope:
+
+- Admin storage diagnostics route.
+- Admin orphan cleanup route.
+- Audit remaining Supabase Storage usage in routes, helpers, and browser surfaces.
+- Document manual smoke checks and deferred cleanup.
+- Prepare Phase 10 handoff.
+
+Non-goals:
+
+- No user-management/Auth Admin replacement.
+- No package/env cleanup or global Supabase removal.
+- No old Supabase file migration, copy, download, backfill, sync, or recovery.
+- No broad UI rewrite.
 
 Key validation gates:
 
@@ -963,10 +1245,22 @@ Key validation gates:
 - Unauthorized access fails.
 - `DIMUSNAHKAN` blocks preview/download even if stale files exist.
 - Path traversal and physical path leakage checks pass.
+- Grep/audit confirms migrated storage/file-access routes have no Supabase Storage fallback.
+- Remaining Supabase usage is classified into Phase 10 user-management/Auth Admin, Phase 11 global cleanup/browser helper retirement, or explicit reference-only buckets.
 
 Exit criteria:
 
 - Active storage behavior for new local data is local-filesystem-backed, and missing old Supabase-backed files fail cleanly without fallback.
+
+Key risks:
+
+- Cleanup can delete valid files if metadata comparison is wrong.
+- Diagnostics can accidentally expose physical paths or storage root details.
+
+Deferred items:
+
+- Phase 10 user-management/Auth Admin and password work.
+- Phase 11 global Supabase package/env cleanup, browser helper/UI retirement, regression, backup/restore, and release hardening.
 
 ## Phase 10: Admin/User Management And Supabase Runtime Retirement
 
