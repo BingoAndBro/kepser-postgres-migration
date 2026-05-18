@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. `POST /api/dokumen/submit` is locally backed for the clean local target, while browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -2363,7 +2363,7 @@ Files and active callers:
 | API surface | Current state for 11B | Gap/decision |
 |---|---|---|
 | `POST /api/upload` | Local filesystem-backed, `dms_session` required, compatible multipart fields and `201 { url, nama, kelengkapan_id, uploaded_at }` | Use for `AttachmentEditor` upload in 11C.1. It returns underscore pending paths; local move helpers support them. |
-| Pending cleanup/delete API | Missing | Add only if scoped in 11C.1. Must be narrow, pending-file-only, owner-scoped, best-effort for reset/cancel, and must not become a generalized storage delete API. |
+| Pending cleanup/delete API | Implemented in 11C.1 as `POST /api/upload?cleanup=pending` inside the existing registered `/api/upload` route | Narrow pending-only cleanup for `AttachmentEditor` reset/cancel. It requires local `dms_session`, accepts `{ url }` or `{ urls }`, rejects formal/unsupported/unsafe/owner-mismatched paths before filesystem mutation, treats missing files as safe no-op, and returns logical-only `{ success, deleted, skipped, errors }`. It is not a generalized storage delete API. |
 | `POST /api/dokumen/rename-pending` | Local movement already implemented but still uses Supabase admin for document lookup | Not needed for `AttachmentEditor` reset/cancel cleanup. Keep as 11D server dependency; do not use as browser cleanup route. |
 | `GET /api/dokumen/preview-url` | Local internal `{ signedUrl, filename }` response for raw logical paths | Keep. Do not replace in 11B/11C. |
 | `GET /api/dokumen/download-url` | Local internal `{ signedUrl }` response for raw logical paths | Available, but `AttachmentEditor` currently uses preview helper for download. Do not force helper redesign in 11C.1 unless explicitly scoped. |
@@ -2439,6 +2439,73 @@ Deferred items / exit criteria:
 ### Phase 11C: Browser Helper/UI Runtime Retirement
 
 Goal: replace active browser Supabase calls with local API-backed behavior while preserving UI behavior.
+
+#### Phase 11C.1 AttachmentEditor Local Upload And Pending Cleanup
+
+Status: scoped runtime/docs migration complete as of 2026-05-18 for `AttachmentEditor` upload/reset/cancel pending cleanup only.
+
+Changed files/routes:
+
+- `src/components/dokumen/AttachmentEditor.tsx`
+- `src/routes/api/upload.ts`
+- `docs/migration/phase-plan.md`
+- Modified route/API surface: `POST /api/upload` now also supports the scoped cleanup action `POST /api/upload?cleanup=pending`; no new route file was added and `src/routeTree.gen.ts` was not modified.
+
+Runtime behavior:
+
+- `AttachmentEditor` no longer imports `getBrowserClient()`, no longer calls `supabase.auth.getSession()`, and no longer calls browser `supabase.storage.from(...).upload(...)` or `.remove(...)`.
+- Pending upload now uses existing local `POST /api/upload` with `FormData` fields `file`, `kelengkapan_id`, and `nama_dokumen`, plus `credentials: 'include'`.
+- The browser no longer constructs owner/user-id storage paths. The upload owner segment comes from the server-side local `dms_session`.
+- `AttachmentEditor` builds `LampiranUrl` metadata from the server response fields `url`, `nama`, `kelengkapan_id`, and `uploaded_at`.
+- New `AttachmentEditor` pending paths are `/api/upload` underscore pending paths. This is compatible with current local move helpers because they accept both `pending-upload-api` and legacy `pending-dash` path shapes.
+- Reset cleanup calls `POST /api/upload?cleanup=pending` for the pending URL when present, then restores the original lampiran metadata or removes the newly added custom lampiran metadata exactly as before.
+- Cancel cleanup calls `POST /api/upload?cleanup=pending` for all pending URLs when cancelling dirty file edits, clears `pendingFiles`, and still calls `onCancel()` after the cleanup attempt.
+- Cleanup is best-effort. Request failure, server cleanup errors, or timeout logs a dev warning but does not block reset/cancel state restoration. This intentionally improves the old failure coupling where browser storage `.remove(...)` could prevent cancel from proceeding.
+- Dirty-state semantics remain `pendingFiles.size > 0 || hasNominalChanged || hasUserDocChanges`, and `onDirtyChange` remains driven by that value.
+- Custom user docs still use `user-custom-{crypto.randomUUID()}` ids. Removing a custom user doc remains blocked while it has an uploaded lampiran or pending replacement.
+- `handleSubmit()` still sends `{ lampiranUrls, nominalRealisasi }` to the parent page. Material nominal validation and Non-Material `nominalRealisasi: null` behavior are unchanged.
+
+Pending cleanup API behavior:
+
+- `POST /api/upload?cleanup=pending` requires a local `dms_session` through `getLocalServerSession(request)`.
+- Body accepts `{ url: string }` or `{ urls: string[] }`.
+- Only logical storage paths are accepted. URL/protocol-like values, absolute paths, traversal, invalid paths, unsupported path shapes, formal paths, and owner mismatches are rejected before physical path resolution or filesystem mutation.
+- Only `pending-upload-api` and `pending-dash` classifications owned by the current session user are eligible for deletion.
+- Deletion uses centralized logical path validation, storage root resolution, `lstat()` regular-file checks, and realpath root-containment verification before `unlink()`.
+- Symlinks and non-files are not followed/deleted because `lstat()` must report a regular file before deletion.
+- Missing files are safe no-ops reported as skipped.
+- Response shape is logical-only: `{ success, deleted, skipped, errors }`. It does not return physical paths, storage roots, raw filesystem errors, env values, session values, or token internals.
+- This cleanup branch is intentionally pending-upload-only and must not be reused as a formal document, archive, or arbitrary local storage delete endpoint.
+
+File type compatibility decision:
+
+- `/api/upload` currently enforces the existing document allowlist: PDF, DOC, DOCX, XLS, XLSX with a 2 MB limit.
+- Before 11C.1, `AttachmentEditor` file inputs allowed image extensions even though the server upload contract does not. 11C.1 aligns `AttachmentEditor` `accept` downward to `.pdf,.doc,.docx,.xls,.xlsx` instead of broadening server validation.
+- Image upload through `AttachmentEditor` is therefore intentionally not preserved unless a later product decision explicitly expands the business upload contract.
+
+Preview/download compatibility:
+
+- `AttachmentEditor` still uses `getSignedUrl(lamp.url)` and `downloadWithSignedUrl(...)` from `src/lib/storage-client.ts`.
+- Existing `{ signedUrl }` semantics are preserved. Browser code treats the returned signed URL as opaque and does not inspect `/api/files/access` token internals.
+- `AttachmentViewer` and `src/lib/storage-client.ts` were not changed in 11C.1.
+
+Parent page compatibility:
+
+- `src/routes/pegawai/dokumen/$id/edit.tsx`, `src/routes/pegawai/dokumen/$id/revisi.tsx`, and `src/routes/ppk/dokumen/$id/resubmit.tsx` remain unchanged in 11C.1.
+- Parent `onSubmit` payload shape remains `{ lampiranUrls, nominalRealisasi }`.
+- Edit/revisi/resubmit flows can receive local underscore pending paths from `/api/upload`; Phase 9D storage helpers already accept `pending-upload-api` and `pending-dash`.
+
+Deferred browser callers not touched in 11C.1:
+
+- `KelengkapanChecklist`
+- `HierarchicalFilter`
+- Admin/master-data pages
+- Role dashboard/list pages
+- Pegawai submit/revisi master-data reads
+- PPK resubmit kelengkapan reads
+- Browser session/role checks outside `AttachmentEditor`
+
+11C.1 does not claim package/env cleanup, Supabase helper deletion, global browser Supabase retirement, old Supabase Storage file migration/copy/download/backfill/sync/recovery, preview/download redesign, route generation, DB migration/seed/script changes, or full regression.
 
 Runtime/docs scope:
 
