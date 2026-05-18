@@ -52,6 +52,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Rationale: this matches the auth contract and keeps the session credential unavailable to client JavaScript while preserving LAN HTTP development compatibility.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
+- Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
+  Date: 2026-05-18.
+  Rationale: The existing session repository safely supports all-session revocation, and the scoped Phase 10D routes do not implement complex session rotation. Admin reset must force the target user to log in with the new password. Self-service change also revokes the current session, so the user may need to log in again.
 - ADMIN remains a dedicated role and must not be combined with other roles.
   Rationale: current role-switch behavior and migration constraints require admin exclusivity.
 - Do not rely on client-side RBAC for security.
@@ -318,7 +321,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
 - Exact DB/file partial-failure and retry policy for move/delete operations.
 - Local filesystem storage runtime implementation.
-- Whether password change revokes all sessions or rotates and keeps only the current session.
 - Exact production bootstrap admin strategy.
 - Real password provisioning workflow for production/bootstrap users.
 - Supabase Auth runtime retirement.
