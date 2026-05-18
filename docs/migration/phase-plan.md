@@ -1530,6 +1530,8 @@ Shared Phase 10 guardrails:
 
 Goal: produce the exact migration contract for remaining user-management/Auth Admin/password surfaces before runtime edits.
 
+Status: complete as planning inventory only on 2026-05-18. No Phase 10 runtime implementation is claimed complete.
+
 Runtime/docs scope:
 
 - Docs/read-only audit only.
@@ -1543,17 +1545,77 @@ Non-goals:
 Candidate files to read/change:
 
 - Read: `src/routes/api/users/*`, `src/routes/admin.master-data.user.tsx`, `src/routes/profile.tsx`, `src/lib/user-helpers.ts`, `src/lib/user-response.ts`, `src/lib/types/user.ts`, `src/lib/schemas/user.ts`, `src/lib/auth/*`, `src/db/schema/auth/*`, `src/lib/constants/roles.ts`.
-- Change: docs only, preferably `docs/migration/phase-plan.md` or a focused Phase 10 inventory doc if a later prompt allows additional docs.
+- Change in Phase 10A: `docs/migration/phase-plan.md` only.
 
 Auth/RBAC guardrails:
 
 - Confirm current admin routes require ADMIN and preserve ADMIN-only behavior.
 - Record that `dms_active_role` must remain UX state only.
 - Record current self-service password route authorization separately from ADMIN-only routes.
+- Use local `dms_session` plus local PostgreSQL/Drizzle as the future runtime authority.
+- Keep `ADMIN` dedicated. Do not combine `ADMIN` with PEGAWAI, PPK, BENDAHARA, or ARSIPARIS in admin mutation logic.
+- Do not introduce Supabase Auth Admin fallback in migrated Phase 10 routes.
+- Do not remove global Supabase packages, env values, browser helpers, tests, or reference docs until Phase 11/global cleanup.
+- Do not import/copy/backfill old Supabase Auth data unless a later human-approved phase explicitly scopes it.
+- Do not print plaintext passwords, password hashes, raw session tokens, token hashes, cookies, DB URLs, env values, or secrets.
+- Do not modify `src/routeTree.gen.ts`, package files, env files, DB migrations, seeds, scripts, `db`, `drizzle`, or `supabase` during Phase 10A.
 
 Response-shape compatibility expectations:
 
 - Preserve `{ users, total }`, `{ user }`, `{ success, message }`, and existing `{ error }` bodies/status categories unless a current behavior is explicitly documented as unsafe.
+- `apiFetch` prepends `/api` for callers such as `apiFetch('/users/')`, while `apiMutation` callers often pass explicit `/api/users/...`; both patterns must continue to hit the same endpoint paths.
+- Current route errors are plain JSON `{ error: string }`; keep the same wrapper and status categories for UI-visible failures.
+- `parseUserListResponse(...)`, `parseUserResponse(...)`, and `parseUserProfileResponse(...)` normalize metadata and roles. Migrated responses must remain compatible with `src/lib/schemas/user.ts`.
+
+Endpoint inventory:
+
+| Endpoint | Current file | Active caller(s) | Request contract | Success contract | Error/status categories | Current auth/RBAC and deps | Migration target | Subphase / risks |
+|---|---|---|---|---|---|---|---|---|
+| `GET /api/users/` | `src/routes/api/users/index.ts` | `src/routes/admin.master-data.user.tsx` uses `apiFetch('/users/')` to populate the admin user table. | No body. No query used by current UI. | `200 { users, total }` through `parseUserListResponse`; UI uses `users`, then filters client-side by search/status. | `401 { error: 'Unauthorized' }`; `403 { error: 'Hanya ADMIN yang bisa mengakses' }`; `500 { error: 'Gagal mengambil data user' }`. | Supabase server session via `createServerSupabaseClient` and `getServerSession`; ADMIN check via Supabase `hasRole`; user data via `createAdminClient`, `auth.admin.listUsers`, `user_roles`, `roles`, `user_status`. | Local `getLocalServerSession(request)`, assigned ADMIN check, Drizzle reads from `auth.users`, `auth.user_roles`, `auth.roles`, local active-status fields. Preserve list shape and field names. | Phase 10B. Risk: list/detail currently compute active status differently in helper paths; preserve or document before normalization. |
+| `POST /api/users/` | `src/routes/api/users/index.ts` | Admin create dialog calls `apiMutation('/api/users/', { method: 'POST', body })`. | JSON body `{ email, password, nama_lengkap, nip_nrp, departemen?, roles? }`. UI sends `roles`, defaults create form to `['PEGAWAI']`; route defaults omitted `roles` to `['PEGAWAI']`. | `201 { user }` through `parseUserResponse`. | `401`; `403 { error: 'Hanya ADMIN yang bisa membuat user' }`; `400 Invalid JSON body`; `400 Email tidak valid`; `400 Password minimal 8 karakter`; `400 Nama lengkap minimal 2 karakter`; `400 NIP/NRP harus numerik 8-20 karakter`; `400 Roles harus array`; `400 Role tidak valid: ...`; `409 Email sudah terdaftar`; `500 Gagal membuat user`. | Auth/RBAC through Supabase session and `hasRole`; create via `auth.admin.createUser({ email_confirm: true, user_metadata })`; roles via Supabase `roles` lookup and `user_roles` insert; helper always adds PEGAWAI if absent. | Hash password with local `hashPassword(...)`; insert `auth.users`; insert local role joins; reject `ADMIN` mixed with non-admin roles even though current UI does not prevent it; preserve mandatory PEGAWAI behavior for non-admin accounts if accepted by implementation phase. | Phase 10C, with create-time password hashing. Risk: current helper can create auth user even if role insert later fails; future local transaction should avoid partial user/role creation while preserving outward status categories. |
+| `GET /api/users/$id` | `src/routes/api/users/$id.ts` | No active admin UI detail fetch found; edit dialog uses list row data. Route remains registered/reference-compatible. | Path param `id`; no body. | `200 { user }` through `parseUserResponse`. | `400 User ID tidak valid`; `401`; `403 Hanya ADMIN yang bisa mengakses`; `404 User tidak ditemukan`; `500 Gagal mengambil data user`. | Supabase session ADMIN check; `createAdminClient`; helper calls `auth.admin.listUsers` then filters in memory; roles from `user_roles`/`roles`; active status from Supabase auth disabled/banned fields, not `user_status`. | Local ADMIN route using `auth.users` by id plus role joins. Preserve `{ user }` field set. | Phase 10B. Risk: current single-user active calculation differs from list calculation; decide whether to preserve local field semantics consistently and document any compatibility note. |
+| `PATCH /api/users/$id` | `src/routes/api/users/$id.ts` | Admin edit dialog calls `apiMutation('/api/users/${id}', { method: 'PATCH', body })`, then separately mutates Ketua Tim assignments through `/api/ketua-tim/*`. | JSON body `{ nama_lengkap?, nip_nrp?, departemen?, roles? }`; current UI sends required `nama_lengkap`, `nip_nrp`, optional `departemen`, and `roles`. | `200 { user }` through `parseUserResponse`. | `400 User ID tidak valid`; `401`; `403 Hanya ADMIN yang bisa mengubah user`; `400 Invalid JSON body`; `400 Nama lengkap minimal 2 karakter`; `400 NIP/NRP harus numerik 8-20 karakter`; `400 Roles harus array`; `400 Role tidak valid: ...`; `404 ...tidak ditemukan`; other helper errors as `400`; `500 Gagal mengupdate user`. | Supabase session ADMIN check; metadata update via `auth.admin.updateUserById`; roles synced through `user_roles` upsert/delete; helper never removes PEGAWAI when deleting roles. | Local transaction over `auth.users` metadata/profile columns and role joins; reject ADMIN mixed roles; preserve PEGAWAI non-removal behavior unless a later accepted contract changes it. | Phase 10C. Risk: UI disables PEGAWAI removal but allows selecting ADMIN alongside PEGAWAI; route currently accepts that. Migration should harden and document this as required ADMIN exclusivity. |
+| `POST /api/users/$id/activate` | `src/routes/api/users/$id/activate.ts` | Admin activate dialog calls `apiMutation('/api/users/${id}/activate', { method: 'POST' })`. | Path param `id`; no body. | `200 { success: true, message: 'User berhasil diaktifkan' }`. | `400 User ID tidak valid`; `401`; `403 Hanya ADMIN yang bisa mengaktifkan user`; helper error as `400`; `500 Gagal mengaktifkan user`. | Supabase session ADMIN check; helper upserts `user_status` with `is_active=true`, `deactivated_at=null`; no password/session logic. | Local update to `auth.users.is_active=true`, clear inactive/deactivation fields as needed. Preserve message. | Phase 10C. Risk: route does not verify existence before helper success/failure semantics; implementation should keep compatible status categories while avoiding silent no-op surprises if practical. |
+| `POST /api/users/$id/deactivate` | `src/routes/api/users/$id/deactivate.ts` | Admin deactivate dialog calls `apiMutation('/api/users/${id}/deactivate', { method: 'POST' })`. | Path param `id`; no body. | `200 { success: true, message: 'User berhasil dinonaktifkan' }`. | `400 User ID tidak valid`; `401`; `403 Hanya ADMIN yang bisa menonaktifkan user`; `400 Tidak bisa menonaktifkan akun sendiri`; helper error as `400`; `500 Gagal menonaktifkan user`. | Supabase session ADMIN check; self-deactivation compares Supabase session user id to path id; helper upserts `user_status` with `is_active=false`, `deactivated_at=now`; existing sessions are not explicitly revoked by this route. | Local update to `auth.users.is_active=false`, set deactivation metadata, preserve self-deactivation prevention, revoke sessions if scoped/accepted because local login/session repository already rejects inactive users and supports `revokeAllUserSessions`. | Phase 10C. Risk/open policy: exact session revocation timing for deactivation should be explicit in implementation. |
+| `POST /api/users/$id/reset-password` | `src/routes/api/users/$id/reset-password.ts` | Admin reset dialog calls `apiMutation('/api/users/${id}/reset-password', { method: 'POST', body: { password } })`; UI validates password and confirmation client-side. | JSON body `{ password }`. | `200 { success: true, message: 'Password berhasil direset' }`. | `400 User ID tidak valid`; `401`; `403 Hanya ADMIN yang bisa mereset password`; `400 Invalid JSON body`; `400 Password minimal 8 karakter`; helper error as `400`; `500 Gagal mereset password`. | Supabase session ADMIN check; password update via `auth.admin.updateUserById(userId, { password })`; no explicit session revocation in route. | Local `hashPassword(password)`, update `auth.users.password_hash`, `password_hash_algorithm`, `password_updated_at`; decide and document session revocation policy; no generated/plaintext/hash logging. | Phase 10D. Risk: production password provisioning/bootstrap policy remains open; do not run password-hash helper or print hashes during implementation. |
+| `POST /api/users/me/change-password` | `src/routes/api/users/me/change-password.ts` | `/profile` password form calls `apiMutation('/api/users/me/change-password', { method: 'POST', body: { currentPassword, newPassword } })`; UI also has `confirmPassword` client-only. | JSON body `{ currentPassword, newPassword }`; `confirmPassword` is never sent. | `200 { success: true, message: 'Password berhasil diubah' }`; UI shows "Password berhasil diubah". | `401 Unauthorized`; `400 Invalid JSON body`; `400 Password lama wajib diisi`; `400 Password baru wajib diisi`; `400 Password baru minimal 8 karakter`; `400 Password baru harus berbeda dari password lama`; `400 Password lama salah`; `500 Gagal mengubah password`. | Supabase server session via `getServerSession`; verifies current password by `supabase.auth.signInWithPassword({ email: session.user.email, password: currentPassword })`; updates current Supabase password by `supabase.auth.updateUser({ password: newPassword })`; no ADMIN requirement. | Self-service local route using `getLocalServerSession(request)`, local `verifyPassword(currentHash, currentPassword)`, `hashPassword(newPassword)`, and local password fields. Preserve self-service behavior and messages/statuses. | Phase 10D. Risk/open policy: whether password change revokes all sessions or only keeps/rotates the current session remains open. |
+
+Caller map:
+
+- Admin user list page: `src/routes/admin.master-data.user.tsx` loads users with `apiFetch('/users/')`, expects `users?: UserWithRoles[]`, and tolerates missing `users` as `[]`.
+- Admin create flow: validates required fields, password confirmation, and password length in UI, then posts `email`, `password`, `nama_lengkap`, `nip_nrp`, optional `departemen`, and `roles` to `POST /api/users/`.
+- Admin edit flow: uses selected list-row data rather than `GET /api/users/$id`, then patches profile fields and `roles`; Ketua Tim assignment add/remove remains separate through `/api/ketua-tim/*` and is not Phase 10 user Auth Admin runtime.
+- Admin reset/activate/deactivate flows: call the matching `/api/users/$id/...` endpoints, then refresh the list and show alert/dialog feedback based on `{ error }` or success.
+- Admin role picker: `PEGAWAI` is disabled and labelled wajib in create/edit dialogs; `ADMIN` can currently be toggled in UI without preventing mixed roles, so server-side Phase 10C must enforce ADMIN exclusivity.
+- Profile page: `src/routes/profile.tsx` fetches `/users/me/` for profile display and posts only `{ currentPassword, newPassword }` to `/api/users/me/change-password`; `confirmPassword` remains client-only validation.
+- Route tree references exist for all audited `/api/users/*` routes, but Phase 10A must not touch `src/routeTree.gen.ts`.
+
+Supabase Auth Admin and password dependency classification:
+
+- Already local-backed and should not be reworked except regression checks: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`, `POST /api/auth/role-switch`, `GET /api/users/me`, `GET /api/users/me/ketua-tim`, and `GET /api/users/me/is-ketua-tim/$kegiatanId`.
+- Supabase Auth Admin/user-management runtime to migrate: `GET/POST /api/users/`, `GET/PATCH /api/users/$id`, `POST /api/users/$id/activate`, `POST /api/users/$id/deactivate`, and `src/lib/user-helpers.ts` calls to `auth.admin.listUsers`, `auth.admin.createUser`, `auth.admin.updateUserById`, `user_roles`, `roles`, and `user_status`.
+- Password reset/change runtime to migrate: `POST /api/users/$id/reset-password` and `POST /api/users/me/change-password`; current behavior uses Supabase Auth Admin password update or Supabase Auth sign-in/update APIs.
+- UI callers that should be preserved without broad rewrite: `src/routes/admin.master-data.user.tsx` and `src/routes/profile.tsx`; preserve existing form fields, dialog behavior, alert/error display, and API wrappers.
+- Phase 11/global cleanup only, not Phase 10A: browser helper/UI retirement outside these callers, global Supabase package/env/import cleanup, reference helper removal, final regression, backup/restore, LAN/release hardening.
+- Reference-only docs/tests/comments: migration docs, historical Supabase audit notes, routeTree references, and tests/comments that mention Supabase as legacy reference or mock fallback behavior.
+
+Current local DB/runtime support available for later implementation:
+
+- `src/db/schema/auth/users.ts` already has `email`, `password_hash`, `password_hash_algorithm`, profile fields, `metadata`, `is_active`, deactivation fields, `password_updated_at`, and timestamps.
+- `src/db/schema/auth/roles.ts` and `src/db/schema/auth/user-roles.ts` model local role rows and joins; code comments already require service/seed/admin mutation logic to reject ADMIN mixed with other roles.
+- `src/db/schema/auth/sessions.ts` stores only `token_hash`; `src/lib/auth/session-repository.ts` supports `revokeAllUserSessions(userId)`.
+- `src/lib/auth/password.ts` provides Argon2id `hashPassword(...)` and `verifyPassword(...)`.
+- `src/lib/auth/local-server-auth.ts` provides `getLocalServerSession(request)` and `hasLocalRole(...)`; `dms_active_role` is resolved only after local assigned-role validation and is not authorization proof.
+
+Risks and open questions for implementation phases:
+
+- Active-status parity is inconsistent today: list reads `user_status` with default active true, while single-user reads Supabase auth disabled/banned fields. Local implementation should pick the local `auth.users.is_active` authority and document any behavior delta.
+- Current helper can leave partial state if Supabase Auth user creation succeeds but role insert fails. Local create should prefer a transaction, but keep outward response/status compatibility.
+- Current UI and route allow ADMIN to be selected with non-admin roles; Phase 10C should reject this server-side rather than preserving an unsafe mixed role state.
+- Create/update currently preserve PEGAWAI as mandatory for non-admin accounts; confirm during Phase 10C whether this remains the accepted contract when ADMIN exclusivity is enforced.
+- Deactivation and password reset/change do not currently document session revocation behavior. Local implementation should choose and record whether to revoke all sessions, revoke all except current, or rotate current session.
+- No hard-delete user endpoint was found in the remaining Phase 10 surface. Do not invent one.
+- Production/bootstrap password provisioning remains open. Do not generate, print, or commit password hashes in Phase 10 implementation prompts.
 
 Validation gates:
 
@@ -1567,7 +1629,10 @@ Manual validation commands for human:
 
 Deferred items:
 
-- Runtime migration starts in Phase 10B or 10C only after the contract is reviewed.
+- Recommended next sub-phase: Phase 10B, limited to local admin user list/detail read contracts for `GET /api/users/` and `GET /api/users/$id`, if the human accepts the 10A contract.
+- Phase 10C should follow for create/update/activate/deactivate role/status mutation behavior.
+- Phase 10D should follow for admin reset-password and self-service change-password.
+- Phase 10E remains a delete/deactivation/audit review only unless a later prompt explicitly scopes user hard delete.
 
 ### Phase 10B: Local User Repository And Admin Query Foundation
 
