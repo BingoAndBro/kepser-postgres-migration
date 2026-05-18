@@ -942,7 +942,7 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Status as of 2026-05-18: Phase 9.0 planning complete. Phase 9 is split into practical runtime-oriented subphases below. The next recommended task is Phase 9A Storage Surface Inventory And Runtime Order.
+Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning. Phase 9 is split into practical runtime-oriented subphases below. The next recommended runtime target is Phase 9B Preview/Download Internal URL Route Migration.
 
 Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
 
@@ -988,6 +988,8 @@ Reason: preview/download and authorization hardening must be stable before delet
 
 Goal: produce the final Phase 9 storage/file-access inventory and select the first runtime group.
 
+Status: complete as of 2026-05-18. This was docs/audit only; no runtime code, route generation, tests, DB scripts, migrations, seeds, package files, or Supabase Storage migration/copy/download/backfill/sync were changed or run.
+
 Runtime scope:
 
 - Docs/audit only.
@@ -999,6 +1001,99 @@ Runtime scope:
 Non-goals:
 
 - No runtime code, helper creation, route edits, UI rewrite, tests, route generation, DB scripts, migrations, seeds, package changes, Supabase removal, or file migration.
+
+#### Phase 9A Storage Surface Inventory
+
+| Surface / route / helper | Current state | Supabase or mixed state | User-facing contract | Phase | Key parity risk | First action needed |
+|---|---|---|---|---|---|---|
+| `GET /api/dokumen/preview-url` | Default still Supabase signed URL; opt-in `useInternal=true` exists | Mixed Supabase auth/storage plus internal raw-path URL option | `{ signedUrl, filename }`, 900s preview URL | 9B | Raw `url` query path traversal and fallback drift | Make internal URL default with local session/path validation and no Supabase fallback |
+| `GET /api/dokumen/download-url` | Supabase signed URL only | Supabase auth/storage | `{ signedUrl }`, 900s download URL with derived filename | 9B | Filename/content-disposition parity for underscore and dash pending paths | Use internal URL builder with `contentDisposition='attachment'` and sanitized download filename |
+| `/api/files/access` plus token/internal URL helpers | Existing foundation; serves local raw logical-path tokens | Local token/path/file read only; no Supabase Storage | Browser-fetchable internal URL returned in `signedUrl` | Foundation for 9B/9C | Supports raw logical-path tokens only; no document/archive token authorization yet | Reuse for 9B raw paths; extend later only when 9C needs document/archive tokens |
+| `GET /api/dokumen/$id/preview/$lampiranIndex` | Supabase signed URL | Supabase auth/DB helper/storage | `{ signedUrl }`; owner or approver; blocks `DIMUSNAHKAN` | 9C | Must re-check document/archive state at access time, not only token issue time | Migrate after 9B using document metadata and local session/role checks |
+| `GET /api/dokumen/$id/download/$lampiranIndex` | Supabase signed URL | Supabase auth/DB helper/storage | `{ signedUrl }`; 3600s download URL | 9C | Client builds filename; route may not return `filename` today | Preserve `{ signedUrl }` and download disposition without forcing UI rewrite |
+| `GET /api/ppk/dokumen/$id/preview/$lampiranIndex` and download | Supabase signed URL | Supabase role reads/storage | `{ signedUrl }`; PPK-only; blocks `DIMUSNAHKAN` | 9C | Existing preview maps object missing to 410 in one path | Preserve role-specific status/error categories |
+| `GET /api/bendahara/dokumen/$id/preview/$lampiranIndex` and download | Supabase signed URL | Supabase role reads/storage | `{ signedUrl }`; BENDAHARA-only; blocks `DIMUSNAHKAN` | 9C | Same response shape but role gate differs | Preserve role-specific route paths and wrappers |
+| `PATCH /api/dokumen/$id` | Local DB metadata update; blocks pending lampiran paths | Mixed file contains Supabase delete path for `DELETE`; PATCH defers movement | `{ dokumen }` response; edit/revision compatible | 9D | New/replaced attachments cannot move yet | Add local pending move + explicit DB/file failure handling |
+| `GET/PATCH/POST /api/ppk/resubmit/$id` | GET/PATCH still Supabase-backed; POST local decision path blocks storage-coupled changes | Mixed Supabase auth/DB/storage for GET/PATCH; local POST | `{ dokumen }`, `{ success: true }` | 9D | PATCH uses `syncDocumentAttachments()` and fire-and-forget orphan delete | Split/migrate attachment save/move/delete before enabling new files |
+| `src/lib/dokumen/storage.ts` `syncDocumentAttachments()` / `deleteOrphanFiles()` | Supabase `.move()` / `.remove()` helper | Supabase Storage helper | Internal helper behind update/resubmit flows | 9D/9E | Fire-and-forget deletes and non-atomic DB/file behavior | Replace or bypass with local path/move/delete semantics per route |
+| `DELETE /api/dokumen/$id` | Supabase-backed delete and fire-and-forget file remove | Supabase auth/DB/storage | `{ success: true }` for owner non-material `TERSIMPAN` | 9E | Current success can hide later file delete failures | Migrate DB/file ordering with safe partial-failure response policy |
+| `src/components/dokumen/AttachmentEditor.tsx` | Direct browser Supabase upload/remove; preview/download via raw URL helper | Browser Supabase Storage/Auth | Existing edit/revisi/resubmit upload/reset/cancel UX | 9D/9E | Local filesystem cannot be browser-written; reset/cancel delete policy needed | Move upload/delete through server APIs when owning routes support movement |
+| `src/components/dokumen/AttachmentViewer.tsx`, `src/lib/storage-client.ts`, `src/lib/file-helpers.ts` | Call API endpoints and consume `signedUrl` | No direct Supabase Storage except through APIs | iframe/fetch/open/download using returned `signedUrl` | 9B/9C | Callers expect fetchable URL and often build filenames client-side | Preserve returned `{ signedUrl }`; avoid broad UI rewrite |
+| `PATCH /api/arsiparis/usul-musnah/$id` | GET local; destructive PATCH Supabase-backed and deletes storage | Mixed local GET, Supabase PATCH/storage/log helper | `{ success: true, message }`; sets `DIMUSNAHKAN`, clears snapshot | 9F | Deletion failures currently warn and continue; stale tokens/files must not serve | Migrate destructive approval plus access blocking policy after 9C/9E |
+| `GET /api/admin/analyze-storage` | Supabase Storage listing vs DB metadata | Supabase auth/DB/storage | `{ summary, folder_details, orphan_paths, referenced_paths_count }` | 9G | Diagnostics can expose too much path detail | Rebuild on local filesystem scan after core storage semantics stabilize |
+| `GET /api/admin/cleanup-orphan-files` | Supabase Storage list/remove; comments mention dry-run but code deletes | Supabase auth/DB/storage | `{ message, deleted_count, orphan_paths? }` | 9G | Dangerous deletion; must compare docs and archive snapshots | Implement local dry-run-first cleanup after delete/destruction semantics |
+| `POST /api/upload`, `POST /api/dokumen/rename-pending`, `POST /api/dokumen/submit` | Already local-backed for scoped clean-local behavior | May retain unrelated Supabase imports/helpers but storage action is local | Existing upload, rename, submit response shapes | Existing foundation | Not remaining Phase 9 blockers; still not proof for update/delete/destruction | Treat as reusable precedent only; do not rework in 9A/9B |
+
+#### Classification By Phase 9 Bucket
+
+- 9B: raw URL generation for `preview-url`, `download-url`, and callers that only require `{ signedUrl }` parity through `storage-client`.
+- 9C: central document preview/download plus PPK/Bendahara equivalents and Arsiparis pages that call the central route.
+- 9D: `PATCH /api/dokumen/$id`, PPK resubmit GET/PATCH storage-coupled behavior, `syncDocumentAttachments()`, and the upload side of `AttachmentEditor`.
+- 9E: `DELETE /api/dokumen/$id`, replaced/orphan attachment deletion, pending reset/cancel deletion, and the delete side of `AttachmentEditor`.
+- 9F: destructive `PATCH /api/arsiparis/usul-musnah/$id` and `DIMUSNAHKAN` stale file/token hardening.
+- 9G: `analyze-storage`, `cleanup-orphan-files`, final storage grep/stabilization, and orphan policy.
+- Phase 10/11: user-management/Auth Admin/password work, global Supabase package/env/browser-helper retirement, and final Supabase removal are not Phase 9 storage runtime.
+
+#### Existing Helper Readiness
+
+- Ready for reuse: `local-storage-paths.ts` path normalization, traversal prevention, root containment, owner/classification helpers.
+- Ready for reuse: `file-access-token.ts`, `internal-file-access-url.ts`, and `/api/files/access` for internal `/api/files/access?token=...` URLs.
+- Ready for 9B only: `internal-file-access.ts` can serve local raw logical-path tokens with current session, owner/role compatibility, safe logical path, root containment, content type, and disposition checks.
+- Ready for movement surfaces: `local-upload.ts`, `local-pending-move.ts`, and `submit-move-plan.ts` cover local upload, pending/formal classification, no-overwrite movement, and submit planning patterns.
+- Existing local runtime precedents: `/api/upload`, `/api/dokumen/rename-pending`, and `/api/dokumen/submit` show compatible local upload/move/submit behavior for clean local data.
+
+#### Route-Specific Gaps
+
+- Document/archive-aware internal access is not implemented; token verification alone cannot authorize document or archive reads.
+- Phase 9B must remove the raw preview/download Supabase Storage fallback and preserve `{ signedUrl }`.
+- Role preview/download routes still need local session/role/document/archive parity, filename/download disposition parity, and `DIMUSNAHKAN` stale-token blocking.
+- Update/resubmit movement still needs explicit DB/file ordering and failure semantics.
+- Delete/destruction routes need safe partial-failure semantics and must not claim full rollback.
+- `AttachmentEditor` still writes/deletes directly through browser Supabase Storage.
+- Admin orphan cleanup needs a local policy that compares active document metadata and archive snapshots, preferably dry-run-first.
+
+#### First Runtime Group Selection
+
+Phase 9B remains the recommended first runtime group. No concrete blocker was found.
+
+Reason: raw URL-generation migration is less destructive than movement/deletion, preserves current `{ signedUrl }` response shape, can use the existing token/internal access foundations, and establishes the local access path before update, delete, archive destruction, and cleanup work.
+
+#### Phase 9B Readiness
+
+Candidate runtime files:
+
+- `src/routes/api/dokumen/preview-url.ts`
+- `src/routes/api/dokumen/download-url.ts`
+- `src/lib/storage/internal-file-access-url.ts`
+- `src/lib/storage/internal-file-access.ts` only if raw-path behavior must be adjusted for response/header parity
+- `src/lib/storage/file-access-token.ts` only if token payload validation blocks required raw download fields
+
+Allowed runtime scope:
+
+- Make raw preview/download URL generation return internal `/api/files/access?token=...` URLs for local logical paths.
+- Preserve `GET` methods, query params, status categories, and response wrappers.
+- Expected shapes: preview returns `{ signedUrl: "/api/files/access?token=...", filename }`; download returns `{ signedUrl: "/api/files/access?token=..." }`.
+- Revalidate authenticated local session, owner-or-compatible-role raw path access, logical path safety, path traversal prevention, storage root containment through the access route, and safe filename/content-disposition behavior.
+
+Must-not scope:
+
+- No document/role preview route migration, no `AttachmentEditor` rewrite, no physical file movement/deletion, no admin diagnostics cleanup, no archive destruction, no route generation, no Supabase Storage fallback, and no old file migration/copy/download/backfill/sync.
+
+Manual validation checklist:
+
+- Unauthenticated raw preview/download returns compatible 401.
+- Wrong owner without compatible role returns compatible 403.
+- Unsafe `url` values fail closed without physical path or root exposure.
+- Preview response contains only internal API `signedUrl` plus existing filename behavior.
+- Download response contains only internal API `signedUrl` and uses attachment disposition when fetched.
+- Existing local file can be fetched through the returned internal URL.
+- Missing old Supabase-backed file fails cleanly through internal access.
+- Grep confirms migrated raw endpoints no longer call Supabase Storage or keep Supabase fallback.
+
+Known caveats:
+
+- 9B raw-path authorization remains coarse owner-or-PPK/BENDAHARA/ARSIPARIS compatibility, matching current raw route behavior. Document/archive metadata revalidation belongs to 9C/9F.
+- `/api/files/access` currently depends on cookie-backed local session at token use time, so manual validation must fetch the internal URL with credentials.
 
 Validation gates:
 
