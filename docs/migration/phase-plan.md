@@ -2253,6 +2253,8 @@ Deferred items / exit criteria:
 
 Goal: design the browser Supabase retirement path before touching UI runtime.
 
+Status as of 2026-05-18: planning/compatibility design only. No browser runtime has been migrated, no Supabase helper/package/env cleanup is complete, and `src` remains out of scope for this subphase.
+
 Runtime/docs scope:
 
 - Inspect direct browser Supabase reads/writes and map them to existing or needed local API-backed behavior.
@@ -2274,24 +2276,161 @@ Candidate files to read/change:
 - Read: local API routes that can replace browser calls, including master-data routes, role list routes, `/api/upload`, preview/download routes, and cleanup routes.
 - Change in this planning phase: docs only.
 
+Audit result summary:
+
+- `AttachmentEditor` remains the only active browser Supabase Storage mutator found by this 11B audit.
+- `FileUploadButton` already posts to `POST /api/upload`; it does not call browser Supabase Storage directly.
+- `AttachmentViewer` and `storage-client` preserve preview/download through existing `{ signedUrl }` API semantics; they are not storage mutators and must not be removed as Supabase cleanup.
+- Browser master-data/dropdown reads remain active in `KelengkapanChecklist`, `HierarchicalFilter`, admin/master-data pages, Pegawai submit/revisi pages, PPK resubmit page, and role/archive filter pages.
+- Browser session/role checks remain active in `admin.index.tsx`, `ppk.tsx`, `bendahara.tsx`, `arsiparis/index.tsx`, and `pegawai/dokumen/index.tsx`, even when those pages already use local API routes for primary data.
+- Existing local APIs cover many read/write replacements, but response-shape adaptation is still needed in browser callers because current helpers are Supabase-client-shaped.
+- `GET /api/master-jenis-dokumen` is not currently registered, while `src/lib/master-data/jenis-dokumen.ts` and Pegawai submit Non-Material UI need `master_jenis_dokumen` reads.
+- No existing local API route narrowly deletes browser-uploaded pending files. A future cleanup route must be pending-only and owner-scoped, not a generalized storage delete API.
+
+#### AttachmentEditor Current Behavior Inventory
+
+Files and active callers:
+
+| Area | Current behavior |
+|---|---|
+| Active UI callers | `src/routes/pegawai/dokumen/$id/edit.tsx`, `src/routes/pegawai/dokumen/$id/revisi.tsx`, and `src/routes/ppk/dokumen/$id/resubmit.tsx` render `AttachmentEditor`. |
+| Session/user lookup | `AttachmentEditor` imports `getBrowserClient()`, calls `supabase.auth.getSession()`, and uses `session.user.id` as the first logical storage path segment. |
+| Upload pending replacements | `handleFileChange()` uploads directly from the browser to `dokumen-lampiran` with `supabase.storage.from(...).upload(path, file, { cacheControl: '3600', upsert: false })`. |
+| Pending path produced | Dash pending format: `{userId}/{Date.now()}-{Math.random().toString(36).slice(2)}-{safeFilename}`. `safeFilename` is `file.name.replace(/[^a-zA-Z0-9._-]/g, '_')`. |
+| Replace file | New upload creates a `LampiranUrl` with `kelengkapan_id`, display `nama`, new pending `url`, and `uploaded_at`. It replaces the existing lampiran with the same `kelengkapan_id` or appends a new one. |
+| Pending state | `pendingFiles` is a `Map<docId, { url, filename }>` used to mark dirty file replacements and to know which pending objects must be cleaned on reset/cancel. |
+| Dirty state | `hasUnsavedChanges` is `pendingFiles.size > 0 || hasNominalChanged || hasUserDocChanges`; `onDirtyChange` receives this value. |
+| Reset pending replacement | `handleResetFile()` removes the pending file from browser storage when `pendingFiles` has a URL, then restores the original lampiran for that `docId` or removes the new lampiran if none existed originally. It clears the pending file and upload status for that `docId`. |
+| Cancel dirty edit | `handleCancel()` optionally runs `confirmIfDirty`, sets cancelling state, loops through all `pendingFiles` when `hasFileChanges`, removes each pending URL from browser storage, clears `pendingFiles`, then calls `onCancel()`. |
+| Cleanup failure shape | Current browser cleanup is not explicitly isolated from metadata reset/cancel state. A thrown `remove()` during cancel would jump to `finally` and may skip `setPendingFiles(new Map())` and `onCancel()`. 11C must not preserve this failure coupling if a safer best-effort route is introduced. |
+| Add custom user docs | `handleAddUserDoc()` creates `user-custom-{crypto.randomUUID()}` entries in `userDocs`; upload for the custom doc uses the same replacement flow and lampiran metadata. |
+| Remove custom user docs | `handleRemoveUserDoc()` only removes a custom doc when it has no uploaded lampiran and no pending replacement. If a file exists, removal is blocked and the user must reset/remove through file behavior first. |
+| Preview | `handlePreview()` calls `getSignedUrl(lamp.url)`, which fetches `GET /api/dokumen/preview-url?url=...` and expects `{ signedUrl }`; the returned URL is loaded in an iframe. Filename is built client-side with `buildStorageFilename(dokumen, lamp)`. |
+| Download | `handleDownload()` also calls `getSignedUrl(lamp.url)`, then `downloadWithSignedUrl(signedUrl, filename)` to fetch the returned URL as a blob and force a browser download. It does not currently call `GET /api/dokumen/download-url`. |
+| Submit metadata | `handleSubmit()` filters out custom docs no longer present in `userDocs`, computes `nominalRealisasi` for material documents or `null` for Non-Material, then calls parent `onSubmit({ lampiranUrls, nominalRealisasi })`. Parent pages pass this to `PATCH /api/dokumen/$id`, `POST /api/dokumen/$id/submit`, `PATCH /api/ppk/resubmit/$id`, or `POST /api/ppk/resubmit/$id` as already scoped by those pages. |
+
+#### AttachmentEditor Local API Compatibility Plan
+
+| Behavior | Existing API or planned API | 11B compatibility decision |
+|---|---|---|
+| Upload pending file | Existing `POST /api/upload` | Use the existing route in 11C. It accepts multipart `file`, `kelengkapan_id`, and `nama_dokumen`; requires local `dms_session`; derives owner from the server session; returns `201 { url, nama, kelengkapan_id, uploaded_at }`. |
+| Pending upload response shape | Existing `POST /api/upload` | Response has all fields needed to build the same `LampiranUrl`. `AttachmentEditor` should stop constructing the storage path client-side and use `json.url`, `json.nama`, `json.kelengkapan_id`, and `json.uploaded_at`. |
+| Pending path compatibility | Existing `/api/upload` plus Phase 9D helpers | `/api/upload` returns underscore upload-API pending paths, not the current dash path. This is compatible with clean-local runtime because `classifyStoragePath()` and local pending move helpers support both `pending-upload-api` and `pending-dash`. Exact dash preservation is not required if route consumers continue storing logical paths only. |
+| Upload auth | Existing `POST /api/upload` | Use cookie auth with `credentials: 'include'`; do not read browser Supabase session and do not send user id from the browser. Server-side RBAC/session remains authoritative. |
+| Upload validation | Existing `POST /api/upload` | The route preserves the 2 MB and PDF/DOC/DOCX/XLS/XLSX validation contract. `AttachmentEditor` currently allows images in the file input accept string; 11C should preserve user-facing behavior only if those files were actually accepted before. Current Supabase direct upload did not enforce the route allowlist, so this is a compatibility risk to verify manually. |
+| Remove one pending file on reset | Missing local route | Plan a narrow owner-scoped pending cleanup route for 11C.1, for example `DELETE` or `POST` under a scoped upload/pending cleanup API. It must accept logical pending `url` values only, require `dms_session`, allow only current user's pending paths, reject formal/unsupported/unsafe paths, and return logical-only results. |
+| Cancel cleanup for multiple pending files | Missing local route | Use the same pending-only cleanup route with an array body such as `{ urls: string[] }`. Cleanup should be best-effort for cancel/reset UI, not a generalized storage delete. |
+| Cleanup failure handling | Planned route plus UI adaptation | Cleanup failure must not corrupt attachment metadata state. Prefer safe orphan retention over destructive inconsistency. On reset, restore metadata state after scheduling/attempting cleanup and surface a non-blocking warning only if needed. On cancel, allow navigation/cancel to complete after best-effort cleanup; leave local orphan cleanup/admin diagnostics to later recovery. |
+| Cleanup safety | Planned route | No physical path, storage root, or resolved path may be returned to the browser or logs. The route must classify paths server-side, block traversal/absolute/URL-like input, and delete only contained local pending files owned by the current session. |
+| Preview/download | Existing `storage-client` and preview/download routes | Do not replace in 11B. Preserve `getSignedUrl()` and `{ signedUrl }` semantics. Existing raw preview/download routes now produce internal file-access URLs for local logical paths; browser callers should keep treating `signedUrl` as an opaque URL. |
+| Submit/update/resubmit metadata | Existing parent page API calls | Keep `AttachmentEditor` submitting the same `LampiranUrl[]` and `nominalRealisasi` shape. Do not introduce a frontend repository/query abstraction framework; use lightweight fetch/api helper adaptation. |
+
+#### Pending Path And Safety Semantics
+
+- Current `AttachmentEditor` dash pending format: `{userId}/{timestamp}-{random}-{filename.ext}`.
+- Current local `POST /api/upload` pending format: `{userId}/{kelengkapanId}_{timestamp}_{filename.ext}`.
+- Phase 9D/local helper support matrix accepts both `pending-dash` and `pending-upload-api` plus formal paths.
+- The owner namespace remains the first logical path segment and must come from the local server session for new local uploads.
+- Browser code must not compute or trust owner ids after 11C.1.
+- Legacy Supabase-backed dash pending files may exist only as historical/mixed-runtime artifacts. The clean local target does not migrate, copy, download, backfill, sync, or fallback to Supabase Storage.
+- Missing old files fail cleanly through local route errors or preview/download missing-file behavior.
+- Unsafe paths, URL-like paths, absolute paths, traversal, formal paths submitted to pending cleanup, and owner-mismatched paths must be rejected before filesystem mutation.
+- Responses and errors must expose logical path identifiers only when needed; physical paths and storage roots must never be returned.
+
+#### Browser Caller Replacement Map
+
+| Caller group | Files | Current browser Supabase behavior | Existing local API | 11C replacement strategy | Shape/gap status |
+|---|---|---|---|---|---|
+| `AttachmentEditor` | `src/components/dokumen/AttachmentEditor.tsx`; callers in Pegawai edit/revisi and PPK resubmit | Browser session lookup, direct Storage upload, direct pending remove, raw preview through `storage-client` | `POST /api/upload`; `GET /api/dokumen/preview-url`; `GET /api/files/access`; update/resubmit APIs | 11C.1 first: upload through `/api/upload`, add/use narrow pending cleanup route, keep preview/download helper and submit payloads | Upload mostly compatible. Pending cleanup route missing. Image accept vs route allowlist needs verification. |
+| `FileUploadButton` through `KelengkapanChecklist` | `src/components/dokumen/FileUploadButton.tsx`, `src/components/dokumen/KelengkapanChecklist.tsx`, `StepUploadLampiran` | `FileUploadButton` already posts to `/api/upload`; `KelengkapanChecklist` reads `master_kelengkapan_dokumen` through browser Supabase | `POST /api/upload`; `GET /api/master-kelengkapan` | 11C.2: keep `FileUploadButton`; replace kelengkapan fetch with API-backed reads and client-side chain filtering if needed | `/api/master-kelengkapan` supports `kegiatan_id` and `is_ketua_tim` but not exact leaf/null chain filters; caller may need light client filtering or route query extension. |
+| `HierarchicalFilter` | `src/components/laporan/HierarchicalFilter.tsx`; laporan saya/kegiatan pages | Uses `getBrowserClient()` only to pass a Supabase client into master-data helpers | `GET /api/master-fungsi`, `/api/master-kegiatan?fungsi_id=`, `/api/master-jenis`, `/api/master-kategori?jenis_id=`, `/api/master-detail?kategori_id=` | 11C.3: replace helper calls with `apiFetch`/fetch to existing routes | Response arrays are close to existing row types; verify nested name fields and empty-list behavior. |
+| Admin dashboard role check | `src/routes/admin.index.tsx` | Browser `auth.getSession()` and `user_roles` join check | `GET /api/auth/session` | 11C.4 or 11C.5: use local session/auth state or `apiFetch('/auth/session')`; keep server/API RBAC as authority | Existing session response should include assigned roles/active role; no product decision needed. |
+| Admin/master-data pages | `admin.master-data.fungsi.tsx`, `kegiatan.tsx`, `jenis.tsx`, `kategori.tsx`, `detail.tsx`, `jenis-dokumen.tsx`, `kelengkapan.tsx` | Browser CRUD via `src/lib/master-data/*` Supabase helper functions | Local `/api/master-fungsi*`, `/api/master-kegiatan*`, `/api/master-jenis*`, `/api/master-kategori*`, `/api/master-detail*`, `/api/master-kelengkapan*`; no `/api/master-jenis-dokumen` found | 11C.4: migrate each page to existing `apiFetch`/`apiMutation` contracts; add a narrow `master-jenis-dokumen` route only if accepted in that slice | Existing master APIs are enough for most pages. `jenis-dokumen` route is missing. Count helpers currently use Supabase nested selects and may need client counts or route-backed count parity. |
+| Admin user page | `src/routes/admin.master-data.user.tsx` | Already uses `apiFetch`/`apiMutation` for users and Ketua Tim | Existing `/api/users/*`, `/api/ketua-tim/*`, `/api/master-kegiatan` | No 11B storage/browser action except keep separate from admin/master-data Supabase pages | Already API-backed for this audit. |
+| Role root dashboards/layouts | `src/routes/ppk.tsx`, `src/routes/bendahara.tsx`, `src/routes/arsiparis/index.tsx` | Browser `auth.getSession()` plus `user_roles` check; Arsiparis dashboard also uses API reads for counts | `GET /api/auth/session`; role list APIs | 11C.5: replace browser role checks with local session/auth state or remove redundant checks where route/API guards already enforce access | Preserve redirects to `/login` and `/forbidden`; server/API remains authority. |
+| Role list filters | `src/routes/ppk/inbox.tsx`, `src/routes/bendahara/inbox.tsx`, `src/routes/arsiparis/inbox.tsx`, archive active/inactive/usul-musnah/search pages | Browser Supabase reads `master_fungsi`, and search also reads `master_kegiatan` | `GET /api/master-fungsi`, `GET /api/master-kegiatan` plus existing role/archive list APIs | 11C.5: replace filter dropdown reads with local master APIs; leave list API calls as-is | Existing APIs are enough for simple dropdown lists. |
+| Pegawai submit page | `src/routes/pegawai/dokumen/aju.tsx` | Browser master-data helper reads for fungsi/kegiatan/jenis/kategori/detail/jenis-dokumen; uses API for Ketua Tim check and submit mutation | Existing master routes except missing `/api/master-jenis-dokumen`; existing `/api/users/me/is-ketua-tim/$kegiatanId`; `POST /api/dokumen/submit` | 11C.6: replace dropdown reads with API calls after component-level storage slices are stable | Missing jenis-dokumen route blocks full Non-Material browser retirement unless added or deferred. |
+| Pegawai document list | `src/routes/pegawai/dokumen/index.tsx` | Browser session existence check before `apiFetch('/dokumen')` | `GET /api/auth/session`; `GET /api/dokumen` | 11C.5 or 11C.6: replace/removal of redundant session precheck; keep `apiFetch('/dokumen')` | Existing data API is local-backed. |
+| Pegawai edit page | `src/routes/pegawai/dokumen/$id/edit.tsx` | No direct page-level browser Supabase; uses `AttachmentEditor` | Existing `/api/dokumen/$id` and `PATCH /api/dokumen/$id` | Covered by 11C.1 `AttachmentEditor` | Page API already local-backed for scoped behavior. |
+| Pegawai revisi page | `src/routes/pegawai/dokumen/$id/revisi.tsx` | Browser Supabase reads kelengkapan chain; uses `AttachmentEditor`; uses APIs for detail, patch, submit | `GET /api/master-kelengkapan`; `/api/dokumen/$id`, `PATCH /api/dokumen/$id`, `POST /api/dokumen/$id/submit` | 11C.6 after 11C.1/11C.2: replace kelengkapan chain read with API-backed path and keep parent submit sequence | Requires exact chain/null filtering parity. |
+| PPK resubmit page | `src/routes/ppk/dokumen/$id/resubmit.tsx` | Browser Supabase reads kelengkapan chain; uses `AttachmentEditor`; APIs for resubmit/kembalikan | `GET /api/master-kelengkapan`; `/api/ppk/resubmit/$id`, `/api/ppk/kembalikan/$id` | 11C.6 after 11C.1/11C.2: replace kelengkapan read and use migrated `AttachmentEditor` | Requires exact chain/null filtering parity. |
+| Arsiparis dashboard/list/search pages | `src/routes/arsiparis/index.tsx`, `inbox.tsx`, `aktif/index.tsx`, `inaktif/index.tsx`, `usul-musnah/index.tsx`, `search.tsx` | Dashboard browser role check; list/search filter dropdown browser reads | Existing `/api/auth/session`, archive/list/search APIs, `/api/master-fungsi`, `/api/master-kegiatan` | 11C.5: separate role/session check retirement from filter dropdown retirement | Existing data APIs are enough for the filter reads found. |
+| `src/lib/master-data/*` helpers | `fungsi.ts`, `kegiatan.ts`, `jenis.ts`, `kategori.ts`, `detail.ts`, `kelengkapan.ts`, `jenis-dokumen.ts` | Supabase-client-shaped read and mutation helper functions | Matching API routes for most domains | Do not redesign into a broad abstraction. Either update active callers directly or add small API-backed helper functions in a scoped 11C slice | Helper deletion is 11D, after active callers are gone. |
+| Re-export helpers | `src/lib/supabase-browser.ts`, `src/lib/supabase.ts` | Factory/re-export only | N/A | Do not delete in 11B/11C until active imports are gone | 11D/11E cleanup only. |
+
+#### Local API Gap Analysis
+
+| API surface | Current state for 11B | Gap/decision |
+|---|---|---|
+| `POST /api/upload` | Local filesystem-backed, `dms_session` required, compatible multipart fields and `201 { url, nama, kelengkapan_id, uploaded_at }` | Use for `AttachmentEditor` upload in 11C.1. It returns underscore pending paths; local move helpers support them. |
+| Pending cleanup/delete API | Missing | Add only if scoped in 11C.1. Must be narrow, pending-file-only, owner-scoped, best-effort for reset/cancel, and must not become a generalized storage delete API. |
+| `POST /api/dokumen/rename-pending` | Local movement already implemented but still uses Supabase admin for document lookup | Not needed for `AttachmentEditor` reset/cancel cleanup. Keep as 11D server dependency; do not use as browser cleanup route. |
+| `GET /api/dokumen/preview-url` | Local internal `{ signedUrl, filename }` response for raw logical paths | Keep. Do not replace in 11B/11C. |
+| `GET /api/dokumen/download-url` | Local internal `{ signedUrl }` response for raw logical paths | Available, but `AttachmentEditor` currently uses preview helper for download. Do not force helper redesign in 11C.1 unless explicitly scoped. |
+| `GET /api/files/access` | Internal signed-token access route | Keep opaque to browser. No UI changes beyond consuming returned `signedUrl`. |
+| `/api/master-fungsi` | Existing local GET plus ADMIN mutations | Can replace fungsi dropdowns and admin fungsi page with response adaptation. |
+| `/api/master-kegiatan` | Existing local GET supports `fungsi_id`; mutations exist | Can replace kegiatan dropdowns/pages. |
+| `/api/master-jenis` | Existing local GET plus mutations | Can replace jenis dropdowns/pages. |
+| `/api/master-kategori` | Existing local GET supports `jenis_id`; mutations exist | Can replace kategori dropdowns/pages. |
+| `/api/master-detail` | Existing local GET supports `kategori_id`; mutations exist | Can replace detail dropdowns/pages. |
+| `/api/master-kelengkapan` | Existing local GET supports `kegiatan_id` and `is_ketua_tim`; mutations exist | Needs exact chain/null behavior decision for `KelengkapanChecklist`, Pegawai revisi, and PPK resubmit. Prefer light client filtering first if it preserves current behavior; otherwise add narrow query params. |
+| `/api/master-jenis-dokumen` | No route file found | Required for Non-Material submit/browser retirement unless deferred. Add a narrow GET first, then ADMIN CRUD only if admin jenis-dokumen page is in scope. |
+| `/api/ketua-tim/*` | Existing local APIs | Already used by admin user page and submit Ketua Tim check. No new 11B blocker. |
+| Role inbox/list APIs | Existing local APIs for PPK/Bendahara/Arsiparis/Pegawai lists | Primary data reads already API-backed; remaining browser calls are mostly filter dropdowns and redundant session/role checks. |
+| Report APIs | Existing `laporan/saya` and `laporan/kegiatan` API calls in report pages | `HierarchicalFilter` still needs API-backed dropdown reads. |
+| Current user/session APIs | Existing `/api/auth/session`, `/api/users/me`, `/api/users/me/ketua-tim`, `/api/users/me/is-ketua-tim/$kegiatanId` | Use `/api/auth/session` for browser session/role check retirement; do not redesign AppLayout/auth bootstrap in 11B. |
+
+#### Bounded 11C Implementation List
+
+Priority order:
+
+1. 11C.1 AttachmentEditor local upload and pending cleanup compatibility.
+   Replace browser session/storage upload with `POST /api/upload`; add/use a narrow pending-only cleanup route for reset/cancel if accepted; keep preview/download through `storage-client`; preserve dirty state and submit metadata shape.
+2. 11C.2 KelengkapanChecklist and master kelengkapan dropdown/API reads.
+   Replace direct `master_kelengkapan_dokumen` browser reads with `/api/master-kelengkapan` plus exact current chain/null filtering behavior.
+3. 11C.3 HierarchicalFilter API-backed reads.
+   Replace master-data helper calls with existing `/api/master-*` GET routes; keep date/filter UI behavior unchanged.
+4. 11C.4 Admin/master-data browser Supabase retirement.
+   Migrate admin master pages domain by domain to existing APIs; add `master-jenis-dokumen` route only if that page is included; keep admin user page out because it is already API-backed.
+5. 11C.5 Role dashboard/list page browser Supabase retirement.
+   Replace redundant browser session/role checks with `/api/auth/session` or existing local auth state; replace role/archive filter dropdown reads with `/api/master-fungsi` and `/api/master-kegiatan`; leave already-local role/list APIs unchanged.
+6. 11C.6 Submit/edit/revisi/resubmit page browser Supabase retirement.
+   Replace Pegawai submit master-data reads, Pegawai revisi kelengkapan reads, PPK resubmit kelengkapan reads, and Pegawai list session precheck after 11C.1 through 11C.3 are stable.
+
+Do not combine 11C.1 storage mutation retirement with 11C.4 admin/master-data or 11C.5 dashboard/list caller retirement. These are separate risk surfaces.
+
 Guardrails:
 
 - `AttachmentEditor` must preserve direct user outcomes: choose file, replace file, reset pending replacement, cancel dirty edit and clean up pending files, add/remove custom user docs, preview, download, and submit.
 - If a local API route is missing, plan it narrowly rather than routing browser code back to Supabase.
 - Do not change endpoint contracts or logical path semantics.
 - Missing legacy Supabase-backed files remain clean failures.
+- Preserve UI behavior and existing API contracts.
+- Use server-side RBAC and local `dms_session`; do not trust browser session or `dms_active_role` for authorization.
+- Do not reintroduce Supabase fallback after a caller is migrated to local API behavior.
+- Do not migrate old Supabase files; missing old files fail cleanly.
+- Do not leak physical paths, storage roots, token values, session tokens, DB URLs, env values, password hashes, or file access secrets.
+- Do not edit `src/routeTree.gen.ts` unless a route change is explicitly scoped and approved for 11C.
+- Do not perform package/env cleanup before 11E.
+- Do not delete Supabase helpers before 11D and a clean active-caller audit.
+- Stale/dead browser callers are not blockers unless reachable from active runtime paths.
+- Prefer existing API contracts and lightweight fetch/API helper adaptation over introducing a frontend repository/query abstraction framework.
 
 Validation gates:
 
 - Every `getBrowserClient()` caller has a replacement strategy.
 - `AttachmentEditor` has a route/API-backed compatibility design for upload and pending cleanup before implementation.
 - Admin/master-data browser calls are separated from attachment/storage browser calls.
+- 11C implementation slices are small enough that no implementer must make product/design decisions.
+- `AttachmentEditor` cleanup failure handling prefers safe orphan retention over metadata corruption.
+- Browser storage mutation retirement, master-data/dropdown read retirement, browser session/bootstrap replacement, and role/dashboard/filter data replacement remain separate.
+- No source/runtime/package/env cleanup is claimed in 11B.
 
 Manual validation commands for human:
 
 - `git grep -n "getBrowserClient" -- src/routes src/components src/lib`
-- `git grep -n "supabase\.auth\|supabase\.storage\|storage\.from" -- src/routes src/components src/lib`
-- `git grep -n "fetch('/api/upload'\|preview-url\|download-url\|rename-pending\|files/access" -- src/components src/routes src/lib`
+- `git grep -n "supabase\.auth\|supabase\.storage\|storage\.from\|upload(\|remove(\|getSession" -- src/routes src/components src/lib`
+- `git grep -n "fetch('/api/upload'\|fetch(\"/api/upload\"\|preview-url\|download-url\|rename-pending\|files/access\|apiMutation\|apiFetch" -- src/components src/routes src/lib`
 
 Deferred items / exit criteria:
 
