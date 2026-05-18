@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10B is admin/user-management Supabase Auth Admin retirement. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle. `POST /api/dokumen/submit` is locally backed for the clean local target, while user-management mutations/password routes, browser helper/UI retirement, global Supabase cleanup, and release hardening stay in later phases.
+Current active area after Phase 10C is the remaining password portion of admin/user-management Supabase Auth Admin retirement. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, and Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle. `POST /api/dokumen/submit` is locally backed for the clean local target, while reset-password/change-password routes, browser helper/UI retirement, global Supabase cleanup, and release hardening stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -1510,7 +1510,7 @@ Current local auth state:
 
 - Already local-backed: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`, `POST /api/auth/role-switch`, `GET /api/users/me`, `GET /api/users/me/ketua-tim`, and `GET /api/users/me/is-ketua-tim/$kegiatanId`.
 - Existing foundations: `dms_session` HttpOnly cookie, `dms_active_role` as UX state only, `getLocalServerSession(request)`, local session repository, local role resolution, `hashPassword(...)`, `verifyPassword(...)`, and `auth.users.password_hash` with Argon2id.
-- Remaining Phase 10 runtime surface: `GET/POST /api/users/`, `GET/PATCH /api/users/$id`, `POST /api/users/$id/activate`, `POST /api/users/$id/deactivate`, `POST /api/users/$id/reset-password`, `POST /api/users/me/change-password`, and `src/lib/user-helpers.ts`.
+- Remaining Phase 10 runtime surface after Phase 10C: `POST /api/users/$id/reset-password`, `POST /api/users/me/change-password`, and legacy `src/lib/user-helpers.ts` behavior used by those deferred password routes. `GET/POST /api/users/`, `GET/PATCH /api/users/$id`, `POST /api/users/$id/activate`, and `POST /api/users/$id/deactivate` are local-backed for the clean local target.
 
 Shared Phase 10 guardrails:
 
@@ -1745,8 +1745,23 @@ Validation gates:
 
 Manual validation commands for human:
 
-- `pnpm test tests/e2e/spec-06-user-management.spec.ts`
-- Add/run focused API route tests for create, update, activate, deactivate, role assignment, and non-admin denial if created.
+- `pnpm test tests/unit/auth/session-token.test.ts tests/unit/auth/session-cookies.test.ts tests/unit/auth/role-resolution.test.ts`
+- Optional human-only: `pnpm test tests/e2e/spec-06-user-management.spec.ts`
+
+Progress as of 2026-05-18:
+
+- Migrated `POST /api/users/` to local `dms_session` authorization through `getLocalServerSession(request)`, assigned `ADMIN` validation through `hasLocalRole(...)`, create-time `hashPassword(...)`, local `auth.users` inserts, and local `auth.user_roles` joins.
+- Migrated `PATCH /api/users/$id` to local `dms_session` ADMIN authorization, local profile column/metadata updates, and local role join replacement.
+- Migrated `POST /api/users/$id/activate` to local `auth.users.is_active=true`, clearing local deactivation metadata while preserving the existing success body `{ success: true, message: 'User berhasil diaktifkan' }`.
+- Migrated `POST /api/users/$id/deactivate` to local `auth.users.is_active=false`, local deactivation metadata, self-deactivation prevention, and `revokeAllUserSessions(userId)` after a successful user status update while preserving the existing success body `{ success: true, message: 'User berhasil dinonaktifkan' }`.
+- Added the scoped local mutation helper `src/lib/users/local-user-mutations.ts`; `src/lib/users/local-user-queries.ts` remains the read mapper used to return response-compatible `{ user }` payloads after create/update.
+- Added request boundary envelope schemas in `src/lib/schemas/user.ts` for admin create/update payload parsing; route-level validation still preserves existing user-facing messages for invalid email, password, profile fields, roles array, invalid role names, duplicate email, and invalid user ids.
+- Role assignment validates payload names against canonical roles, verifies matching rows in local `auth.roles`, never creates role rows, replaces only `auth.user_roles`, and rejects `ADMIN` combined with any non-admin role.
+- Mandatory `PEGAWAI` behavior is preserved only for non-admin accounts: omitted non-admin roles or non-admin payloads without `PEGAWAI` are normalized to include `PEGAWAI`; `ADMIN` payloads must be `ADMIN` only.
+- Deactivation is intentionally non-destructive. Existing dokumen/archive/audit rows remain readable because users are not hard-deleted.
+- No Supabase Auth Admin fallback was added to the migrated create/update/status routes. Remaining Supabase Auth Admin/password behavior is intentionally deferred to Phase 10D for `POST /api/users/$id/reset-password` and `POST /api/users/me/change-password`.
+- Caveat: the current admin UI still renders `PEGAWAI` as mandatory for every role selection, so creating or editing an `ADMIN`-only account through the UI may need a later tiny UI compatibility pass. The server contract is already strict and accepts `roles: ['ADMIN']` only for ADMIN accounts.
+- Caveat: session revocation happens immediately after the successful deactivation update via the existing session repository. If that revocation call fails after the user is marked inactive, local login/session lookup still rejects the inactive user through `auth.users.is_active=false`, but manual cleanup of unrevoked session rows may be required.
 
 Deferred items:
 
