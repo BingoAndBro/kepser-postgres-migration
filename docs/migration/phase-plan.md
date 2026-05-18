@@ -942,7 +942,7 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning. Phase 9 is split into practical runtime-oriented subphases below. The next recommended runtime target is Phase 9B Preview/Download Internal URL Route Migration.
+Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, and Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs. The next recommended runtime target is Phase 9C Role-Specific Preview/Download Route Migration.
 
 Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
 
@@ -1006,8 +1006,8 @@ Non-goals:
 
 | Surface / route / helper | Current state | Supabase or mixed state | User-facing contract | Phase | Key parity risk | First action needed |
 |---|---|---|---|---|---|---|
-| `GET /api/dokumen/preview-url` | Default still Supabase signed URL; opt-in `useInternal=true` exists | Mixed Supabase auth/storage plus internal raw-path URL option | `{ signedUrl, filename }`, 900s preview URL | 9B | Raw `url` query path traversal and fallback drift | Make internal URL default with local session/path validation and no Supabase fallback |
-| `GET /api/dokumen/download-url` | Supabase signed URL only | Supabase auth/storage | `{ signedUrl }`, 900s download URL with derived filename | 9B | Filename/content-disposition parity for underscore and dash pending paths | Use internal URL builder with `contentDisposition='attachment'` and sanitized download filename |
+| `GET /api/dokumen/preview-url` | Migrated in 9B; returns internal raw logical-path URL by default | Local session, local raw-path authorization, internal token URL | `{ signedUrl, filename }`, 900s preview token | Complete in 9B | Raw path authorization remains coarse by design | Monitor in manual smoke; document-aware access belongs to 9C |
+| `GET /api/dokumen/download-url` | Migrated in 9B; returns internal raw logical-path download URL | Local session, local raw-path authorization, internal token URL | `{ signedUrl }`, download token with derived filename | Complete in 9B | Filename/content-disposition parity for underscore and dash pending paths | Monitor in manual smoke; document-aware access belongs to 9C |
 | `/api/files/access` plus token/internal URL helpers | Existing foundation; serves local raw logical-path tokens | Local token/path/file read only; no Supabase Storage | Browser-fetchable internal URL returned in `signedUrl` | Foundation for 9B/9C | Supports raw logical-path tokens only; no document/archive token authorization yet | Reuse for 9B raw paths; extend later only when 9C needs document/archive tokens |
 | `GET /api/dokumen/$id/preview/$lampiranIndex` | Supabase signed URL | Supabase auth/DB helper/storage | `{ signedUrl }`; owner or approver; blocks `DIMUSNAHKAN` | 9C | Must re-check document/archive state at access time, not only token issue time | Migrate after 9B using document metadata and local session/role checks |
 | `GET /api/dokumen/$id/download/$lampiranIndex` | Supabase signed URL | Supabase auth/DB helper/storage | `{ signedUrl }`; 3600s download URL | 9C | Client builds filename; route may not return `filename` today | Preserve `{ signedUrl }` and download disposition without forcing UI rewrite |
@@ -1119,6 +1119,8 @@ Deferred items:
 
 Goal: migrate raw preview/download URL-generation surfaces away from Supabase signed URLs.
 
+Status: complete as of 2026-05-18 for the two raw logical-path URL-generation endpoints. `GET /api/dokumen/preview-url?url=...` and `GET /api/dokumen/download-url?url=...` now generate relative internal `/api/files/access?token=...` URLs through the existing token helper and raw internal access service. This phase did not move, delete, migrate, copy, download, backfill, sync, or fetch old Supabase Storage files.
+
 Runtime scope:
 
 - `GET /api/dokumen/preview-url?url=...`.
@@ -1126,6 +1128,8 @@ Runtime scope:
 - Generate internal `/api/files/access?token=...` URLs for local logical paths.
 - Preserve current request query parameters, response shapes, filename behavior, expiry intent, and `{ signedUrl }` field names.
 - Use existing token and internal access URL foundations where practical.
+- Preserve raw access authorization through local `dms_session`, first-segment owner checks, and the existing raw-compatible `PPK`, `BENDAHARA`, and `ARSIPARIS` role policy.
+- Remove Supabase Storage signed URL fallback from the migrated raw endpoints.
 
 Non-goals:
 
@@ -1153,7 +1157,11 @@ Key risks:
 
 Deferred items:
 
-- Role/document preview/download routes, update/resubmit movement, delete/remove behavior, archive destruction, and diagnostics.
+- Role/document preview/download routes for Phase 9C.
+- Update/revision/resubmit attachment movement and browser `AttachmentEditor` upload behavior for Phase 9D.
+- Document delete, attachment remove/delete, and `AttachmentEditor` reset/cancel deletion for Phase 9E.
+- Archive destruction and `DIMUSNAHKAN` stale token/file hardening for Phase 9F.
+- Admin diagnostics/orphan cleanup and final storage stabilization for Phase 9G.
 
 ### Phase 9C: Role-Specific Preview/Download Route Migration
 

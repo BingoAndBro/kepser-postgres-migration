@@ -382,6 +382,7 @@ Current planning note:
 
 - Phase 9.0 planned storage/file-access completion on 2026-05-18 as compact runtime-oriented subphases: 9A inventory/order, 9B raw preview/download internal URL migration, 9C role/document preview/download routes, 9D update/revision/resubmit attachment movement, 9E document delete and attachment remove/delete, 9F destructive archive approval plus `DIMUSNAHKAN` hardening, and 9G diagnostics/orphan cleanup/stabilization.
 - Phase 9A completed the final storage surface inventory/order on 2026-05-18 without runtime changes. Remaining active surfaces are assigned to 9B through 9G, existing local foundations are ready for raw-path internal URL migration, and no concrete blocker was found to starting Phase 9B next.
+- Phase 9B migrated `GET /api/dokumen/preview-url?url=...` and `GET /api/dokumen/download-url?url=...` on 2026-05-18. Both raw logical-path URL-generation endpoints now return internal `/api/files/access?token=...` URLs through local `dms_session` authorization and the existing raw-path internal access service, while preserving the `{ signedUrl }` response field and preview `filename` field. The next target is Phase 9C role/document preview/download route migration.
 - Phase 9 starts after Phase 8G closed selected clean-local write domains. It does not include user-management/Auth Admin, password flows, package/env cleanup, global Supabase dependency removal, old Supabase file migration/copy/download/backfill/sync, or broad browser helper/UI retirement.
 
 Allowed scope:
