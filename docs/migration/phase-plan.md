@@ -1426,6 +1426,8 @@ Deferred items:
 
 Goal: finish storage diagnostics/cleanup after core file access and destructive flows are stable.
 
+Status: scoped runtime migration complete as of 2026-05-18 for the two admin storage routes. `GET /api/admin/analyze-storage` now uses local `dms_session` authorization, requires assigned `ADMIN`, scans only the configured local storage root, compares local files against local PostgreSQL metadata from `dokumen_transaksi.lampiran_urls` and retained `arsip.lampiran_snapshot`, and returns logical-path-only diagnostics. `GET /api/admin/cleanup-orphan-files` now uses the same local analysis and is conservative by default: it reports only unless `dry_run=false`, deletes only formal local files that are absent from both document and archive metadata, skips pending files even when `pending_only=true`, skips unsupported local file shapes, treats missing files as no-op, and returns partial-failure details without physical paths. No Supabase Storage listing/removal fallback, old-file migration, copy, download, backfill, sync, package cleanup, route generation, scheduler replacement, user-management/Auth Admin replacement, or browser helper retirement was done.
+
 Runtime scope:
 
 - Admin storage diagnostics route.
@@ -1463,6 +1465,40 @@ Deferred items:
 
 - Phase 10 user-management/Auth Admin and password work.
 - Phase 11 global Supabase package/env cleanup, browser helper/UI retirement, regression, backup/restore, and release hardening.
+
+Implementation notes:
+
+- Diagnostics preserves the legacy top-level fields `{ summary, folder_details, orphan_paths, referenced_paths_count }` and adds conservative local categories for referenced, orphan candidate, pending, unsupported, unsafe, missing referenced, and legacy/unsupported metadata references.
+- `orphan_paths` means formal local files that are confidently unreferenced by current local DB metadata. Pending files and unsupported path shapes are reported separately and are not deletion candidates.
+- Cleanup preserves `GET`, `pending_only`, `dry_run`, `message`, `deleted_count`, and `orphan_paths` compatibility. Because the legacy route was dangerous and its comments documented `dry_run`, Phase 9G makes report-only behavior the default and requires `dry_run=false` for destructive cleanup.
+- Cleanup protects every logical path referenced by `dokumen_transaksi.lampiran_urls` and every retained `arsip.lampiran_snapshot`, including any non-empty destroyed-archive snapshot metadata that still exists. Cleared `DIMUSNAHKAN` snapshots are not treated as proof that old files are valid to delete; files are deleted only when no current metadata source references the logical path.
+- URL/protocol-like or invalid metadata references are classified as legacy/unsupported metadata and never converted into local filesystem paths.
+- Responses include logical paths and code/count summaries only. They do not include physical paths, storage roots, env values, DB URLs, stack traces, token internals, or raw filesystem errors.
+
+Manual smoke checklist:
+
+- ADMIN can access `/api/admin/analyze-storage` and `/api/admin/cleanup-orphan-files`; unauthorized or non-admin users fail with 401/403.
+- Diagnostics response does not expose physical paths or the storage root.
+- Cleanup without `dry_run=false` reports only and does not delete files.
+- Cleanup with `dry_run=false` deletes only confirmed local formal orphan files.
+- Referenced files in `dokumen_transaksi.lampiran_urls` are not deleted.
+- Referenced files in retained `arsip.lampiran_snapshot` are not deleted.
+- Pending files are reported/skipped, including `pending_only=true`.
+- Missing old Supabase-backed logical metadata is reported as missing/skipped without fallback.
+- Upload, rename-pending, submit, update, PPK resubmit, preview/download, scoped document delete, and archive destruction still work for new local files.
+- Preview/download still return internal `/api/files/access?token=...` URLs.
+- `DIMUSNAHKAN` blocks document-aware preview/download and stale document tokens even if stale files remain.
+- No Supabase Storage fallback occurs in migrated storage/file-access routes.
+
+Remaining Supabase usage classification:
+
+- Phase 10: `/api/users/*`, password/Auth Admin/user-management flows, and Supabase Auth Admin/user-name enrichment.
+- Phase 11: `AttachmentEditor` direct browser Supabase upload/remove, browser master-data helper reads, `src/lib/storage-client.ts` raw helper retirement, global Supabase package/env/import cleanup, regression, backup/restore, and release hardening.
+- Reference-only: migration docs, historical specs, legacy audit notes, and tests that mock Supabase to assert fallback absence.
+
+Phase 9 storage-runtime caveat:
+
+For new clean local data, active server-side storage behavior is now local-filesystem-backed for upload, rename-pending, submit movement, update/revision/PPK-resubmit movement, raw and document/role preview/download URL generation and access, scoped Pegawai non-material `TERSIMPAN` document delete, archive destructive approval cleanup, diagnostics, and conservative cleanup. This does not mean full storage retirement is complete: browser helper retirement remains pending, old Supabase Storage files were not migrated, raw logical-path tokens remain context-free, admin cleanup is intentionally conservative, and Phase 10/11 remain open.
 
 ## Phase 10: Admin/User Management And Supabase Runtime Retirement
 

@@ -298,6 +298,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Scoped non-material document delete audit exception accepted.
   Date: 2026-05-18.
   Rationale: Caller audit confirmed `DELETE /api/dokumen/$id` is the Pegawai UI delete path for owner non-material `TERSIMPAN` documents, not archive destruction or approval workflow deletion. To preserve that legacy behavior, the route may hard-delete only when the caller has a local session, assigned `PEGAWAI` role, document ownership, `is_non_material=true`, no material request-chain fields, `status='TERSIMPAN'`, and no archive row. Under the current `log_aktivitas.dokumen_id` cascade FK, logs for that deleted user-owned non-approval saved document may be removed with the document. This exception must not be generalized to material, approval, revision, completed, archived, archive-linked, or archive-destruction paths.
+- Conservative admin storage diagnostics and orphan cleanup completed.
+  Date: 2026-05-18.
+  Rationale: Phase 9G migrated `GET /api/admin/analyze-storage` and `GET /api/admin/cleanup-orphan-files` from Supabase Storage listing/removal to local filesystem scanning under the configured storage root with local `dms_session` ADMIN authorization. The accepted safety decision is that cleanup defaults to dry-run/report-only, requires `dry_run=false` before deletion, protects all current `dokumen_transaksi.lampiran_urls` and retained `arsip.lampiran_snapshot` references, deletes only confidently unreferenced formal local files, and reports/skips pending, unsupported, unsafe, missing, and legacy/URL metadata instead of inferring ownership or deleting broadly. This does not mark browser helper retirement, old Supabase Storage migration/copy/download/backfill/sync, raw-token context redesign, global Supabase dependency/env cleanup, backup/restore, or release hardening complete.
 
 ## Still Open
 
@@ -310,8 +313,6 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Internal signed-token runtime implementation remains open for document/archive authorization revalidation, `DIMUSNAHKAN` blocking, and whether later phases need persisted nonce/jti records or stronger session binding beyond the Phase 6D.1 stateless helper claims. Phase 6D.7 streams only raw logical-path token files after existing validation; document/archive/status-check token streaming remains unsupported.
 - Preview/download endpoint compatibility wiring.
 - Pending-to-formal local move implementation for update and PPK resubmit.
-- Archive destruction local delete behavior.
-- Storage diagnostics/orphan cleanup local implementation.
 - Whether preview/download endpoints eventually stream directly or keep `{ signedUrl }` permanently after transition.
 - Whether local storage preserves current path strings exactly or uses a compatibility mapping layer.
   Phase 3A recommendation: preserve UUID-based ownership semantics and the current lampiran JSON shape during compatibility. Since no existing Supabase data is being imported, old Supabase user UUID path values are not preserved unless a future data migration decision changes scope. See `docs/migration/drizzle-schema-plan.md` Sections 6 and 11.
