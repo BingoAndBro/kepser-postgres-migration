@@ -428,6 +428,15 @@ Exit criteria:
 
 Goal: Replace remaining Supabase Auth Admin/user-management/runtime dependencies and prepare final Supabase cleanup after parity.
 
+Current status:
+
+- Phase 10B migrated admin user list/detail reads to local PostgreSQL/Drizzle.
+- Phase 10C migrated admin user create/update/activate/deactivate and role assignment to local PostgreSQL/Drizzle.
+- Phase 10D migrated admin reset-password and self-service change-password to local Argon2id password hash updates with all-session revocation after successful hash updates.
+- Phase 10E accepted deactivate/reactivate as the normal user lifecycle and found no active user hard-delete route or UI contract.
+- Phase 10F closed stabilization on 2026-05-18: Phase 10-owned server routes have no Supabase Auth/Admin fallback, response shapes remain compatible, and remaining Supabase usage is classified for Phase 11 global/browser helper cleanup or reference-only legacy helper/docs/tests.
+- Phase 10 is complete for the clean local server-side user-management/password target. It does not complete old Supabase Auth data migration, production bootstrap password workflow, email invite/reset flow, user hard delete, browser helper/UI retirement, global Supabase package/env cleanup, full regression, backup/restore, or release hardening.
+
 Allowed scope:
 
 - User management replacement.
@@ -456,7 +465,7 @@ Key validation gates:
 
 Exit criteria:
 
-- No required Supabase Auth/Admin runtime path remains, and final package/env cleanup has a verified checklist.
+- Met for Phase 10-owned server-side user-management/password routes after Phase 10F. No required Supabase Auth/Admin runtime path remains in those routes, and final browser helper/package/env/global cleanup is handed off to Phase 11 with a verified checklist.
 
 ## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
 

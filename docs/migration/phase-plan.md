@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10E is Phase 10F user-management/auth runtime stabilization and then Phase 11 global cleanup. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, and Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default. `POST /api/dokumen/submit` is locally backed for the clean local target, while browser helper/UI retirement, global Supabase cleanup, release hardening, and Phase 10F stabilization stay in later phases.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. `POST /api/dokumen/submit` is locally backed for the clean local target, while browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -1947,6 +1947,120 @@ Exit criteria:
 - No required Supabase Auth Admin or Supabase Auth password runtime paths remain in Phase 10-owned routes.
 - User-management and password flows work through local auth/database paths for clean local data.
 - Final dependency/env/global cleanup has a verified Phase 11 checklist.
+
+Progress as of 2026-05-18:
+
+- Phase 10F stabilization/audit is complete. No runtime source, route tree, package, env, DB schema, migration, seed, script, Supabase folder, or browser helper cleanup changes were made for this phase.
+- Phase 10 server-side user-management and password runtime is complete for the clean local data target: login/logout/session/role-switch, current-user reads, admin user list/detail/create/update/activate/deactivate/reset-password, and self-service change-password all use local auth/database paths.
+- Clean-local migration philosophy remains explicit: old Supabase Auth users, old Supabase sessions, and old Supabase-backed files are not migrated, copied, backfilled, recovered, or used as fallback. Missing legacy data is acceptable if it fails cleanly.
+
+Route/runtime coverage:
+
+| Route | Status | Phase | Auth/RBAC | Preserved response shape | Caveat |
+|---|---|---|---|---|---|
+| `POST /api/auth/login` | local-backed | 5E | email/password against local `auth.users`, Argon2id verification, active user and role validation | `{ user, roles, activeRole }` plus `dms_session` and `dms_active_role` cookies | Clean local users only; no Supabase Auth fallback. |
+| `POST /api/auth/logout` | local-backed | 5E | hashes `dms_session` cookie and revokes matching local session when present | `{ success: true }` and clears session/active-role cookies | Logout remains idempotent if token is missing or already revoked. |
+| `GET /api/auth/session` | local-backed | 5E | validates hashed local `dms_session`, active user, assigned roles; resolves `dms_active_role` only after membership validation | `{ session, roles, activeRole }` or unauthenticated null shape | `dms_active_role` is UX state, not authorization proof. |
+| `POST /api/auth/role-switch` | local-backed | 5E.1 | local session required; requested role must be assigned; `ADMIN` switch rejected | `{ success: true, activeRole }` | ADMIN remains dedicated. |
+| `GET /api/users/me` | local-backed | 5J | local session required; current user only | `{ user: { id, email, metadata, roles } }` | Profile metadata maps local columns back into legacy metadata keys. |
+| `GET /api/users/me/ketua-tim` | local-backed | 5I | local session required; current user only | `{ is_ketua_tim, kegiatan }` | Reads local Ketua Tim assignment tables. |
+| `GET /api/users/me/is-ketua-tim/$kegiatanId` | local-backed | 5I | local session required; current user only; validates `kegiatanId` UUID | `{ is_ketua_tim }` | Invalid UUID remains a 400 validation error. |
+| `GET /api/users/` | local-backed | 10B | local session plus assigned `ADMIN` | `{ users, total }` | UI search/status filtering remains client-side. |
+| `POST /api/users/` | local-backed | 10C | local session plus assigned `ADMIN` | `201 { user }` | Non-admin roles preserve/add `PEGAWAI`; `ADMIN` mixed roles rejected. |
+| `GET /api/users/$id` | local-backed | 10B | local session plus assigned `ADMIN`; validates UUID | `{ user }` | Missing user returns `404 { error: 'User tidak ditemukan' }`. |
+| `PATCH /api/users/$id` | local-backed | 10C | local session plus assigned `ADMIN`; validates UUID/body | `200 { user }` | Server rejects `ADMIN` mixed with any non-admin role even if UI can select it. |
+| `POST /api/users/$id/activate` | local-backed | 10C | local session plus assigned `ADMIN`; validates UUID | `{ success: true, message: 'User berhasil diaktifkan' }` | Clears local deactivation metadata; does not reset password. |
+| `POST /api/users/$id/deactivate` | local-backed | 10C | local session plus assigned `ADMIN`; validates UUID; blocks self-deactivation | `{ success: true, message: 'User berhasil dinonaktifkan' }` | Revokes sessions after status update; failed revocation may require manual cleanup. |
+| `POST /api/users/$id/reset-password` | local-backed | 10D | local session plus assigned `ADMIN`; validates UUID/body | `{ success: true, message: 'Password berhasil direset' }` | Revokes all target-user sessions after hash update; no email reset/invite flow. |
+| `POST /api/users/me/change-password` | local-backed | 10D | local session required; targets current session user only | `{ success: true, message: 'Password berhasil diubah' }` | Verifies current password before same-password check; revokes all current-user sessions after hash update. |
+
+Supabase/Auth/Admin fallback audit classification:
+
+- Migrated Phase 10-owned route files under `src/routes/api/users` have no active `createAdminClient`, `createServerSupabaseClient`, `getServerSession`, `auth.admin`, `supabase.auth`, `signInWithPassword`, `updateUser`, `updateUserById`, `listUsers`, or `createUser` runtime fallback.
+- `src/lib/user-helpers.ts` still contains Supabase Auth Admin list/create/update/reset/status helpers. Classification: legacy reference helper no longer used by migrated Phase 10 routes; remove or retire only in Phase 11/global cleanup after callers are re-audited.
+- `src/lib/auth.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, and `src/lib/supabase-browser.ts` still contain Supabase helpers. Classification: Phase 11 global cleanup/browser helper retirement surfaces, not Phase 10 blockers.
+- Docs and tests still mention or mock Supabase Admin/Auth helpers. Classification: docs/tests/reference-only historical migration notes or focused legacy parity harnesses.
+- Browser helper/UI Supabase surfaces remain outside Phase 10F. Classification: Phase 11 browser helper/global Supabase cleanup.
+- No unexpected Phase 10 blocker was found.
+
+Auth/RBAC stabilization review:
+
+- Every migrated admin user route uses `getLocalServerSession(request)` and assigned `ADMIN` checks through `hasLocalRole(...)`.
+- Unauthenticated admin user routes return 401-style `{ error: string }`; non-admin authenticated access returns 403-style `{ error: string }`.
+- Self-service `POST /api/users/me/change-password` uses the current local session user id only and does not accept a target user id.
+- `dms_active_role` is resolved only after local session and assigned-role validation; it is not authorization proof.
+- `ADMIN` remains dedicated: role-switch rejects ADMIN switching, login/session validate assigned-role consistency, and admin user create/update rejects `ADMIN` combined with non-admin roles.
+- Non-admin accounts preserve/add `PEGAWAI` in admin create/update normalization.
+
+Password/session review:
+
+- Create-time password hashing uses the central Argon2id `hashPassword(...)` helper.
+- Admin reset-password uses local Argon2id hash update through `resetLocalUserPassword(...)`.
+- Self-service change-password reads the current local hash, verifies `currentPassword` through `verifyPassword(...)`, and only then checks whether the new password is the same.
+- Reset/change revokes all sessions for the affected user after a successful password hash update.
+- Deactivation revokes all sessions for the target user after a successful inactive status update.
+- Password hashes, raw session tokens, token hashes, and password values are not returned by the migrated route response shapes.
+- Revocation caveat remains: if revocation fails after a hash/status update, the update is not rolled back by this scoped implementation and manual session cleanup may be required.
+
+User lifecycle/hard-delete review:
+
+- No `DELETE /api/users` or `DELETE /api/users/$id` route exists.
+- No user hard-delete behavior was implemented or invented.
+- Deactivate/reactivate remain the supported lifecycle.
+- User rows remain historical identity anchors for documents, archives, logs, Ketua Tim assignments, roles, and sessions.
+- Any future user hard-delete proposal remains deferred to a separate explicit decision phase with schema/FK, audit display, archival/anonymization, route contract, and smoke-test criteria.
+
+Response-shape compatibility review:
+
+- Admin user list returns `{ users, total }`.
+- Admin user detail returns `{ user }`.
+- Admin create returns `201 { user }`.
+- Admin update returns `200 { user }`.
+- Activate/deactivate return `{ success: true, message }`.
+- Reset-password returns `{ success: true, message: 'Password berhasil direset' }`.
+- Change-password returns `{ success: true, message: 'Password berhasil diubah' }`.
+- Errors remain `{ error: string }` with compatible 400/401/403/404/409/500 categories for the audited routes.
+
+Test strategy result:
+
+- No tests were added in Phase 10F. Existing focused auth helper tests cover token/cookie/role primitives, and adding route-level API tests would require a broader mocked route/database harness than this stabilization scope allows.
+- Future low-risk tests should target local role normalization/ADMIN exclusivity, no password hash in user response mapping, unauthorized/non-admin admin route seams, and password same-password-after-verify behavior with injected or mocked dependencies.
+- No broad tests, Playwright/E2E, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package commands, password hash helper scripts, or commits were run during Phase 10F.
+
+Manual smoke checklist for Phase 10F handoff:
+
+- Login succeeds for active local user.
+- Logout clears session.
+- Session reload returns current user.
+- Role switch accepts only assigned roles.
+- Admin user list loads.
+- Admin create user works.
+- Duplicate email fails cleanly.
+- Invalid role fails cleanly.
+- ADMIN mixed role is rejected.
+- Edit user profile/roles works.
+- Deactivate user blocks login and revokes sessions.
+- Reactivate user allows login again if password known.
+- Admin reset password revokes sessions; old password fails; new password succeeds.
+- Profile self change password with wrong current password fails.
+- Profile self change password succeeds; old password fails; new password succeeds.
+- Non-admin is denied admin user endpoints.
+- No user hard delete route exists.
+- Remaining Supabase usage is only Phase 11/reference/deferred legacy cleanup.
+
+Manual validation commands for human:
+
+- `pnpm test`
+- Optional: `pnpm build` only if the human chooses; if it changes `src/routeTree.gen.ts` due generation or line endings, restore it unless route generation was intentionally scoped.
+- Optional human-only: `pnpm test tests/e2e/spec-06-user-management.spec.ts`
+
+Phase 11 handoff:
+
+- Retire or remove legacy Supabase helpers only after browser helper/UI surfaces and any remaining global references are re-audited.
+- Classify and retire direct browser Supabase usage, especially UI/helper surfaces outside the migrated server/API paths.
+- Keep no Supabase Auth/Admin fallback for local user-management/password routes.
+- Preserve clean-local behavior: do not migrate/copy/backfill/recover old Supabase Auth users, sessions, or files unless a later explicit data migration decision changes scope.
+- Complete full regression, backup/restore, LAN/release hardening, CSRF/rate-limiting review, final dependency/env cleanup, and operational docs.
 
 ## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
 
