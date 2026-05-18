@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 8 write/workflow migration planning/runtime. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory and kept Phase 8B as the first runtime write group. Phase 8F migrated scoped non-user-management master/admin metadata CRUD writes on 2026-05-18 after the Pegawai, PPK, Bendahara, and safe Arsiparis metadata write passes. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 9 storage/file-access completion. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement, storage/file-access surfaces, user-management/Auth Admin, browser helper/UI retirement, and global cleanup stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -592,7 +592,7 @@ Validation focus for the next runtime prompt:
 
 Goal: migrate Pegawai-facing document update, delete, revision, and resubmit-adjacent database writes that are not primarily storage-heavy.
 
-Status as of 2026-05-17: in progress with scoped runtime migration started.
+Status as of 2026-05-18: complete for the scoped Phase 8B clean-local write surfaces.
 
 Migrated in the first Phase 8B runtime pass:
 
@@ -647,7 +647,7 @@ Deferred items:
 
 Goal: migrate PPK decision writes to local PostgreSQL/Drizzle while preserving FSM, revision target, and audit contracts.
 
-Status as of 2026-05-18: in progress with scoped runtime migration completed for pure/safe PPK decision writes.
+Status as of 2026-05-18: complete for the scoped Phase 8C pure/safe PPK decision writes.
 
 Migrated in this pass:
 
@@ -703,7 +703,7 @@ Deferred items:
 
 Goal: migrate Bendahara approval, rejection, and nominal-related writes to local PostgreSQL/Drizzle.
 
-Status as of 2026-05-18: in progress with scoped runtime migration completed for pure Bendahara decision writes.
+Status as of 2026-05-18: complete for the scoped Phase 8D pure Bendahara decision writes.
 
 Migrated in this pass:
 
@@ -755,7 +755,7 @@ Deferred items:
 
 Goal: migrate archive creation and safe archive metadata lifecycle writes that are not primarily physical file destruction.
 
-Status as of 2026-05-18: in progress with scoped runtime migration completed for safe archive metadata/lifecycle writes.
+Status as of 2026-05-18: complete for the scoped Phase 8E safe archive metadata/lifecycle writes.
 
 Migrated in this pass:
 
@@ -809,7 +809,7 @@ Deferred items:
 
 Goal: migrate master data and non-user-management admin CRUD writes that can move safely before Phase 10.
 
-Status as of 2026-05-18: in progress with scoped runtime migration completed for safe non-user-management metadata CRUD writes.
+Status as of 2026-05-18: complete for the scoped Phase 8F safe non-user-management metadata CRUD writes.
 
 Migrated in this pass:
 
@@ -864,6 +864,43 @@ Deferred items:
 ### Phase 8G: Write API Stabilization And Supabase Write Retirement Audit
 
 Goal: close Phase 8 only after migrated write domains are audited and remaining writes are assigned to later phases.
+
+Status as of 2026-05-18: complete. Phase 8 is closed for the selected clean-local write domains, with no true Phase 8 blocker found. Phase 9 may begin with storage/file-access completion.
+
+Audit summary:
+
+- Phase 8B Pegawai document update/revision writes: `PATCH /api/dokumen/$id` and `POST /api/dokumen/$id/submit` are local `dms_session` and local Drizzle backed for the scoped metadata/status paths. Update plus Non-Material audit and submit/resubmit status plus audit run inside local transactions. `PATCH /api/dokumen/$id` still imports Supabase helpers only because the same mixed route file retains deferred `DELETE /api/dokumen/$id` storage deletion behavior; the migrated PATCH path has no Supabase write fallback and fails closed on pending/move-required lampiran paths.
+- Phase 8C PPK workflow mutations: `POST /api/ppk/dokumen/$id/approve`, `POST /api/ppk/dokumen/$id/reject`, `POST /api/ppk/kembalikan/$id`, and safe `POST /api/ppk/resubmit/$id` use local `dms_session`, local Drizzle writes, FSM transitions, and append-only audit transactions. Supabase remains in `GET`/`PATCH /api/ppk/resubmit/$id` for mixed attachment save/move/delete behavior and is deferred to Phase 9.
+- Phase 8D Bendahara workflow mutations: `POST /api/bendahara/dokumen/$id/approve` and `POST /api/bendahara/dokumen/$id/reject` use local `dms_session`, local Drizzle writes, FSM transitions, and append-only audit transactions. `PATCH /api/dokumen/$id/nominal` remains deferred because its legacy authorization is cross-role.
+- Phase 8E Arsiparis archive metadata/lifecycle writes: `POST /api/arsiparis/dokumen/$id/archive`, `POST /api/arsiparis/aktif/$id/pindahkan`, and `POST /api/arsiparis/inaktif/$id/musnahkan` use local `dms_session`, local Drizzle writes, transactions, preserved `lampiran_snapshot`/`nominal_realisasi`, metadata-only lifecycle transitions, proposal creation, and append-only audit inserts. Destructive `PATCH /api/arsiparis/usul-musnah/$id` remains Phase 9 because it combines metadata with file destruction and `DIMUSNAHKAN` file-access semantics.
+- Phase 8F master/admin non-user-management CRUD writes: master fungsi, kegiatan, jenis/kategori/detail permintaan, kelengkapan dokumen, Arsip classification CRUD, and Ketua Tim assignment writes use local `dms_session` with ADMIN or ADMIN/ARSIPARIS behavior as scoped, plus local Drizzle writes. Transaction use is limited to multi-step replacement/update semantics such as Ketua Tim per-kegiatan replacement; single-row metadata CRUD remains single-write local Drizzle behavior.
+- Remaining Supabase references are classified rather than removed. The broad audit still finds Supabase in storage/preview/download, physical file movement/deletion, orphan cleanup/diagnostics, `/api/users/**`, password/Auth Admin routes, browser helpers/UI pages, legacy cross-role nominal update, and inactive/ambiguous old draft-create compatibility. None is a blocker for closing Phase 8 because those surfaces are assigned below.
+
+Remaining work classification:
+
+- Phase 9 storage/file-access: central/role preview and download routes; raw preview/download URL routes except already-local opt-in raw access; physical update/resubmit file movement; PPK resubmit attachment save/move/delete; document delete if storage-coupled; `AttachmentEditor` browser storage cleanup; admin storage diagnostics/orphan cleanup; archive destructive approval; physical file deletion; `DIMUSNAHKAN` file-access hardening.
+- Phase 10 user-management/Auth Admin: `/api/users/**`, `/api/users/me/change-password`, reset-password, activation/deactivation, user create/update, role/status administration, password provisioning, `src/lib/user-helpers.ts`, and Supabase Auth Admin replacement.
+- Phase 11 global cleanup/browser helper/package/env cleanup: global Supabase dependency/env cleanup after parity, browser helper/UI retirement not required for server API parity, remaining browser master-data helper reads/writes including `master_jenis_dokumen`-related surfaces, release hardening, and final global Supabase removal only after Phase 9 and Phase 10 close their gaps.
+- Cross-role deferred write: `PATCH /api/dokumen/$id/nominal` remains deferred because legacy behavior allows multiple role categories and should not be narrowed casually.
+- True Phase 8 blockers: none found in the selected migrated write domains.
+
+Focused manual smoke checklist for Phase 8G closure:
+
+- Pegawai `PATCH /api/dokumen/$id` metadata update in an allowed status.
+- Pegawai `PATCH /api/dokumen/$id` with pending lampiran path fails closed.
+- Pegawai existing-document `POST /api/dokumen/$id/submit`.
+- PPK approve, reject, and kembalikan.
+- PPK safe `POST /api/ppk/resubmit/$id` without attachment changes or pending paths.
+- Bendahara approve and reject.
+- Arsiparis archive creation from `COMPLETED`.
+- Arsiparis `AKTIF -> INAKTIF`.
+- Arsiparis `INAKTIF -> USUL_MUSNAH`.
+- ADMIN selected master CRUD route.
+- Classification CRUD as ADMIN and ARSIPARIS where current behavior permits both.
+- Ketua Tim assignment create, replace, and delete.
+- Wrong role returns 403 and unauthenticated request returns 401 on at least one route per role.
+- `log_aktivitas` appends where expected and is not updated or deleted.
+- Phase 8 flows do not perform physical file movement or deletion.
 
 Runtime scope:
 

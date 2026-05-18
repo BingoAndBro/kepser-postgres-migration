@@ -292,6 +292,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 7 major read-domain migration is closed for server/API `GET` routes.
   Date: 2026-05-17.
   Rationale: Phase 7F audit found no true remaining blocker for the scoped major read domains migrated in Phase 7B through 7E. Remaining Supabase usages are not global blockers for Phase 8 because they are assigned to mixed mutation leftovers, storage/file-access, workflow/write mutations, admin/user-management/auth-admin, or browser helper/UI retirement. This does not mark global Supabase retirement, browser helper retirement, preview/download/storage migration, user-management/Auth Admin replacement, archive lifecycle/destruction behavior, or mutation migration complete.
+- Phase 8 selected clean-local write-domain migration is closed.
+  Date: 2026-05-18.
+  Rationale: Phase 8G audit found no true remaining Phase 8 blocker in the selected migrated write domains from Phase 8B through 8F. Pegawai update/revision metadata writes, PPK decision writes, Bendahara decision writes, safe Arsiparis archive metadata/lifecycle writes, and non-user-management master/admin metadata CRUD writes are local-backed for the clean local target. Remaining Supabase usages are not global blockers for Phase 9 because they are assigned to storage/file-access, user-management/Auth Admin, global cleanup/browser helper retirement, or the cross-role nominal compatibility decision. This does not mark preview/download/storage completion, user-management/Auth Admin replacement, browser helper/UI retirement, package/env cleanup, or global Supabase removal complete.
 
 ## Still Open
 
@@ -318,6 +321,10 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Non-auth API authorization migration to local `dms_session`.
 - Browser helper/UI read replacement strategy after server/API read migration closure.
 - Mutation API migration.
+- Cross-role nominal update compatibility.
+  Phase 8G note: `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is cross-role and should not be narrowed casually during selected write-domain closure.
+- Destructive archive approval compatibility.
+  Phase 8G note: `PATCH /api/arsiparis/usul-musnah/$id` remains Phase 9 work because the legacy route combines archive metadata, physical file deletion, snapshot clearing, `DIMUSNAHKAN`, and file-access semantics.
 - Supabase Auth Admin replacement for user management and user-name enrichment.
 - User management and password-change replacement.
 - CSRF and rate-limiting details for cookie-auth runtime.

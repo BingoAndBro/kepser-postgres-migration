@@ -321,7 +321,7 @@ Expected outputs:
 - Focused response-shape and authorization checks where practical.
 - Phase 7F audit/handoff notes before Phase 8.
 
-Current next recommended target after Phase 7F: Phase 8 write/workflow migration planning/runtime, unless manual smoke checks find a concrete Phase 7F read-contract blocker.
+Current next recommended target after Phase 8G: Phase 9 storage/file-access completion, unless manual smoke checks find a concrete Phase 8G write-contract blocker.
 
 ## Phase 8: Write Workflow API Migration By Domain
 
@@ -338,6 +338,7 @@ Current planning note:
 - Phase 8D started runtime migration on 2026-05-18. Bendahara approve and reject decision writes are local PostgreSQL/Drizzle-backed with local `dms_session` BENDAHARA role enforcement, FSM-compatible status transitions, revision-target preservation, and append-only audit transactions. `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is cross-role rather than Bendahara-owned; if no review blocker is found, the next runtime target is Phase 8E Arsiparis archive metadata/lifecycle writes.
 - Phase 8E started runtime migration on 2026-05-18. Archive creation plus safe `AKTIF -> INAKTIF` and `INAKTIF -> USUL_MUSNAH` metadata/proposal writes are local PostgreSQL/Drizzle-backed with local `dms_session` ARSIPARIS role enforcement, transaction boundaries, preserved `lampiran_snapshot`/`nominal_realisasi`, and append-only audit inserts. `PATCH /api/arsiparis/usul-musnah/$id` destructive approval remains Phase 9 storage-coupled work because legacy behavior deletes storage objects, clears snapshots, and sets `DIMUSNAHKAN`; next target is Phase 8F non-user-management master/admin CRUD writes if no 8E review blocker is found.
 - Phase 8F started runtime migration on 2026-05-18. Scoped non-user-management master/admin metadata writes are local PostgreSQL/Drizzle-backed for master fungsi, kegiatan, jenis/kategori/detail permintaan, kelengkapan dokumen, Arsip classification CRUD, and Ketua Tim assignment writes, with local `dms_session` role enforcement and preserved soft-delete/hard-delete behavior. `/api/users/*`, password/Auth Admin replacement, admin storage diagnostics, browser helper/UI retirement, storage/file-access, route generation, schema/migration/seed, package cleanup, and global Supabase cleanup remain deferred. Next target: Phase 8G write API stabilization/audit if no Phase 8F review blocker is found.
+- Phase 8G completed the write stabilization and Supabase write retirement audit on 2026-05-18. The selected clean-local write domains from Phase 8B through 8F are closed for Phase 8: Pegawai update/revision metadata writes, PPK decision writes, Bendahara decision writes, safe Arsiparis archive metadata/lifecycle writes, and non-user-management master/admin metadata CRUD writes. Remaining Supabase-backed surfaces are classified into Phase 9 storage/file-access, Phase 10 user-management/Auth Admin, Phase 11 global cleanup/browser helper/package/env cleanup, plus the cross-role nominal route. Phase 8 does not claim preview/download/storage completion, user-management/Auth Admin completion, browser helper/UI retirement, global Supabase dependency removal, or package/env cleanup.
 
 Allowed scope:
 
@@ -371,7 +372,7 @@ Key validation gates:
 
 Exit criteria:
 
-- Core workflow mutations no longer depend on Supabase database helpers and preserve FSM, role, archive, and audit behavior.
+- Met as of Phase 8G for the selected clean-local write domains. Core workflow mutations selected for Phase 8 no longer depend on Supabase database helpers and preserve FSM, role, archive, and audit behavior. Storage-coupled writes/access, user-management/Auth Admin, cross-role nominal compatibility, browser helper/UI retirement, and final Supabase cleanup remain later-phase work.
 
 ## Phase 9: Storage Surface Completion
 
