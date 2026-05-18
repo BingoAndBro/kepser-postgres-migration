@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -2506,6 +2506,62 @@ Deferred browser callers not touched in 11C.1:
 - Browser session/role checks outside `AttachmentEditor`
 
 11C.1 does not claim package/env cleanup, Supabase helper deletion, global browser Supabase retirement, old Supabase Storage file migration/copy/download/backfill/sync/recovery, preview/download redesign, route generation, DB migration/seed/script changes, or full regression.
+
+#### Phase 11C.2 KelengkapanChecklist And Master-Kelengkapan API-Backed Reads
+
+Status: scoped runtime/docs migration complete as of 2026-05-18 for `KelengkapanChecklist` master kelengkapan reads only.
+
+Changed files/routes:
+
+- `src/components/dokumen/KelengkapanChecklist.tsx`
+- `docs/migration/phase-plan.md`
+- No route file was changed. Existing `GET /api/master-kelengkapan` is reused; no new route, no route generation, and no `src/routeTree.gen.ts` change.
+
+Runtime behavior:
+
+- `KelengkapanChecklist` no longer imports `getBrowserClient()` and no longer calls browser `supabase.from('master_kelengkapan_dokumen')`.
+- Material checklist reads now call local `GET /api/master-kelengkapan?kegiatan_id=<id>&is_ketua_tim=<boolean>` through `apiFetch`, which sends browser cookies with `credentials: 'include'`.
+- The component maps the API rows back to its existing item shape: `id`, `nama_dokumen`, `is_ketua_tim`, and `required`.
+- Loading state remains `Memuat kelengkapan...`, fetch failures still show `Gagal mengambil daftar kelengkapan`, and the empty state remains `Tidak ada kelengkapan untuk kegiatan dan peran ini.`
+- Non-Material behavior remains unchanged: admin kelengkapan fetch is skipped, `items` is cleared, and the UI only exposes user-created supporting documents.
+- User-created optional document behavior remains unchanged, including `user-custom-{crypto.randomUUID()}` ids, add/remove title behavior, and removal from `lampiranUrls`.
+- Parent `onComplete(lampiranUrls, missingRequired)` behavior remains unchanged. Missing required documents are still computed from `items.required` and matching `lampiranUrls[].kelengkapan_id`.
+
+Filtering behavior preserved:
+
+- Base API query is scoped by `kegiatan_id` and exact `is_ketua_tim`, matching the previous component query.
+- Ordering remains compatible: the API orders by `is_ketua_tim` then `nama_dokumen`; because the component requests a single `is_ketua_tim`, visible order is effectively by `nama_dokumen`, matching the previous checklist ordering.
+- If `detailPermintaanId` is present, the component keeps rows where `detail_permintaan_id` equals that id.
+- Else if `kategoriPermintaanId` is present, the component keeps rows where `kategori_permintaan_id` equals that id and `detail_permintaan_id` is null.
+- Else if `jenisPermintaanId` is present, the component keeps rows where `jenis_permintaan_id` equals that id and both `kategori_permintaan_id` and `detail_permintaan_id` are null.
+- Else, the component keeps all rows returned by the base `kegiatan_id` and `is_ketua_tim` API query. This preserves the actual old `KelengkapanChecklist` query behavior; the old inline comment about matching only all-null legacy rows was not enforced by the query.
+- This slice does not change the broader `src/lib/master-data/kelengkapan.ts` helper behavior, the admin master-data page behavior, or the direct Pegawai revisi / PPK resubmit page kelengkapan queries.
+
+FileUploadButton compatibility:
+
+- `FileUploadButton` remains unchanged and already posts to local `POST /api/upload` with multipart fields `file`, `kelengkapan_id`, and `nama_dokumen`, plus `credentials: 'include'`.
+- `KelengkapanChecklist` still passes the same `kelengkapanId`, `namaDokumen`, `initialLampiran`, `onUploaded`, and `onRemoved` props to `FileUploadButton`.
+- Upload response handling remains the same through `LampiranUrl` callbacks. No `AttachmentEditor`, `/api/upload`, preview/download, or storage-client behavior changed in 11C.2.
+
+Caller inventory for this slice:
+
+- Active render path found: `src/components/dokumen/form/StepUploadLampiran.tsx` renders `KelengkapanChecklist`.
+- Page path found: `src/routes/pegawai/dokumen/aju.tsx` renders `StepUploadLampiran`, so Pegawai submit receives the new local API-backed checklist read.
+- `src/routes/pegawai/dokumen/$id/revisi.tsx` and `src/routes/ppk/dokumen/$id/resubmit.tsx` do not render `KelengkapanChecklist`; they render `AttachmentEditor` and keep their existing direct page-level kelengkapan reads deferred.
+
+Deferred browser callers not touched in 11C.2:
+
+- `HierarchicalFilter`
+- Admin/master-data pages
+- Role dashboard/list pages
+- Pegawai submit page-level master-data dropdown reads outside `KelengkapanChecklist`
+- Pegawai revisi page-level kelengkapan reads
+- PPK resubmit page-level kelengkapan reads
+- Browser session/role checks outside `KelengkapanChecklist`
+- `src/lib/master-data/*` Supabase-client-shaped helpers
+- Supabase package/env/helper cleanup
+
+11C.2 does not claim global browser Supabase retirement, Supabase helper deletion, package/env cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, route generation, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, or full regression.
 
 Runtime/docs scope:
 
