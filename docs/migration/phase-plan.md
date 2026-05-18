@@ -2064,31 +2064,431 @@ Phase 11 handoff:
 
 ## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
 
-Goal: complete regression, cleanup, operations, and release readiness for the local/LAN target.
+Goal: complete final stabilization, browser helper retirement, Supabase cleanup, regression, backup/restore, LAN hardening, and release readiness for the clean local PostgreSQL/auth/filesystem-storage target.
 
-Allowed scope:
+Phase 11 is intentionally split because it is high-risk. It includes active browser Supabase usage, legacy server helpers, package/env cleanup, full regression, backup/restore, LAN deployment, and release hardening. Do not collapse it into one giant cleanup phase.
 
-- End-to-end regression and workflow smoke checks.
-- Backup/restore scripts and drills for PostgreSQL plus `storage/`.
-- LAN deployment runbook and local ops documentation.
-- Final Supabase dependency/env cleanup after verified parity.
-- Known-risk cleanup and security hardening.
+Current handoff into Phase 11:
+
+- Phase 9 server-side storage runtime is complete for new clean local data, including new local upload, local moves, preview/download, document-aware file access, destructive archive approval cleanup, and admin storage diagnostics/orphan cleanup.
+- Phase 10 server-side auth/user-management/password runtime is complete for clean local data, including local `dms_session`, local session repository, local role checks, local password helpers, and the documented Phase 10-owned routes.
+- Old Supabase Auth users, old Supabase sessions, and old Supabase Storage files are intentionally not migrated, copied, backfilled, recovered, downloaded, or synced.
+- Missing old Supabase-backed files must fail cleanly without Supabase fallback.
+- Browser helper/UI retirement, global Supabase package/env/import cleanup, full regression, backup/restore drills, LAN/release hardening, and operational docs remain Phase 11 work.
+
+Global Phase 11 guardrails:
+
+- Do not remove Supabase packages, env references, imports, or helper wrappers until active runtime and browser/UI dependencies are proven retired by audit.
+- Do not edit `.env` or `.env.migration` automatically.
+- Do not reintroduce Supabase fallback in any local route, helper, or UI path.
+- Do not migrate, copy, backfill, sync, recover, or import old Supabase Auth data.
+- Do not migrate, copy, download, backfill, sync, recover, or import old Supabase Storage files.
+- Preserve the clean-local target: local PostgreSQL uses seed/new local data and local filesystem storage uses newly uploaded local files.
+- Preserve endpoint paths, methods, request shapes, response shapes, UI behavior, role behavior, FSM, archive lifecycle, and logical storage path semantics.
+- Preserve server-side RBAC authority; browser/UI checks are UX only.
+- `dms_active_role` remains UX state only and never authorization proof.
+- `ADMIN` remains dedicated and must not be combined with non-admin roles.
+- Do not add `DELETE /api/users` or user hard-delete behavior.
+- Do not change `src/routeTree.gen.ts` unless route generation is explicitly scoped and approved.
+- Heavy commands are human-only unless explicitly allowed: `pnpm build`, `pnpm test`, typecheck, dev server, DB scripts, migrations, seeds, route generation, and Playwright.
+- Codex implementation prompts must say: do not commit unless the human explicitly requests a commit.
+
+### Phase 11A: Supabase Surface Inventory And Active Dependency Classification
+
+Goal: produce the final Supabase surface inventory before any cleanup.
+
+Runtime/docs scope:
+
+- Read-only audit and documentation planning.
+- Classify every remaining Supabase import/helper/env/package/reference as active runtime dependency, browser/UI dependency, legacy helper, tests/mock, docs/reference, env/package artifact, or removable artifact.
+- Confirm whether server-side routes still contain active Supabase dependencies before any deletion.
 
 Non-goals:
 
-- No broad feature changes.
-- No late architecture rewrite.
+- No runtime cleanup.
+- No browser helper migration.
+- No package/env removal.
+- No route generation.
 
-Key validation gates:
+Candidate files to read/change:
 
-- Critical Playwright/manual workflows pass for Pegawai, PPK, Bendahara, Arsiparis, and Admin.
-- Backup and restore preserve DB/file consistency.
-- LAN access smoke check passes.
-- Final Supabase usage audit is clean or contains only documented non-runtime references.
+- Read: `src/lib/auth.ts`, `src/lib/user-helpers.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, `src/lib/supabase.ts`, `src/lib/storage-client.ts`.
+- Read: `src/components/dokumen/AttachmentEditor.tsx`, `src/components/dokumen/KelengkapanChecklist.tsx`, `src/components/laporan/HierarchicalFilter.tsx`.
+- Read: `src/routes/admin*.tsx`, `src/routes/pegawai/**`, `src/routes/ppk/**`, `src/routes/bendahara/**`, `src/routes/arsiparis/**`, `src/routes/api/**`.
+- Change: `docs/migration/phase-plan.md` or a later dedicated Phase 11 audit doc only if that phase explicitly scopes docs output.
 
-Exit criteria:
+Initial planning classification from 2026-05-18 read-only audit:
 
-- The local PostgreSQL/auth/storage application is ready for the intended local/LAN deployment.
+- Active browser/UI dependency: `getBrowserClient()` callers remain in `AttachmentEditor`, `KelengkapanChecklist`, `HierarchicalFilter`, admin/master-data pages, role dashboard/list pages, and edit/revisi/resubmit pages.
+- Active browser storage dependency: `AttachmentEditor` still reads browser Supabase session, uploads pending files to Supabase Storage, and removes pending files on reset/cancel.
+- Active legacy server dependency requiring classification before deletion: `POST /api/dokumen/`, `PATCH /api/dokumen/$id/nominal`, and the `POST /api/dokumen/rename-pending` document lookup path still reference Supabase helpers or Supabase-backed helper behavior.
+- Legacy helper/reference bucket: `src/lib/user-helpers.ts`, `src/lib/auth.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, and `src/lib/supabase.ts`.
+- Tests/mock/docs/reference bucket: tests that mock Supabase helpers and historical docs/specs that describe legacy Supabase behavior.
+- Env/package artifact bucket: `SUPABASE_*`, `VITE_SUPABASE_*`, `@supabase/ssr`, and `@supabase/supabase-js` remain cleanup candidates only after active dependencies are retired.
+
+Guardrails:
+
+- Treat grep matches in source as active until proven otherwise by route/caller analysis.
+- Do not delete helpers just because current Phase 10-owned routes no longer use them.
+- Do not remove docs/tests references that are historical references unless a documentation hygiene phase explicitly scopes them.
+
+Validation gates:
+
+- Supabase references are grouped by category and owner.
+- Every active source match has a next action or explicit deferred reason.
+- No cleanup phase starts until active browser/UI and active server dependencies are accounted for.
+
+Manual validation commands for human:
+
+- `git grep -n "createServerSupabaseClient\|createAdminClient\|createBrowserClient\|supabase\.auth\|supabase\.storage\|storage\.from\|auth.admin\|getServerSession\|createSignedUrl\|signInWithPassword\|updateUserById\|listUsers\|createUser" -- src docs tests`
+- `git grep -n "supabase-server\|supabase-admin\|supabase-browser\|storage-client\|user-helpers\|AttachmentEditor" -- src docs tests`
+- `git grep -n "VITE_SUPABASE\|SUPABASE\|NEXT_PUBLIC_SUPABASE\|DMS_\|DATABASE_URL" -- . docs src package.json pnpm-lock.yaml`
+
+Deferred items / exit criteria:
+
+- Exit when the final cleanup order is documented and no source match is unclassified.
+- Defer implementation to 11B through 11E.
+
+### Phase 11B: Browser Helper And AttachmentEditor Retirement Planning/Compatibility
+
+Goal: design the browser Supabase retirement path before touching UI runtime.
+
+Runtime/docs scope:
+
+- Inspect direct browser Supabase reads/writes and map them to existing or needed local API-backed behavior.
+- Focus on `AttachmentEditor` upload/remove/reset/cancel behavior, because it is both browser-only and storage-mutating.
+- Verify whether existing local APIs are enough for browser callers or whether a narrow route/component implementation phase is needed.
+- Preserve preview/download behavior through existing `{ signedUrl }` helper semantics.
+
+Non-goals:
+
+- No broad UI rewrite.
+- No package/env cleanup.
+- No server helper removal.
+- No old Supabase Storage file migration or fallback.
+
+Candidate files to read/change:
+
+- Read: `src/components/dokumen/AttachmentEditor.tsx`, `src/components/dokumen/KelengkapanChecklist.tsx`, `src/components/laporan/HierarchicalFilter.tsx`, `src/lib/storage-client.ts`.
+- Read: pages importing `getBrowserClient()`, especially admin/master-data, Pegawai submit/edit/revisi, PPK resubmit, role dashboards, and archive list/search pages.
+- Read: local API routes that can replace browser calls, including master-data routes, role list routes, `/api/upload`, preview/download routes, and cleanup routes.
+- Change in this planning phase: docs only.
+
+Guardrails:
+
+- `AttachmentEditor` must preserve direct user outcomes: choose file, replace file, reset pending replacement, cancel dirty edit and clean up pending files, add/remove custom user docs, preview, download, and submit.
+- If a local API route is missing, plan it narrowly rather than routing browser code back to Supabase.
+- Do not change endpoint contracts or logical path semantics.
+- Missing legacy Supabase-backed files remain clean failures.
+
+Validation gates:
+
+- Every `getBrowserClient()` caller has a replacement strategy.
+- `AttachmentEditor` has a route/API-backed compatibility design for upload and pending cleanup before implementation.
+- Admin/master-data browser calls are separated from attachment/storage browser calls.
+
+Manual validation commands for human:
+
+- `git grep -n "getBrowserClient" -- src/routes src/components src/lib`
+- `git grep -n "supabase\.auth\|supabase\.storage\|storage\.from" -- src/routes src/components src/lib`
+- `git grep -n "fetch('/api/upload'\|preview-url\|download-url\|rename-pending\|files/access" -- src/components src/routes src/lib`
+
+Deferred items / exit criteria:
+
+- Exit when 11C has a bounded implementation list and no browser caller requires product/design decisions from the implementer.
+
+### Phase 11C: Browser Helper/UI Runtime Retirement
+
+Goal: replace active browser Supabase calls with local API-backed behavior while preserving UI behavior.
+
+Runtime/docs scope:
+
+- Replace `getBrowserClient()` usage in active UI/components with local API calls or local auth state.
+- Move `AttachmentEditor` pending upload and pending cleanup behind authorized API routes or an explicitly scoped local API surface.
+- Preserve response parsing, dirty-state behavior, loading/error UX, and file logical path semantics.
+- Keep server-side RBAC as the authority; UI role checks remain presentational.
+
+Non-goals:
+
+- No Supabase package/env cleanup yet.
+- No removal of legacy server helpers yet.
+- No route tree changes unless a missing replacement endpoint is explicitly approved.
+- No old Supabase Auth or Storage data/file migration.
+
+Candidate files to read/change:
+
+- Change candidates: `src/components/dokumen/AttachmentEditor.tsx`, `src/components/dokumen/KelengkapanChecklist.tsx`, `src/components/laporan/HierarchicalFilter.tsx`, selected pages importing `getBrowserClient()`, and any narrow API route explicitly scoped by 11B.
+- Read candidates: existing `src/lib/api-client.ts`, `src/lib/api-mutation.ts`, `src/lib/storage-client.ts`, master-data API routes, role/list API routes, and storage routes.
+
+Guardrails:
+
+- Preserve clean-local behavior and no Supabase fallback.
+- Preserve pending path compatibility for underscore `/api/upload` paths and dash `AttachmentEditor` paths where local code still accepts both.
+- Do not expose `storage/` as static files.
+- Do not trust `dms_active_role` for authorization.
+- Do not broaden user delete or document delete semantics.
+
+Validation gates:
+
+- `git grep` shows no active browser UI import of `#/lib/supabase-browser`.
+- `AttachmentEditor` no longer calls `supabase.auth.getSession()`, `supabase.storage.upload(...)`, or `supabase.storage.remove(...)`.
+- Upload, reset, cancel cleanup, preview, download, edit/revisi/resubmit submit behavior remain compatible for clean local data.
+- Missing old Supabase-backed files fail cleanly.
+
+Manual validation commands for human:
+
+- `git grep -n "getBrowserClient\|supabase\.auth\|supabase\.storage\|storage\.from" -- src/routes src/components src/lib`
+- `pnpm test` only when explicitly allowed.
+- Manual smoke: Pegawai submit upload, Pegawai edit file replace/reset/cancel, Pegawai revisi, PPK resubmit, preview/download, admin/master-data pages, role list filters.
+
+Deferred items / exit criteria:
+
+- Exit when active browser Supabase runtime is retired and documented, with package/env cleanup still deferred to 11E.
+
+### Phase 11D: Legacy Supabase Helper Retirement
+
+Goal: remove or quarantine unused Supabase helper modules only after source audits prove no active runtime dependency.
+
+Runtime/docs scope:
+
+- Retire unused server/browser helper wrappers and legacy user helper code.
+- Remove imports only after callers are migrated.
+- If a helper must remain for tests/docs/reference, quarantine or document it explicitly rather than leaving it ambiguous.
+
+Non-goals:
+
+- No package/env cleanup in this phase unless 11E is explicitly combined later by human approval.
+- No broad refactor.
+- No runtime behavior change beyond deleting proven-unused legacy code.
+
+Candidate files to read/change:
+
+- `src/lib/user-helpers.ts`
+- `src/lib/auth.ts`
+- `src/lib/supabase-server.ts`
+- `src/lib/supabase-admin.ts`
+- `src/lib/supabase-browser.ts`
+- `src/lib/supabase.ts`
+- Any imports from these files found by `git grep`.
+
+Guardrails:
+
+- Do not remove `src/lib/auth.ts` if active code still imports cookie/role helpers from it.
+- Do not remove `src/lib/supabase-admin.ts` if `rename-pending`, tests, or any active route still imports `createAdminClient`.
+- Do not remove `src/lib/supabase-server.ts` if `POST /api/dokumen/` or `PATCH /api/dokumen/$id/nominal` still imports it.
+- Do not remove `src/lib/supabase-browser.ts` until 11C proves no active browser import.
+
+Validation gates:
+
+- `git grep` has no active source imports for each helper removed.
+- Migrated route imports are clean.
+- Type/build validation is scheduled for human run after removal.
+
+Manual validation commands for human:
+
+- `git grep -n "from '#/lib/auth'\|from '#/lib/supabase-server'\|from '#/lib/supabase-admin'\|from '#/lib/supabase-browser'\|from '#/lib/supabase'\|from '#/lib/user-helpers'" -- src tests`
+- `git grep -n "createServerSupabaseClient\|createAdminClient\|getBrowserClient\|getServerSession\|auth.admin" -- src tests`
+- Optional after scoped edits: `pnpm build` only if human approves.
+
+Deferred items / exit criteria:
+
+- Exit when no active runtime helper dependency remains, or when any remaining helper is explicitly documented as reference/test-only and not shipped runtime.
+
+### Phase 11E: Package/Env/Import Cleanup
+
+Goal: remove global Supabase packages and env references only after active runtime/helper usage is retired.
+
+Runtime/docs scope:
+
+- Remove Supabase package dependencies only after source imports are gone.
+- Update setup/deployment docs to prefer local PostgreSQL, local session secrets, and local storage settings.
+- Replace concrete-looking Supabase examples in docs/env examples with safe placeholders only when explicitly scoped.
+
+Non-goals:
+
+- Do not edit `.env` or `.env.migration` automatically.
+- Do not remove `DATABASE_URL`; it remains required for local PostgreSQL.
+- Do not remove docs/spec historical references unless explicitly scoped as docs hygiene.
+
+Candidate files to read/change:
+
+- `package.json`
+- `pnpm-lock.yaml`
+- `.env.example` and `.env.migration.example` only if human-approved.
+- `src/lib/constants/env.ts`
+- setup/deployment docs that mention Supabase runtime env.
+
+Guardrails:
+
+- Package removal must follow successful 11C/11D audits.
+- `.env` and `.env.migration` are local/sensitive and must not be edited automatically.
+- Do not remove `DMS_FILE_TOKEN_SECRET`, `DMS_LOCAL_STORAGE_ROOT`, `DMS_DEV_SEED_PASSWORD_HASH`, or local `DATABASE_URL` references.
+
+Validation gates:
+
+- `git grep` confirms no source imports from Supabase packages before dependency removal.
+- Docs distinguish obsolete Supabase env from required local env.
+- Lockfile changes are limited to approved dependency cleanup.
+
+Manual validation commands for human:
+
+- `git grep -n "@supabase/ssr\|@supabase/supabase-js\|SUPABASE_\|VITE_SUPABASE" -- src docs tests package.json pnpm-lock.yaml`
+- `git diff -- package.json pnpm-lock.yaml`
+- `git diff -- .env .env.migration`
+- Optional after package cleanup: `pnpm install` and `pnpm build` only if explicitly approved.
+
+Deferred items / exit criteria:
+
+- Exit when runtime package/env cleanup is complete or remaining references are documented as historical docs/tests only.
+
+### Phase 11F: Full Regression And Manual Smoke Validation
+
+Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.
+
+Runtime/docs scope:
+
+- Human-run test and manual smoke plan.
+- Regression report with pass/fail, skipped checks, known issues, and rollback decision.
+- Focus on clean local data, not old Supabase data recovery.
+
+Non-goals:
+
+- No feature work hidden inside regression.
+- No route generation unless explicitly approved.
+- No Supabase fallback to make tests pass.
+
+Candidate files to read/change:
+
+- Read: `tests/`, Playwright config, migration docs, user-management spec, storage contracts, route docs.
+- Change: regression report docs only unless a separate implementation phase fixes a found bug.
+
+Guardrails:
+
+- If `pnpm build` or route generation modifies `src/routeTree.gen.ts`, keep it only when route generation was intentionally scoped and approved; otherwise restore/revert that generated diff with human approval.
+- Tests must use local clean data and local filesystem storage.
+- Do not run DB scripts, migrations, or seeds unless explicitly approved.
+
+Validation gates:
+
+- Auth/session: login, logout, reload session, role switch, inactive user rejection, session revocation after password reset/change.
+- User management: list/create/update/activate/deactivate/reset-password/change-password, ADMIN exclusivity, no hard delete.
+- Storage: upload, pending-to-formal movement, preview, download, reset/cancel cleanup, missing file failure, path traversal rejection, `DIMUSNAHKAN` blocking.
+- Workflow: submit, material approval, rejection/revision, PPK resubmit/kembalikan, Bendahara approve/reject, non-material `TERSIMPAN`.
+- Archive/admin: archive, active/inactive/usul-musnah lifecycle, destruction, diagnostics, orphan cleanup dry-run/deletion safety.
+- UI: Pegawai, PPK, Bendahara, Arsiparis, and Admin pages render and enforce expected access.
+
+Manual validation commands for human:
+
+- `pnpm test`
+- Optional: `pnpm build`
+- Optional focused E2E: `pnpm test tests/e2e/submit-flow.spec.ts`
+- Optional focused E2E: `pnpm test tests/e2e/approval-flow.spec.ts`
+- Optional focused E2E: `pnpm test tests/e2e/spec-06-user-management.spec.ts`
+
+Deferred items / exit criteria:
+
+- Exit when critical workflow smoke checks pass or blocking issues are documented with a fix/rollback decision.
+
+### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening
+
+Goal: make the local/LAN deployment operationally safe.
+
+Runtime/docs scope:
+
+- Backup/restore checklist for local PostgreSQL plus local filesystem storage.
+- LAN/local deployment notes for app binding, firewall, server hostname/static IP, storage root, logs, and operator runbook.
+- CSRF/rate-limit/security review for cookie-auth state-changing routes.
+- Release readiness checklist and rollback plan.
+
+Non-goals:
+
+- No app containerization unless separately approved.
+- No exposing PostgreSQL broadly to LAN by default.
+- No old Supabase data/file recovery.
+
+Candidate files to read/change:
+
+- `docs/migration/local-deployment-notes.md`
+- `docs/migration/deployment-target-contract.md`
+- `docs/best-practices/docker-postgres-local-server-notes.md`
+- `docs/best-practices/custom-session-auth-notes.md`
+- Any later release checklist doc explicitly scoped by the phase.
+
+Guardrails:
+
+- Backup sets must include PostgreSQL dump, `storage/` files, timestamp/version metadata, and storage root configuration.
+- Restore validation must prove DB metadata and file logical paths still line up.
+- `DIMUSNAHKAN` files must remain inaccessible after restore.
+- PostgreSQL port should not be exposed to the whole LAN without an explicit operational reason.
+- CSRF/rate-limit review must not rely on Supabase Auth protections.
+
+Validation gates:
+
+- Backup can be created.
+- Restore can be performed into a clean local target.
+- Restored app can login, list documents, preview/download valid files, block destroyed archives, and run storage diagnostics.
+- App is reachable from intended LAN client only when intentionally bound/firewall-opened.
+- Rollback path is documented.
+
+Manual validation commands for human:
+
+- PostgreSQL backup/restore commands chosen by the operator environment, such as `pg_dump` and `pg_restore` or `psql`.
+- File backup/restore commands chosen by the operator environment.
+- Manual LAN smoke from another device on the same network.
+- Manual security smoke for cookie flags, same-origin expectations, unauthenticated POST rejection, non-admin denial, and brute-force/rate-limit posture.
+
+Deferred items / exit criteria:
+
+- Exit when backup/restore and LAN release checklists are documented and at least one human-run drill is recorded.
+
+### Phase 11H: Final Supabase Retirement Decision And Handoff
+
+Goal: decide whether final Supabase retirement is complete, partial, or deferred.
+
+Runtime/docs scope:
+
+- Final source/package/env/docs/tests audit.
+- Record remaining reference-only docs/tests if any.
+- Record release risks, accepted limitations, and next maintenance tasks.
+- Produce final handoff for the local/LAN target.
+
+Non-goals:
+
+- No last-minute cleanup without audit.
+- No overclaiming final Supabase removal.
+- No commit unless explicitly requested.
+
+Candidate files to read/change:
+
+- `docs/migration/phase-plan.md`
+- Any final handoff/release note explicitly scoped by the human.
+- Read-only audit over `src`, `tests`, `docs`, package files, env examples, DB/drizzle/supabase folders.
+
+Guardrails:
+
+- Final Supabase removal can be claimed only if no active runtime dependency remains.
+- Remaining docs/spec/test references must be explicitly classified as reference-only.
+- If `supabase/` historical migrations/functions remain in the repo, do not call that runtime removal unless the release policy says historical migration references can remain.
+
+Validation gates:
+
+- `git grep` confirms no active Supabase runtime dependency in `src`.
+- Package/env cleanup status is documented.
+- Regression, backup/restore, and LAN readiness are complete or blockers are listed.
+- No unapproved files changed.
+
+Manual validation commands for human:
+
+- `git status --short --branch`
+- `git diff --check`
+- `git diff --name-only`
+- `git grep -n "supabase\|SUPABASE\|@supabase" -- src tests docs package.json pnpm-lock.yaml`
+- `git diff -- src/routeTree.gen.ts package.json pnpm-lock.yaml .env .env.migration db drizzle supabase`
+
+Deferred items / exit criteria:
+
+- Exit when the release handoff clearly states whether Supabase is fully retired from active runtime, partially retained, or deferred with exact blockers.
+- Release readiness is accepted only after clean-local runtime, regression, backup/restore, and LAN hardening gates are satisfied.
 
 ## Validation Gates
 
