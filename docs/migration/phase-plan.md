@@ -2100,8 +2100,9 @@ Goal: produce the final Supabase surface inventory before any cleanup.
 Runtime/docs scope:
 
 - Read-only audit and documentation planning.
-- Classify every remaining Supabase import/helper/env/package/reference as active runtime dependency, browser/UI dependency, legacy helper, tests/mock, docs/reference, env/package artifact, or removable artifact.
+- Classify every remaining Supabase import/helper/env/package/reference before any deletion.
 - Confirm whether server-side routes still contain active Supabase dependencies before any deletion.
+- Record the cleanup order for 11B through 11H.
 
 Non-goals:
 
@@ -2109,44 +2110,143 @@ Non-goals:
 - No browser helper migration.
 - No package/env removal.
 - No route generation.
+- No source, package, env, database, seed, migration, script, or generated route-tree edits.
 
 Candidate files to read/change:
 
 - Read: `src/lib/auth.ts`, `src/lib/user-helpers.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, `src/lib/supabase.ts`, `src/lib/storage-client.ts`.
 - Read: `src/components/dokumen/AttachmentEditor.tsx`, `src/components/dokumen/KelengkapanChecklist.tsx`, `src/components/laporan/HierarchicalFilter.tsx`.
 - Read: `src/routes/admin*.tsx`, `src/routes/pegawai/**`, `src/routes/ppk/**`, `src/routes/bendahara/**`, `src/routes/arsiparis/**`, `src/routes/api/**`.
-- Change: `docs/migration/phase-plan.md` or a later dedicated Phase 11 audit doc only if that phase explicitly scopes docs output.
+- Change: `docs/migration/phase-plan.md` only.
 
-Initial planning classification from 2026-05-18 read-only audit:
+Phase 11A inventory status on 2026-05-18:
 
-- Active browser/UI dependency: `getBrowserClient()` callers remain in `AttachmentEditor`, `KelengkapanChecklist`, `HierarchicalFilter`, admin/master-data pages, role dashboard/list pages, and edit/revisi/resubmit pages.
-- Active browser storage dependency: `AttachmentEditor` still reads browser Supabase session, uploads pending files to Supabase Storage, and removes pending files on reset/cancel.
-- Active legacy server dependency requiring classification before deletion: `POST /api/dokumen/`, `PATCH /api/dokumen/$id/nominal`, and the `POST /api/dokumen/rename-pending` document lookup path still reference Supabase helpers or Supabase-backed helper behavior.
-- Legacy helper/reference bucket: `src/lib/user-helpers.ts`, `src/lib/auth.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, and `src/lib/supabase.ts`.
-- Tests/mock/docs/reference bucket: tests that mock Supabase helpers and historical docs/specs that describe legacy Supabase behavior.
-- Env/package artifact bucket: `SUPABASE_*`, `VITE_SUPABASE_*`, `@supabase/ssr`, and `@supabase/supabase-js` remain cleanup candidates only after active dependencies are retired.
+- Inventory/classification is recorded here.
+- Cleanup has not started.
+- Supabase has not been removed.
+- Phase 9 and Phase 10 completion/caveats remain preserved: clean-local server-side storage runtime and clean-local server-side user-management/password runtime are complete, but browser helper/UI retirement, global helper retirement, package/env cleanup, full regression, backup/restore, LAN/release hardening, and final Supabase retirement remain Phase 11 work.
+
+Category definitions:
+
+| Category | Meaning | Cleanup stance |
+|---|---|---|
+| Active server runtime dependency | A server route/helper still executes Supabase client/auth/admin/database behavior on an active route path. | Must be migrated or explicitly retired before helper/package/env cleanup. |
+| Active browser/UI dependency | A browser page/component still calls `getBrowserClient()` or a Supabase-backed browser helper for UI data/session/bootstrap behavior. | Plan in 11B and retire in 11C. |
+| Active browser storage dependency | Browser code still performs Supabase Storage upload/remove/session operations. | Highest browser priority; plan in 11B and retire in 11C. |
+| Legacy helper/reference no longer used by migrated runtime | A helper remains in source but is not part of Phase 9/10 migrated local runtime, or is only used by deferred legacy surfaces. | Retire only in 11D after callers are gone. |
+| Tests/mock reference | Tests mock or assert old Supabase helper behavior, or protect migrated routes from calling those helpers. | Keep until later test hygiene or replacement tests are scoped. |
+| Docs/reference historical note | Docs/specs describe Supabase-era behavior, old implementation plans, or migration history. | Keep unless a later docs hygiene phase scopes removal. |
+| Env/package artifact | Env names and package dependencies remain because active source still imports Supabase code. | Cleanup only in 11E after 11C/11D pass and human approval. |
+| Removable artifact candidate | Likely removable after active callers disappear. This is not approval to delete now. | Candidate for 11D/11E only. |
+| Unexpected blocker | Active runtime contradiction that invalidates Phase 9/10 completion claims or blocks cleanup sequencing. | Do not fix in 11A; document and assign next phase. |
+
+Active server route inventory:
+
+| Surface | Source match | Category | Active status and runtime path | Risk if removed too early | Recommended next action | Owner |
+|---|---|---|---|---|---|---|
+| `POST /api/dokumen/` draft-create branch | `src/routes/api/dokumen/index.ts` imports `createServerSupabaseClient`, `getServerSession as getSession`, and `createDokumen`; `createClient(request)` is used by `POST` only. | Active server runtime dependency. | `GET /api/dokumen/` is local-backed, but the `POST` handler still authenticates through Supabase and creates the draft through Supabase-backed `createDokumen(...)`. | Removing `src/lib/supabase-server.ts`, `src/lib/auth.ts`, or the Supabase package would break this route and remove the old draft-create compatibility path before a decision is made. | Classify the route as legacy/deferred. In 11D, either prove the `POST` path is inactive and retire it with explicit approval, or migrate it narrowly to local `dms_session` and local Drizzle before helper removal. | 11D, with a route-specific decision before deletion. |
+| `PATCH /api/dokumen/$id/nominal` | `src/routes/api/dokumen/$id.nominal.ts` imports `createServerSupabaseClient`, `getServerSession`, and Supabase-backed `insertLog`. | Active server runtime dependency. | The route reads document data, reads roles, updates `dokumen_transaksi`, and appends log data through Supabase client calls. This is the previously deferred cross-role nominal compatibility route. | Removing Supabase helpers would break nominal update for creator/arsiparis/admin paths and audit logging. Migrating casually could narrow cross-role behavior incorrectly. | Keep as an explicit active server dependency. Migrate or retire in a narrow follow-up before 11D helper removal; do not fold into browser cleanup. | 11D or a dedicated cross-role nominal slice before 11D completion. |
+| `POST /api/dokumen/rename-pending` document lookup | `src/routes/api/dokumen/rename-pending.ts` imports `createAdminClient`; passes it to `getDokumenById(admin, dokId)`. | Active server runtime dependency, limited legacy helper call. | Storage movement is local-backed, but document ownership lookup still uses a Supabase admin client through `getDokumenById`. | Removing `createAdminClient`, `src/lib/supabase-admin.ts`, or `@supabase/supabase-js` would break this route even though file movement itself is local. | Replace the document lookup with local Drizzle or local helper, then remove the Supabase admin import. This is a small 11D prerequisite. | 11D. |
+| `src/routes/api/users/index.ts` grep hit | `createUserRequestBoundarySchema` contains the string `createUser`. | Not a Supabase dependency. | Phase 10 user-management routes are local-backed; this match is a schema name false positive. | None for Supabase cleanup, but do not use raw grep alone as proof of active dependency. | No action for Supabase cleanup. | None. |
+| `GET /api/admin/analyze-storage`, `GET /api/admin/cleanup-orphan-files` | Path-name grep only. | Migrated local-backed route; no Supabase source dependency found. | Both routes use local session and local storage diagnostics. | None for Supabase helper cleanup. | Keep as Phase 9G local runtime surfaces. | None. |
+
+Server route conclusion:
+
+- Active Supabase dependencies remain in `src/routes/api/dokumen/index.ts`, `src/routes/api/dokumen/$id.nominal.ts`, and `src/routes/api/dokumen/rename-pending.ts`.
+- This does not contradict Phase 9/10 completion claims because those claims explicitly covered clean-local server-side storage and user-management/password runtime, while Phase 8G already deferred the cross-role nominal route and Phase 11 already owned global cleanup.
+- No unexpected server blocker was found in Phase 10-owned user-management/password routes.
+
+Active browser/UI inventory:
+
+| Surface | Source match | Category | Current caller/runtime path | Risk if removed too early | Recommended next action | Owner |
+|---|---|---|---|---|---|---|
+| `AttachmentEditor` | `src/components/dokumen/AttachmentEditor.tsx` imports `getBrowserClient`; calls `supabase.auth.getSession()`, `supabase.storage.from(...).upload(...)`, and `supabase.storage.from(...).remove(...)`. | Active browser storage dependency plus active browser/UI dependency. | Used by Pegawai edit/revisi and PPK resubmit pages. It creates dash-format pending paths, resets pending replacements, cancel-cleans pending files, previews through `storage-client`, and submits final lampiran metadata to local API routes. | Removing browser Supabase breaks file replace/reset/cancel flows and can leave pending files unmanaged. | 11B must design an API-backed upload and pending cleanup path that preserves dirty-state, reset, cancel, custom docs, preview, download, and submit behavior; 11C implements it. | 11B then 11C. |
+| `KelengkapanChecklist` | `src/components/dokumen/KelengkapanChecklist.tsx` imports `getBrowserClient` and directly reads `master_kelengkapan_dokumen`; upload itself uses `FileUploadButton` and local `/api/upload`. | Active browser/UI dependency. | Submit form step loads required/optional kelengkapan in the browser for material documents. | Removing browser helper makes submit form kelengkapan empty or broken. | Replace with API-backed kelengkapan read in 11C after 11B maps required response shape. | 11B then 11C. |
+| `HierarchicalFilter` | `src/components/laporan/HierarchicalFilter.tsx` imports `getBrowserClient` and calls Supabase-backed `getAllFungsi`, `getKegiatanByFungsi`, `getAllJenis`, `getKategoriByJenis`, and `getDetailByKategori`. | Active browser/UI dependency. | Used by laporan filters for fungsi/kegiatan/permintaan chain dropdowns. | Removing helper breaks filtering UI even though report APIs are local-backed. | Move dropdown reads to local APIs or an API-backed helper. | 11B then 11C. |
+| Admin landing/dashboard | `src/routes/admin.index.tsx` calls browser `supabase.auth.getSession()` and reads `user_roles`. | Active browser/UI session/bootstrap dependency. | Admin dashboard computes role/user info client-side even after local auth runtime exists. | Removing helper may break dashboard rendering or admin role checks in UI. Server remains authoritative, but UI can fail. | Replace with `/api/auth/session` or existing local user/session API. | 11C. |
+| Admin master-data pages | `src/routes/admin.master-data.fungsi.tsx`, `kegiatan.tsx`, `jenis.tsx`, `jenis-dokumen.tsx`, `kategori.tsx`, `detail.tsx`, `kelengkapan.tsx` import `getBrowserClient` and Supabase-backed master-data helpers. | Active browser/UI dependency; several are browser data mutation dependencies. | Admin CRUD pages still execute direct Supabase reads/writes through `src/lib/master-data/*`, despite server API equivalents existing for many domains. `admin.master-data.user.tsx` is already API-backed and is not in this browser-Supabase group. | Removing browser helper breaks admin master-data list/create/update/delete pages. | 11B should map each page to existing local API routes and identify any missing API surface; 11C migrates UI calls. | 11B then 11C. |
+| Role dashboards and list filters | `src/routes/ppk.tsx`, `src/routes/bendahara.tsx`, `src/routes/arsiparis/index.tsx`, role list pages under `ppk/inbox`, `bendahara/inbox`, `arsiparis/*/index.tsx`, and `pegawai/dokumen/index.tsx` import `getBrowserClient`. | Active browser/UI dependency. | Some dashboard pages read browser session/roles; list pages load `master_fungsi` or `master_kegiatan` dropdown data directly from Supabase while main list APIs are local-backed. | Removing browser helper breaks dashboard stats/session checks or filter dropdowns, not the server authority. | Replace session checks with local auth state/API and dropdown reads with local API-backed data. | 11C. |
+| Submit/edit/revisi/resubmit pages | `src/routes/pegawai/dokumen/aju.tsx`, `src/routes/pegawai/dokumen/$id/revisi.tsx`, `src/routes/ppk/dokumen/$id/resubmit.tsx` import `getBrowserClient`. | Active browser/UI dependency. | Submit flow reads master fungsi/kegiatan/jenis/kategori/detail/jenis dokumen; revisi/resubmit pages read `master_kelengkapan_dokumen`. Edit page itself imports `AttachmentEditor`, which carries storage dependency. | Removing helper breaks form dropdowns and revision/resubmit kelengkapan display. | Replace reads with local API-backed helpers and migrate `AttachmentEditor` storage behavior. | 11B then 11C. |
+| `storage-client` consumers | `src/lib/storage-client.ts` is imported by `AttachmentEditor` and `AttachmentViewer`. | Active browser/UI dependency, not a Supabase client import. | It calls existing `/api/dokumen/preview-url` and consumes `{ signedUrl }`, which now may point to local internal access routes for migrated server surfaces. | Removing it would break preview/download UI even though it is not Supabase-specific anymore. | Keep. Do not treat as removable Supabase artifact unless preview/download helpers are redesigned later. | Not cleanup target for 11D/11E. |
+
+Helper inventory:
+
+| Helper/module | Active callers | Classification | Safe to remove now? | Next action | Owner |
+|---|---|---|---|---|---|
+| `src/lib/auth.ts` | `src/routes/api/dokumen/index.ts` `POST`; `src/routes/api/dokumen/$id.nominal.ts`; helper-internal `buildAppSession`. | Active server runtime dependency plus legacy helper. Cookie helper exports may still be reusable, but Supabase session functions are legacy. | No. | Retire or split only after active server route callers are migrated/retired. | 11D. |
+| `src/lib/user-helpers.ts` | No active `src/routes/api/users/*` import found after Phase 10; still imports Supabase types and uses Auth Admin methods internally. | Legacy helper/reference no longer used by migrated user-management runtime; removable artifact candidate after caller audit. | Not yet, because 11A does not delete and tests/docs may still reference the behavior. | In 11D, confirm no source callers, then remove or quarantine with tests/docs adjusted only if scoped. | 11D. |
+| `src/lib/supabase-server.ts` | `src/routes/api/dokumen/index.ts` `POST`; `src/routes/api/dokumen/$id.nominal.ts`; `src/lib/supabase.ts` re-export; type-only `src/lib/guards.ts`. | Active server runtime dependency. | No. | Replace active route callers first; then remove/rework re-exports and type references. | 11D. |
+| `src/lib/supabase-admin.ts` | `src/routes/api/dokumen/rename-pending.ts`; tests mock it; legacy helper docs reference it. | Active server runtime dependency for one route plus tests/mock reference. | No. | Replace `rename-pending` document lookup before removal. | 11D. |
+| `src/lib/supabase-browser.ts` | Active browser/UI callers listed above. | Active browser/UI dependency and active browser storage dependency via `AttachmentEditor`. | No. | Retire only after 11C proves no active browser imports remain. | 11B/11C, then 11D. |
+| `src/lib/supabase.ts` | Re-export barrel; no direct source import found in active grep besides itself. | Legacy helper/reference and removable artifact candidate after callers are gone. | Not in 11A. | Remove in 11D only after direct and indirect imports are clean. | 11D. |
+| `src/lib/storage-client.ts` | `AttachmentEditor`, `AttachmentViewer`. | Active browser helper but not Supabase client/runtime by itself. | No. | Keep while preview/download UI expects `{ signedUrl }`; future cleanup is separate from Supabase package removal. | 11C or later only if API/helper design changes. |
+| `src/lib/master-data/*` | Admin master-data pages, submit flow, filters, kelengkapan-related UI. | Active browser/UI dependency because helpers accept `SupabaseClient` and call `.from(...)`; some also perform browser-side mutations. | No. | Replace callers with local API-backed helpers, then retire SupabaseClient typed helper surfaces. | 11B/11C, cleanup in 11D. |
+| `src/lib/dokumen/{queries,mutations,logs,storage}.ts` SupabaseClient surfaces | Active through `POST /api/dokumen/`, `PATCH /api/dokumen/$id/nominal`, `POST /api/dokumen/rename-pending` lookup; `storage.ts` exports legacy Supabase Storage move/remove helpers though migrated runtime no longer uses most of them. | Mixed: active server runtime for selected functions, legacy helper/reference for unused storage helpers, removable artifact candidates after caller audit. | No. | Replace active route calls first, then retire unused Supabase-backed helper exports. | 11D. |
+
+Env/package artifact inventory:
+
+| Artifact | Found in | Classification | Cleanup rule |
+|---|---|---|---|
+| `@supabase/ssr` | `package.json`, `pnpm-lock.yaml`, `src/lib/supabase-server.ts`, `src/lib/supabase-browser.ts`. | Env/package artifact with active source imports. | Do not remove until `supabase-server` and `supabase-browser` active callers are gone. Human approval required before package/lockfile edits. |
+| `@supabase/supabase-js` | `package.json`, `pnpm-lock.yaml`, `src/lib/supabase-admin.ts`, type imports in `src/lib/auth.ts`, `src/lib/user-helpers.ts`, `src/lib/master-data/*`, `src/lib/dokumen/*`. | Env/package artifact with active source imports. | Do not remove until active server/browser/helper usage is retired. Human approval required before package/lockfile edits. |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | `.env`, `.env.example`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, `src/lib/constants/env.ts`, docs/specs. | Env/package artifact. `.env` contains local sensitive values and must not be edited by this phase. | Cleanup only in 11E after 11C/11D; `.env` and `.env.migration` edits require explicit human approval. |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | `.env`, `src/lib/supabase-browser.ts`, `src/lib/constants/env.ts`, docs. | Env/package artifact tied to active browser client. | Cleanup only after browser Supabase runtime is retired. |
+| `NEXT_PUBLIC_SUPABASE_*` | Historical docs/best-practice references only in grep output. | Docs/reference historical note. | No runtime cleanup action; remove only in docs hygiene if later scoped. |
+| `DATABASE_URL` | Local Drizzle/db config, docs, env examples. | Required local PostgreSQL artifact, not a Supabase cleanup target by name alone. | Keep. Repointing or secret hygiene belongs to human-approved env/deployment work. |
+| `DMS_*` | Local auth/storage seed/token env docs and tests. | Required local runtime/development artifacts, not Supabase. | Keep. Do not remove in Supabase cleanup. |
+
+Tests/docs/reference classification:
+
+- Tests under `tests/unit/dokumen/submit-route-parity.test.ts`, `tests/unit/storage/raw-preview-internal-url-runtime.test.ts`, `tests/unit/storage/raw-preview-internal-url-wiring.test.ts`, and `tests/unit/storage/rename-pending-local-route.test.ts` mock Supabase helpers. These are tests/mock references, not cleanup approval.
+- E2E tests mention upload/Playwright behavior and are regression references for later 11F. They are not Supabase runtime proof by themselves.
+- Docs under `docs/migration/**`, `docs/specs/**`, `docs/BEST_PRACTICES.md`, `docs/FIX_PLAN.md`, and architecture summaries contain historical Supabase implementation details, command examples, old specs, and migration notes. These are docs/reference historical notes unless a later docs hygiene phase scopes edits.
+- `supabase/` migrations/functions were not edited. They remain historical schema/runtime reference material until final retirement policy in 11H decides how to treat the folder.
+
+Blockers and caveats:
+
+- No unexpected Phase 11A blocker was found.
+- Active server Supabase dependencies remain and are cleanup blockers for 11D/11E until migrated or explicitly retired.
+- Active browser/UI and browser storage dependencies remain and are cleanup blockers for 11D/11E until 11B/11C complete.
+- Removable artifact candidate does not imply approved deletion.
+- Raw grep/string matches alone are not proof of active runtime dependency; the classifications above are based on caller paths where inspected.
+- Current-compatible browser/UI behavior must be preserved during later retirement, even when direct browser Supabase behavior is legacy.
+
+Recommended cleanup order:
+
+1. 11B: Browser helper and `AttachmentEditor` retirement planning. Map every `getBrowserClient()` caller to an existing or required local API, with `AttachmentEditor` upload/remove/reset/cancel first.
+2. 11C: Browser/UI runtime retirement. Replace active browser Supabase reads/session checks/storage operations with local API-backed behavior while preserving UI behavior.
+3. 11D: Legacy helper retirement. Migrate or retire the remaining active server routes (`POST /api/dokumen/`, `PATCH /api/dokumen/$id/nominal`, `rename-pending` lookup), then remove/quarantine unused Supabase helpers only after caller grep is clean.
+4. 11E: Package/env/import cleanup. Remove Supabase packages and env constants only after 11C/11D are done and human approval is given for package/env files.
+5. 11F: Full regression and manual smoke validation.
+6. 11G: Backup/restore, operational, LAN, CSRF/rate-limit, and release hardening.
+7. 11H: Final Supabase retirement decision and handoff, including any remaining historical docs/tests/supabase-folder policy.
 
 Guardrails:
 
 - Treat grep matches in source as active until proven otherwise by route/caller analysis.
 - Do not delete helpers just because current Phase 10-owned routes no longer use them.
 - Do not remove docs/tests references that are historical references unless a documentation hygiene phase explicitly scopes them.
+- Do not edit `.env`, `.env.migration`, `package.json`, `pnpm-lock.yaml`, `src/routeTree.gen.ts`, `src/`, `db/`, `drizzle/`, `supabase/`, seeds, scripts, or migrations during 11A.
 
 Validation gates:
 
 - Supabase references are grouped by category and owner.
 - Every active source match has a next action or explicit deferred reason.
 - No cleanup phase starts until active browser/UI and active server dependencies are accounted for.
+- No cleanup is claimed complete from this inventory.
 
 Manual validation commands for human:
 
 - `git grep -n "createServerSupabaseClient\|createAdminClient\|createBrowserClient\|supabase\.auth\|supabase\.storage\|storage\.from\|auth.admin\|getServerSession\|createSignedUrl\|signInWithPassword\|updateUserById\|listUsers\|createUser" -- src docs tests`
 - `git grep -n "supabase-server\|supabase-admin\|supabase-browser\|storage-client\|user-helpers\|AttachmentEditor" -- src docs tests`
 - `git grep -n "VITE_SUPABASE\|SUPABASE\|NEXT_PUBLIC_SUPABASE\|DMS_\|DATABASE_URL" -- . docs src package.json pnpm-lock.yaml`
+- `git grep -n "preview-url\|download-url\|upload\|rename-pending\|files/access\|cleanup-orphan\|analyze-storage" -- src docs tests`
+- `git grep -n "from '#/lib/supabase\|from '@/lib/supabase\|from '#/lib/auth'\|from '@/lib/auth'\|from '#/lib/storage-client'\|from '@/lib/storage-client'" -- src docs tests`
+- `git grep -n "routeTree.gen\|pnpm build\|pnpm test\|Playwright\|backup\|restore\|LAN\|release\|CSRF\|rate limit\|rate-limit" -- docs src tests`
 
 Deferred items / exit criteria:
 
-- Exit when the final cleanup order is documented and no source match is unclassified.
+- Exit when the final cleanup order is documented and no active source match is unclassified.
 - Defer implementation to 11B through 11E.
 
 ### Phase 11B: Browser Helper And AttachmentEditor Retirement Planning/Compatibility
