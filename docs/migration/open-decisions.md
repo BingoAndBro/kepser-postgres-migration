@@ -55,6 +55,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
   Date: 2026-05-18.
   Rationale: The existing session repository safely supports all-session revocation, and the scoped Phase 10D routes do not implement complex session rotation. Admin reset must force the target user to log in with the new password. Self-service change also revokes the current session, so the user may need to log in again.
+- Phase 10E user lifecycle policy: no hard-delete user behavior by default; use deactivate/reactivate.
+  Date: 2026-05-18.
+  Rationale: The Phase 10E audit found no active `DELETE /api/users` route or user hard-delete UI contract. User rows are historical identity anchors for `dokumen_transaksi.created_by`, `log_aktivitas.user_id`, archive lifecycle actor fields, archive destruction proposal actor fields, Ketua Tim assignments, role joins, and sessions. Normal admin lifecycle must remain deactivate/reactivate, preserving `{ success: true, message: 'User berhasil dinonaktifkan' }` and `{ success: true, message: 'User berhasil diaktifkan' }`. Any future hard-delete proposal requires a separate explicit architecture phase covering archival/anonymization policy, schema/FK design, audit-history display behavior, and route/request/response contract before implementation. The Phase 9E non-material document delete exception does not apply to users.
 - ADMIN remains a dedicated role and must not be combined with other roles.
   Rationale: current role-switch behavior and migration constraints require admin exclusivity.
 - Do not rely on client-side RBAC for security.
