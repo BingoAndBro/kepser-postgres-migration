@@ -295,6 +295,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 8 selected clean-local write-domain migration is closed.
   Date: 2026-05-18.
   Rationale: Phase 8G audit found no true remaining Phase 8 blocker in the selected migrated write domains from Phase 8B through 8F. Pegawai update/revision metadata writes, PPK decision writes, Bendahara decision writes, safe Arsiparis archive metadata/lifecycle writes, and non-user-management master/admin metadata CRUD writes are local-backed for the clean local target. Remaining Supabase usages are not global blockers for Phase 9 because they are assigned to storage/file-access, user-management/Auth Admin, global cleanup/browser helper retirement, or the cross-role nominal compatibility decision. This does not mark preview/download/storage completion, user-management/Auth Admin replacement, browser helper/UI retirement, package/env cleanup, or global Supabase removal complete.
+- Scoped non-material document delete audit exception accepted.
+  Date: 2026-05-18.
+  Rationale: Caller audit confirmed `DELETE /api/dokumen/$id` is the Pegawai UI delete path for owner non-material `TERSIMPAN` documents, not archive destruction or approval workflow deletion. To preserve that legacy behavior, the route may hard-delete only when the caller has a local session, assigned `PEGAWAI` role, document ownership, `is_non_material=true`, no material request-chain fields, `status='TERSIMPAN'`, and no archive row. Under the current `log_aktivitas.dokumen_id` cascade FK, logs for that deleted user-owned non-approval saved document may be removed with the document. This exception must not be generalized to material, approval, revision, completed, archived, archive-linked, or archive-destruction paths.
 
 ## Still Open
 

@@ -942,7 +942,7 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs, Phase 9C migrated the scoped central/PPK/Bendahara document preview/download route handlers to document-aware internal access URLs, and Phase 9D migrated scoped update/revision/resubmit attachment movement. The next recommended runtime target is Phase 9E Document Delete And Attachment Remove/Delete Storage Behavior, unless manual 9D smoke checks find a blocker.
+Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs, Phase 9C migrated the scoped central/PPK/Bendahara document preview/download route handlers to document-aware internal access URLs, Phase 9D migrated scoped update/revision/resubmit attachment movement, and Phase 9E migrated the Pegawai UI `DELETE /api/dokumen/$id` path for owner non-material `TERSIMPAN` documents with no material request-chain fields. This route is a narrow legacy-compatible exception where hard-deleting the user-owned saved non-approval document may cascade-delete that document's `log_aktivitas` rows; workflow, approval, completed, archived, and archive-destruction audit logs remain outside this exception.
 
 Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
 
@@ -1016,7 +1016,7 @@ Non-goals:
 | `PATCH /api/dokumen/$id` | Local DB metadata update; blocks pending lampiran paths | Mixed file contains Supabase delete path for `DELETE`; PATCH defers movement | `{ dokumen }` response; edit/revision compatible | 9D | New/replaced attachments cannot move yet | Add local pending move + explicit DB/file failure handling |
 | `GET/PATCH/POST /api/ppk/resubmit/$id` | GET/PATCH still Supabase-backed; POST local decision path blocks storage-coupled changes | Mixed Supabase auth/DB/storage for GET/PATCH; local POST | `{ dokumen }`, `{ success: true }` | 9D | PATCH uses `syncDocumentAttachments()` and fire-and-forget orphan delete | Split/migrate attachment save/move/delete before enabling new files |
 | `src/lib/dokumen/storage.ts` `syncDocumentAttachments()` / `deleteOrphanFiles()` | Supabase `.move()` / `.remove()` helper | Supabase Storage helper | Internal helper behind update/resubmit flows | 9D/9E | Fire-and-forget deletes and non-atomic DB/file behavior | Replace or bypass with local path/move/delete semantics per route |
-| `DELETE /api/dokumen/$id` | Supabase-backed delete and fire-and-forget file remove | Supabase auth/DB/storage | `{ success: true }` for owner non-material `TERSIMPAN` | 9E | Current success can hide later file delete failures | Migrate DB/file ordering with safe partial-failure response policy |
+| `DELETE /api/dokumen/$id` | Migrated in 9E for owner non-material `TERSIMPAN` documents with no material request-chain fields only | Local DB/filesystem; no Supabase Storage fallback | `{ success: true }` for eligible delete; explicit partial-cleanup 500 if DB delete succeeds but local unlink fails | Complete in 9E for scoped Pegawai delete | Accepted audit exception cascades logs only for this user-owned non-approval document delete | Manual smoke must cover wrong owner, material/workflow states, archive rows, missing files, unsafe paths, legacy URL metadata, and partial cleanup |
 | `src/components/dokumen/AttachmentEditor.tsx` | Direct browser Supabase upload/remove; preview/download via raw URL helper | Browser Supabase Storage/Auth | Existing edit/revisi/resubmit upload/reset/cancel UX | 9D/9E | Local filesystem cannot be browser-written; reset/cancel delete policy needed | Move upload/delete through server APIs when owning routes support movement |
 | `src/components/dokumen/AttachmentViewer.tsx`, `src/lib/storage-client.ts`, `src/lib/file-helpers.ts` | Call API endpoints and consume `signedUrl` | No direct Supabase Storage except through APIs | iframe/fetch/open/download using returned `signedUrl` | 9B/9C | Callers expect fetchable URL and often build filenames client-side | Preserve returned `{ signedUrl }`; avoid broad UI rewrite |
 | `PATCH /api/arsiparis/usul-musnah/$id` | GET local; destructive PATCH Supabase-backed and deletes storage | Mixed local GET, Supabase PATCH/storage/log helper | `{ success: true, message }`; sets `DIMUSNAHKAN`, clears snapshot | 9F | Deletion failures currently warn and continue; stale tokens/files must not serve | Migrate destructive approval plus access blocking policy after 9C/9E |
@@ -1029,7 +1029,7 @@ Non-goals:
 - 9B: raw URL generation for `preview-url`, `download-url`, and callers that only require `{ signedUrl }` parity through `storage-client`.
 - 9C: central document preview/download plus PPK/Bendahara equivalents and Arsiparis pages that call the central route.
 - 9D: `PATCH /api/dokumen/$id`, PPK resubmit GET/PATCH storage-coupled behavior, `syncDocumentAttachments()`, and the upload side of `AttachmentEditor`.
-- 9E: `DELETE /api/dokumen/$id`, replaced/orphan attachment deletion, pending reset/cancel deletion, and the delete side of `AttachmentEditor`.
+- 9E: `DELETE /api/dokumen/$id` is locally backed for the scoped Pegawai UI delete case: authenticated PEGAWAI owner, `is_non_material=true`, no material request-chain fields, `status='TERSIMPAN'`, and no archive row. Replaced/orphan attachment deletion, pending reset/cancel deletion, and the delete side of `AttachmentEditor` remain scoped/deferred because no active server remove/delete route exists for those browser-only actions.
 - 9F: destructive `PATCH /api/arsiparis/usul-musnah/$id` and `DIMUSNAHKAN` stale file/token hardening.
 - 9G: `analyze-storage`, `cleanup-orphan-files`, final storage grep/stabilization, and orphan policy.
 - Phase 10/11: user-management/Auth Admin/password work, global Supabase package/env/browser-helper retirement, and final Supabase removal are not Phase 9 storage runtime.
@@ -1048,8 +1048,8 @@ Non-goals:
 - Phase 9B must remove the raw preview/download Supabase Storage fallback and preserve `{ signedUrl }`.
 - Role preview/download routes now use local session/role/document/archive checks for the scoped central, PPK, and Bendahara paths; filename remains client-built while internal access sets inline/attachment disposition.
 - Update/resubmit movement still needs explicit DB/file ordering and failure semantics.
-- Delete/destruction routes need safe partial-failure semantics and must not claim full rollback.
-- `AttachmentEditor` still writes/deletes directly through browser Supabase Storage.
+- Document delete now uses route-scoped local delete preflight and explicit partial-failure responses for the accepted non-material `TERSIMPAN` Pegawai-owned exception; archive destruction still needs safe partial-failure semantics and must not claim full rollback.
+- `AttachmentEditor` still writes/deletes directly through browser Supabase Storage; its reset/cancel delete behavior needs a later server API/UI compatibility phase or final browser helper retirement.
 - Admin orphan cleanup needs a local policy that compares active document metadata and archive snapshots, preferably dry-run-first.
 
 #### First Runtime Group Selection
@@ -1289,13 +1289,39 @@ Deferred items:
 
 Goal: migrate storage-coupled document deletion and attachment remove/delete behavior.
 
+Status: scoped runtime migration complete as of 2026-05-18 for the Pegawai UI `DELETE /api/dokumen/$id` path. The route now uses local `dms_session` authorization, requires the `PEGAWAI` role plus document ownership, requires `is_non_material=true`, requires no material request-chain fields, requires `status='TERSIMPAN'`, blocks deletion when an archive row exists, preflights referenced local files safely, hard-deletes the local document row, and then unlinks eligible local files. This is a narrow legacy-compatible audit exception: because current local `log_aktivitas.dokumen_id` cascades on document delete, logs for this user-owned non-approval saved document may be deleted with the document. This exception does not apply to material, approval workflow, revision, completed, archived, archive-linked, or archive destruction paths. No Supabase Storage delete/fallback, old-file migration, old Supabase file lookup/fetch/copy/download/backfill/sync, preview/download route change, route generation, DB schema change, seed, package change, archive destruction, admin cleanup, or commit is part of this status.
+
 Runtime scope:
 
-- `DELETE /api/dokumen/$id` where it remains storage-coupled.
-- Attachment remove/delete behavior that currently removes or schedules removal of physical files.
-- Local filesystem deletion semantics for files referenced by document metadata.
+- `DELETE /api/dokumen/$id` where it remained storage-coupled.
+- Attachment remove/delete behavior that currently removes or schedules removal of physical files, inspected only where no active server route existed.
+- Local filesystem deletion semantics for files referenced by document metadata in the scoped non-material `TERSIMPAN` delete route.
 - Preserve legacy route contracts and status/error categories where callers rely on them.
 - Prefer safe metadata-only behavior only if it preserves the existing contract; otherwise define local deletion explicitly.
+
+Migrated routes:
+
+- `DELETE /api/dokumen/$id` for authenticated PEGAWAI owner deletion of non-material `TERSIMPAN` documents with no archive row.
+
+Inspected but unchanged:
+
+- `POST /api/dokumen/rename-pending`; already local move-backed and not a delete route.
+- `POST /api/upload`; already local upload-backed and not a delete route.
+- `src/lib/dokumen/storage.ts` `deleteOrphanFiles()`; legacy helper remains unused by the Phase 9D migrated routes and is not generalized in 9E.
+- `src/components/dokumen/AttachmentEditor.tsx`; reset/cancel delete is direct browser Supabase behavior with no active server remove route. No UI rewrite was done in 9E.
+
+Implementation notes:
+
+- The route path, method, request shape, and legacy success response `{ success: true }` remain unchanged for eligible deletes.
+- Existing 401/403/404/400/500 categories remain: unauthenticated, not owner/not `PEGAWAI`, not found, incompatible state, and delete or partial-cleanup failure.
+- Delete eligibility is limited to authenticated local session, assigned `PEGAWAI`, document owner, `is_non_material=true`, no material request-chain fields, `status='TERSIMPAN'`, and no archive row. Material, approval workflow, revision, completed, archived, and archive-linked documents are rejected.
+- Local path validation happens before DB mutation. URL/protocol-like legacy metadata is treated as unsupported legacy metadata and skipped for physical deletion; traversal, absolute, non-file, symlink, or outside-root candidates fail before DB deletion.
+- Existing/missing local files are inspected before DB mutation. Missing local files are a compatible no-op because legacy fire-and-forget Supabase removal tolerated missing objects and old Supabase-backed files may be absent locally.
+- DB delete happens before filesystem unlink. This avoids leaving DB metadata pointing at files already deleted if the DB mutation fails, but can leave orphan files when post-DB unlink fails.
+- If any post-DB file delete fails, the route returns a 500 response with `documentDeleted: true`, safe counts, failure codes, and `compensationRequired: true` instead of misleading `{ success: true }`.
+- Physical deletion uses centralized logical path validation and physical path resolution, then rechecks realpath containment under the configured local storage root before unlink. Physical paths, storage roots, env values, raw filesystem errors, and token internals are not returned to clients.
+- Archive/audit safety: any existing archive row blocks this document delete route. Destructive archive approval and `DIMUSNAHKAN` physical cleanup remain Phase 9F.
+- Audit exception: the route inserts a legacy-compatible `DELETE` log before hard-deleting the document, but current local FK cascade removes that log and any other logs for this deleted non-material saved document. This exception is accepted only for this Pegawai-owned non-approval `TERSIMPAN` delete path; workflow, approval, completed, archived, and archive-destruction audit rows must remain preserved by ordinary routes.
 
 Non-goals:
 
@@ -1303,27 +1329,31 @@ Non-goals:
 - No admin-wide orphan cleanup.
 - No old Supabase file lookup or fallback.
 - No broad UI rewrite.
+- No generalized storage deletion framework, cleanup engine, or transaction orchestration layer.
 
 Validation gates:
 
 - Deletion never targets paths outside local storage root.
-- Missing local files fail cleanly or are handled as compatible no-op only when explicitly documented.
+- Missing local files are handled as compatible no-op for this route.
 - Owner and role authorization remain server-enforced.
 - Partial file deletion does not return a misleading full-success response.
 - No raw physical paths, roots, or filesystem errors leak to clients.
 
 Exit criteria:
 
-- Document delete and attachment remove/delete behavior is local-backed for new local files.
+- Met for `DELETE /api/dokumen/$id` and its scoped local document-file cleanup for owner non-material `TERSIMPAN` documents.
+- Not met for browser-only `AttachmentEditor` reset/cancel delete and broad orphan cleanup; those remain deferred because 9E did not add a new server delete API or UI rewrite.
 
 Key risks:
 
-- Hard deletion can conflict with auditability and archive snapshot expectations.
-- Fire-and-forget deletion can hide partial failures.
+- The accepted audit exception must not be broadened beyond owner non-material `TERSIMPAN` document deletion.
+- DB and filesystem updates are not atomic; post-DB unlink failure leaves local orphans for later manual recovery or Phase 9G cleanup.
 
 Deferred items:
 
-- Archive destruction, diagnostics/orphan cleanup, and final Supabase cleanup.
+- Archive destruction and `DIMUSNAHKAN` hardening for Phase 9F.
+- Admin diagnostics/orphan cleanup and broad removed/replaced-file reconciliation for Phase 9G.
+- Final browser helper retirement, `AttachmentEditor` direct browser Supabase upload/remove replacement, user-management/Auth Admin, package/env cleanup, and global Supabase cleanup for Phase 10/11.
 
 ### Phase 9F: Archive Destructive Approval And DIMUSNAHKAN Hardening
 
