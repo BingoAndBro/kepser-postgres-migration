@@ -942,7 +942,7 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs, and Phase 9C migrated the scoped central/PPK/Bendahara document preview/download route handlers to document-aware internal access URLs. The next recommended runtime target is Phase 9D Update/Revision/Resubmit Attachment Movement, unless manual 9C smoke checks find a blocker.
+Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs, Phase 9C migrated the scoped central/PPK/Bendahara document preview/download route handlers to document-aware internal access URLs, and Phase 9D migrated scoped update/revision/resubmit attachment movement. The next recommended runtime target is Phase 9E Document Delete And Attachment Remove/Delete Storage Behavior, unless manual 9D smoke checks find a blocker.
 
 Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
 
@@ -1158,7 +1158,7 @@ Key risks:
 Deferred items:
 
 - Role/document preview/download routes for Phase 9C.
-- Update/revision/resubmit attachment movement and browser `AttachmentEditor` upload behavior for Phase 9D.
+- Document delete, attachment remove/delete/reset/cancel behavior, archive destruction, diagnostics/orphan cleanup, and final browser helper retirement for later Phase 9/11 work.
 - Document delete, attachment remove/delete, and `AttachmentEditor` reset/cancel deletion for Phase 9E.
 - Archive destruction and `DIMUSNAHKAN` stale token/file hardening for Phase 9F.
 - Admin diagnostics/orphan cleanup and final storage stabilization for Phase 9G.
@@ -1221,7 +1221,7 @@ Key risks:
 
 Deferred items:
 
-- Update/revision/resubmit attachment movement and `AttachmentEditor` upload behavior remain Phase 9D.
+- Attachment remove/delete/reset/cancel behavior, document delete, archive destruction, diagnostics/orphan cleanup, and final browser helper retirement remain later Phase 9/11 work.
 - Document delete, attachment remove/delete, and `AttachmentEditor` reset/cancel deletion remain Phase 9E.
 - Destructive archive approval and physical deletion remain Phase 9F.
 - Admin diagnostics/orphan cleanup and final storage stabilization remain Phase 9G.
@@ -1231,6 +1231,8 @@ Deferred items:
 
 Goal: complete storage-coupled attachment movement deferred from Phase 8.
 
+Status: scoped runtime migration complete as of 2026-05-18 for Pegawai update/revision metadata saves and PPK resubmit save/transition paths. `PATCH /api/dokumen/$id`, `PATCH /api/ppk/resubmit/$id`, and optional-attachment `POST /api/ppk/resubmit/$id` now preflight local pending attachments, move local pending files to formal `{actorUserId}/{dokumenId}/{uuid.ext}` paths, persist only planned logical paths, and avoid Supabase Storage move/delete fallback. The PPK resubmit route's GET/PATCH/POST auth boundary now uses local `dms_session` plus PPK role checks. Physical deletion of removed/replaced old formal attachments is intentionally deferred.
+
 Runtime scope:
 
 - Update-time pending-to-formal movement for Pegawai update/revision paths.
@@ -1238,6 +1240,22 @@ Runtime scope:
 - Server route support needed for `AttachmentEditor` pending/local semantics.
 - Use existing local pending move and path safety helpers where practical.
 - Explicitly define DB/file operation ordering, partial failure responses, and recovery expectations for each route touched.
+
+Migrated routes:
+
+- `PATCH /api/dokumen/$id` for Pegawai non-material edit and material USER-targeted revision saves.
+- `PATCH /api/ppk/resubmit/$id` for PPK-targeted revision attachment/nominal saves.
+- `POST /api/ppk/resubmit/$id` when an optional attachment payload is sent with the resubmit transition.
+
+Implementation notes:
+
+- Pending dash and upload-API pending paths are accepted only when owned by the acting local user and present on local disk.
+- Already formal local paths remain unchanged.
+- Safe unsupported legacy paths may remain only when they are already present in existing document metadata with the same `kelengkapan_id` and URL; new unsupported paths are rejected.
+- Missing source, unsafe path, owner mismatch, unsupported new path, and target conflict fail before DB metadata is updated.
+- File movement runs before the DB update after full preflight. If a later movement fails, already moved files are rolled back best-effort before returning failure. If the DB update fails after movement, moved files are rolled back best-effort before returning failure.
+- True DB/filesystem atomicity is still not available. The known non-atomic window is between successful local movement and successful DB update. If rollback also fails, the response marks compensation required and manual recovery/orphan cleanup is expected in a later storage cleanup phase.
+- Removed/replaced old formal files are not physically deleted in 9D. Metadata replacement is correct, and orphan cleanup/delete behavior remains deferred to 9E/9G.
 
 Non-goals:
 
@@ -1265,7 +1283,7 @@ Key risks:
 
 Deferred items:
 
-- Document delete, archive destruction, broad orphan cleanup, final browser helper retirement, and global Supabase cleanup.
+- Document delete, attachment remove/delete, archive destruction, broad orphan cleanup, final browser helper retirement, and global Supabase cleanup.
 
 ### Phase 9E: Document Delete And Attachment Remove/Delete Storage Behavior
 
