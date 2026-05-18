@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route is registered. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -2623,6 +2623,83 @@ Deferred browser callers not touched in 11C.3:
 - Supabase package/env/helper cleanup
 
 11C.3 does not claim global browser Supabase retirement, Supabase helper deletion, package/env cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, route generation, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, or full regression.
+
+#### Phase 11C.4 Admin/Master-Data Browser Supabase Retirement
+
+Status: scoped runtime/docs migration complete as of 2026-05-18 for API-covered admin/master-data pages only.
+
+Changed files/routes:
+
+- `src/routes/admin.master-data.fungsi.tsx`
+- `src/routes/admin.master-data.kegiatan.tsx`
+- `src/routes/admin.master-data.jenis.tsx`
+- `src/routes/admin.master-data.kategori.tsx`
+- `src/routes/admin.master-data.detail.tsx`
+- `src/routes/admin.master-data.kelengkapan.tsx`
+- `src/routes/api/master-kelengkapan.ts`
+- `src/routes/api/master-kelengkapan.$id.ts`
+- `docs/migration/phase-plan.md`
+- No new route was added, no route generation was run, and `src/routeTree.gen.ts` was not changed.
+
+Runtime behavior:
+
+- The six migrated admin pages no longer import `getBrowserClient()` and no longer call Supabase-backed `src/lib/master-data/*` helper functions.
+- Reads now use existing local APIs through `apiFetch`; create/update/delete actions use existing local APIs through `apiMutation`.
+- `apiFetch`/`apiMutation` keep browser cookie behavior through `credentials: 'include'`; server routes remain the RBAC authority.
+- Page loading behavior remains quiet for list/dropdown fetch failures where the old helpers returned empty lists or swallowed errors.
+- Dialog/form validation messages for required local fields remain on the page: empty name/document-name and missing parent selections still show the existing Indonesian messages.
+- Save/delete success messages, modal closing, delete confirmation dialogs, and refresh-after-mutation behavior are preserved.
+
+Local APIs used:
+
+- `GET /api/master-fungsi`, `POST /api/master-fungsi`, `PATCH /api/master-fungsi/$id`, `DELETE /api/master-fungsi/$id`
+- `GET /api/master-kegiatan`, `POST /api/master-kegiatan`, `PATCH /api/master-kegiatan/$id`, `DELETE /api/master-kegiatan/$id`
+- `GET /api/master-jenis`, `POST /api/master-jenis`, `PATCH /api/master-jenis/$id`, `DELETE /api/master-jenis/$id`
+- `GET /api/master-kategori`, `POST /api/master-kategori`, `PATCH /api/master-kategori/$id`, `DELETE /api/master-kategori/$id`
+- `GET /api/master-detail`, `POST /api/master-detail`, `PATCH /api/master-detail/$id`, `DELETE /api/master-detail/$id`
+- `GET /api/master-kelengkapan`, `POST /api/master-kelengkapan`, `PATCH /api/master-kelengkapan/$id`, `DELETE /api/master-kelengkapan/$id`
+
+Per-page inventory and response-shape mapping:
+
+- Fungsi page is CRUD. It uses fungsi rows from `GET /api/master-fungsi` with `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and `updated_at`. Because the API does not return `jumlah_kegiatan`, the page also reads `GET /api/master-kegiatan` and computes active kegiatan counts by `fungsi_id` client-side to preserve the visible count column.
+- Kegiatan page is CRUD. It uses kegiatan rows from `GET /api/master-kegiatan` with `id`, `nama`, `deskripsi`, `fungsi_id`, `fungsi_nama`, `is_active`, `created_at`, and `updated_at`; fungsi dropdown rows come from `GET /api/master-fungsi`. Create/update bodies use `fungsiId`, `nama`, and `deskripsi`.
+- Jenis page is CRUD. It uses jenis rows from `GET /api/master-jenis` with `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and `updated_at`. Because the API does not return `jumlah_kategori`, the page also reads `GET /api/master-kategori` and computes active kategori counts by `jenis_permintaan_id` client-side.
+- Kategori page is CRUD. It uses kategori rows from `GET /api/master-kategori` with `id`, `nama`, `deskripsi`, `jenis_permintaan_id`, `jenis_nama`, `is_active`, `created_at`, and `updated_at`; jenis dropdown rows come from `GET /api/master-jenis`. Because the API does not return `jumlah_detail`, the page also reads `GET /api/master-detail` and computes active detail counts by `kategori_permintaan_id` client-side.
+- Detail page is CRUD. It uses detail rows from `GET /api/master-detail` with `id`, `nama`, `deskripsi`, `kategori_permintaan_id`, `kategori_nama`, `jenis_nama`, `is_active`, `created_at`, and `updated_at`; parent dropdown rows come from `GET /api/master-jenis` and `GET /api/master-kategori`.
+- Kelengkapan page is CRUD. It uses fungsi, kegiatan, jenis, kategori, and detail dropdown reads from their existing master APIs. It reads kelengkapan rows from `GET /api/master-kelengkapan?kegiatan_id=<id>`, then preserves the old helper's client-side chain matching behavior: legacy rows with all chain ids null remain visible, and non-legacy rows match the selected `jenis_permintaan_id`, `kategori_permintaan_id`, and optional `detail_permintaan_id`. Visible row fields are `id`, `kegiatan_id`, `is_ketua_tim`, `nama_dokumen`, `required`, request-chain ids, `kegiatan_nama`, `fungsi_nama`, `created_at`, and `updated_at`.
+
+Create/update/delete compatibility:
+
+- Create/update bodies preserve the existing camelCase Zod/API contract: `fungsiId`, `jenisPermintaanId`, `kategoriPermintaanId`, `detailPermintaanId`, `kegiatanId`, `isKetuaTim`, `namaDokumen`, `required`, `nama`, and `deskripsi`.
+- Delete actions use the existing local DELETE endpoints and keep the existing UI confirmations. Fungsi, kegiatan, jenis, kategori, and detail delete behavior follows the local API soft-delete contract. Kelengkapan delete keeps the existing local hard-delete endpoint contract for master kelengkapan rows.
+- A narrow compatibility gap was fixed in `POST /api/master-kelengkapan` and `PATCH /api/master-kelengkapan/$id`: the schemas already accepted `jenisPermintaanId`, `kategoriPermintaanId`, and `detailPermintaanId`, but the handlers did not persist those fields. They now persist the request-chain ids and return the existing snake_case row fields. The handlers also preserve the old helper's chain validation messages for missing/mismatched kategori/detail relations.
+
+Admin/RBAC behavior:
+
+- The browser pages only call local APIs; they do not add client-side authorization logic.
+- Public master-data GET behavior is unchanged where the existing route is public.
+- POST/PATCH/DELETE remain protected by `getLocalServerSession(request)` plus `hasLocalRole(session, 'ADMIN')` in the existing server routes.
+- `dms_active_role` is not trusted by the browser pages as authorization proof.
+
+Pages inspected but unchanged:
+
+- `src/routes/admin.master-data.user.tsx` remains untouched. It already uses `apiFetch`/`apiMutation` for `/api/users/*`, `/api/ketua-tim/*`, and `GET /api/master-kegiatan`, so it is outside this browser Supabase page group.
+
+Pages deferred:
+
+- `src/routes/admin.master-data.jenis-dokumen.tsx` remains browser-Supabase backed and is deferred. The page exists and is CRUD, but no `src/routes/api/master-jenis-dokumen*` route is registered. A safe migration needs a dedicated route-registration phase or explicit approval to add a narrow route and routeTree implications.
+
+Deferred browser Supabase callers not touched in 11C.4:
+
+- Role dashboard/list page filters.
+- Pegawai submit page-wide master-data dropdown reads, including Non-Material `jenis_dokumen`.
+- Pegawai revisi page-level kelengkapan reads.
+- PPK resubmit page-level kelengkapan reads.
+- Browser session/role checks outside this admin/master-data slice.
+- `src/lib/master-data/*` Supabase-client-shaped helper deletion.
+- Supabase package/env/helper cleanup.
+
+11C.4 does not claim global browser Supabase retirement, Supabase helper deletion, package/env cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, Playwright/E2E validation, route generation, or full regression.
 
 Runtime/docs scope:
 
