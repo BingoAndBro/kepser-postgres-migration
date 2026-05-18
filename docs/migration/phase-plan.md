@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 9 storage/file-access completion. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement, storage/file-access surfaces, user-management/Auth Admin, browser helper/UI retirement, and global cleanup stay in later phases.
+Current active area after Phase 10B is admin/user-management Supabase Auth Admin retirement. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle. `POST /api/dokumen/submit` is locally backed for the clean local target, while user-management mutations/password routes, browser helper/UI retirement, global Supabase cleanup, and release hardening stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -1677,6 +1677,19 @@ Manual validation commands for human:
 
 - `pnpm test tests/unit/auth/session-token.test.ts tests/unit/auth/session-cookies.test.ts tests/unit/auth/role-resolution.test.ts`
 - Add/run focused user-list/detail route or helper tests if created in the implementation phase.
+
+Progress as of 2026-05-18:
+
+- Migrated `GET /api/users/` to local `dms_session` authorization through `getLocalServerSession(request)`, assigned `ADMIN` validation through `hasLocalRole(...)`, and local Drizzle reads over `auth.users`, `auth.user_roles`, and `auth.roles`.
+- Migrated `GET /api/users/$id` to the same local auth/RBAC and local Drizzle user-detail read path.
+- Added a scoped local read helper in `src/lib/users/local-user-queries.ts`; `src/lib/user-helpers.ts` remains legacy Supabase-backed for deferred mutation/password behavior.
+- Preserved `GET /api/users/` success shape `200 { users, total }` and `GET /api/users/$id` success shape `200 { user }` through the existing `parseUserListResponse(...)` and `parseUserResponse(...)` boundary helpers.
+- Preserved admin UI-visible list behavior by returning all users with no pagination or query requirements; filtering/search/status visibility remains client-side in `src/routes/admin.master-data.user.tsx`.
+- Local list ordering is deterministic by `auth.users.created_at`, then `email`, with roles normalized to canonical role order. Legacy Supabase Auth Admin reads had no route-level sort, so this is a bounded deterministic ordering delta.
+- Active status for migrated reads now uses local `auth.users.is_active` as runtime authority. `disabledAt` compatibility is mapped from local `auth.users.deactivated_at`; this intentionally replaces the earlier inconsistent list `user_status` default-active behavior and detail Supabase disabled/banned behavior.
+- Metadata compatibility is limited to existing admin/profile contract fields: `nama_lengkap`, `nip_nrp`, and `departemen`. The helper maps local first-class profile columns into `metadata` and falls back to compatible JSON metadata.
+- No Supabase Auth Admin fallback was added to migrated read paths. Remaining Supabase Auth Admin usage in `src/routes/api/users/index.ts`, `src/routes/api/users/$id.ts`, and `src/lib/user-helpers.ts` is for deferred create/update/status/password routes only.
+- Deferred mutation/password routes remain unchanged: `POST /api/users/`, `PATCH /api/users/$id`, `POST /api/users/$id/activate`, `POST /api/users/$id/deactivate`, `POST /api/users/$id/reset-password`, and `POST /api/users/me/change-password`.
 
 Deferred items:
 
