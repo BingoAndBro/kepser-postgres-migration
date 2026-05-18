@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route is registered. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -2685,11 +2685,105 @@ Pages inspected but unchanged:
 
 - `src/routes/admin.master-data.user.tsx` remains untouched. It already uses `apiFetch`/`apiMutation` for `/api/users/*`, `/api/ketua-tim/*`, and `GET /api/master-kegiatan`, so it is outside this browser Supabase page group.
 
-Pages deferred:
+Pages deferred from 11C.4:
 
-- `src/routes/admin.master-data.jenis-dokumen.tsx` remains browser-Supabase backed and is deferred. The page exists and is CRUD, but no `src/routes/api/master-jenis-dokumen*` route is registered. A safe migration needs a dedicated route-registration phase or explicit approval to add a narrow route and routeTree implications.
+- `src/routes/admin.master-data.jenis-dokumen.tsx` was deferred during 11C.4 because no `src/routes/api/master-jenis-dokumen*` route was registered. That blocker was carried through 11C.4b and resolved in 11C.4c below.
 
-Deferred browser Supabase callers not touched in 11C.4:
+#### Phase 11C.4b Admin Jenis Dokumen Route Registration Blocker
+
+Status: scoped inventory/docs update complete as of 2026-05-18; runtime migration deferred.
+
+Inventory result:
+
+- `src/routes/admin.master-data.jenis-dokumen.tsx` is a CRUD admin page for Non-Material document types.
+- The page currently imports `getBrowserClient` from `#/lib/supabase-browser` and imports `getAllJenisDokumen`, `createJenisDokumen`, `updateJenisDokumen`, `deleteJenisDokumen`, and `JenisDokumenRow` from `#/lib/master-data`.
+- The table displays row number, `nama`, `deskripsi`, and edit/delete actions.
+- The create/update dialog uses `nama` and `deskripsi`, with visible validation `Nama tidak boleh kosong`, save error `Gagal menyimpan`, and connection error `Koneksi database tidak tersedia`.
+- The delete dialog asks `Hapus Jenis Dokumen?`, shows the selected `nama`, and currently soft-deletes through the Supabase helper by setting `is_active=false`.
+- The current list helper reads active rows from `master_jenis_dokumen`, orders by `nama`, and returns `JenisDokumenRow[]`.
+- The current mutation helpers use payloads `{ nama, deskripsi? }` for create/update and return `{ data?: JenisDokumenRow; error?: string }`; the page only needs `id`, `nama`, and `deskripsi`, while the schema also supports `is_active`, `created_at`, and `updated_at`.
+
+Local schema and route registration result:
+
+- Local Drizzle source for this table is `src/db/schema/master/jenis-dokumen.ts`.
+- Actual local DB fields are `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and `updated_at`.
+- `master.master_jenis_dokumen` has an active-name partial unique index and `is_active` support, so the safe delete convention would be soft-delete by setting `is_active=false`; hard-delete is not acceptable by default because `dokumen.dokumen_transaksi.jenis_dokumen_id` can reference historical rows.
+- No `src/routes/api/master-jenis-dokumen.ts` or `src/routes/api/master-jenis-dokumen.$id.ts` route file is registered.
+- `src/router.tsx` consumes `src/routeTree.gen.ts`, and `src/routeTree.gen.ts` contains no `/api/master-jenis-dokumen` or `/api/master-jenis-dokumen/$id` entries.
+- Under the 11C.4b guardrails, adding route files without route generation would leave the new API unregistered, while manually editing `src/routeTree.gen.ts` or running route generation is explicitly disallowed.
+
+Runtime decision:
+
+- `src/routes/admin.master-data.jenis-dokumen.tsx` was not migrated in 11C.4b because switching it to `/api/master-jenis-dokumen` would point the browser at an unregistered route.
+- No `master-jenis-dokumen` API route files were added, because route discovery/registration requires route generation or generated route tree edits.
+- No Supabase fallback was added.
+- The next safe implementation needs explicit approval to run route generation after adding narrow route files, or a separate route-registration phase that allows `src/routeTree.gen.ts` changes generated by the TanStack router tooling.
+
+Expected route behavior when registration is approved:
+
+- `GET /api/master-jenis-dokumen` should be a public local Drizzle read returning active rows as a raw array with `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and `updated_at`, ordered by `nama`.
+- `POST /api/master-jenis-dokumen` should require local `dms_session`, require assigned `ADMIN` through `hasLocalRole`, validate `{ nama, deskripsi? }`, reject duplicate active names, create a row, and return the created row with status `201`.
+- `PATCH /api/master-jenis-dokumen/$id` should require assigned `ADMIN`, validate `{ nama?, deskripsi?, isActive? }`, update only supplied fields, and return the updated row.
+- `DELETE /api/master-jenis-dokumen/$id` should require assigned `ADMIN`, soft-delete by setting `is_active=false`, and return a success shape compatible with existing local master route conventions.
+
+#### Phase 11C.4c Master Jenis Dokumen API Route Registration And Page Migration
+
+Status: scoped runtime/docs migration complete as of 2026-05-19.
+
+Changed runtime/docs surface:
+
+- Added `src/routes/api/master-jenis-dokumen.ts`.
+- Added `src/routes/api/master-jenis-dokumen.$id.ts`.
+- Generated `src/routeTree.gen.ts` with scoped entries for `/api/master-jenis-dokumen` and `/api/master-jenis-dokumen/$id`; the file was not manually edited.
+- Migrated `src/routes/admin.master-data.jenis-dokumen.tsx` from browser Supabase helpers to local `apiFetch`/`apiMutation`.
+- Added local Zod boundary schemas `createMasterJenisDokumenSchema` and `updateMasterJenisDokumenSchema` in `src/lib/schemas/master-data.ts`.
+
+Route registration:
+
+- The repo still has no dedicated package script or top-level TanStack generator binary for route generation.
+- The existing documented route update path used `pnpm build`, but this phase explicitly disallowed build as an automatic validation/generation substitute.
+- Route registration was completed with the installed TanStack router generator package using the default repo route config plus the existing TanStack Start route-tree footer.
+- The generated route tree diff is scoped to imports, route nodes, type map entries, module augmentation entries, child wiring, and root child wiring for `/api/master-jenis-dokumen` and `/api/master-jenis-dokumen/$id`.
+
+Local API behavior:
+
+- `GET /api/master-jenis-dokumen` performs a public local Drizzle read from `master.master_jenis_dokumen`, filters `is_active=true`, orders by `nama`, and returns a raw array of `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and `updated_at`.
+- `POST /api/master-jenis-dokumen` requires local `dms_session`, requires assigned `ADMIN` through `hasLocalRole(session, 'ADMIN')`, validates `nama` and optional nullable `deskripsi`, rejects duplicate active names with `409`, inserts `is_active=true`, and returns the created row with status `201`.
+- `PATCH /api/master-jenis-dokumen/$id` validates the UUID path id, requires assigned `ADMIN`, validates optional `nama`, optional nullable `deskripsi`, and optional `isActive`, rejects duplicate active names when the resulting row is active, updates only supplied fields, and returns the updated row.
+- `DELETE /api/master-jenis-dokumen/$id` validates the UUID path id, requires assigned `ADMIN`, soft-deletes only by setting `is_active=false`, and returns a success/message shape. It does not hard-delete, cascade, or modify `dokumen.dokumen_transaksi`.
+
+Admin page migration:
+
+- The admin jenis-dokumen page is still CRUD and preserves the table columns `No`, `Nama`, `Deskripsi`, and `Aksi`.
+- The create/update dialog still uses `Nama Jenis` and `Deskripsi`, keeps `Nama tidak boleh kosong`, keeps `Gagal menyimpan` as the non-API fallback save error, and preserves create/update success messages.
+- The delete confirmation still uses `Hapus Jenis Dokumen?` and the page still refreshes after create/update/delete.
+- The old browser-client connection error `Koneksi database tidak tersedia` is no longer applicable because the page no longer instantiates a browser Supabase client; local API failures now surface the API error message or the preserved fallback error.
+
+Response-shape mapping:
+
+- Browser page type maps only the row fields it uses or receives from the local API: `id`, `nama`, `deskripsi`, `is_active`, `created_at`, and optional `updated_at`.
+- The API response shape intentionally mirrors the old helper's row contract plus `updated_at`, matching nearby local master APIs and supporting later Non-Material dropdown migration.
+- Create/update request bodies preserve the visible form semantics: `nama` is trimmed and required, and blank `deskripsi` is sent as `null`.
+
+Delete/reference safety:
+
+- `master.master_jenis_dokumen` supports `is_active`, and `dokumen.dokumen_transaksi.jenis_dokumen_id` references this table with no-action semantics.
+- 11C.4c therefore uses soft-delete only. Historical `dokumen_transaksi` rows keep their referenced jenis-dokumen row available in the database.
+- Inactive duplicate-name rows are not implicitly reactivated by create. Reactivation is only possible through explicit `PATCH` with `isActive=true`, and duplicate active-name validation still applies.
+
+Deferred browser Supabase callers after 11C.4c:
+
+- Role dashboard/list page filters.
+- Pegawai submit page-wide master-data dropdown reads, including possible future use of `GET /api/master-jenis-dokumen` for Non-Material document type selection.
+- Pegawai revisi page-level kelengkapan reads.
+- PPK resubmit page-level kelengkapan reads.
+- Browser session/role checks outside this admin/master-data slice.
+- `src/lib/master-data/*` Supabase-client-shaped helper deletion.
+- Supabase package/env/helper cleanup.
+
+11C.4c does not claim global browser Supabase retirement, Supabase helper deletion, package/env cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, Playwright/E2E validation, package install/remove/update, or full regression.
+
+Deferred browser Supabase callers not touched in 11C.4 through 11C.4c:
 
 - Role dashboard/list page filters.
 - Pegawai submit page-wide master-data dropdown reads, including Non-Material `jenis_dokumen`.
