@@ -942,7 +942,7 @@ Deferred items:
 
 Goal: finish local filesystem storage replacement across the remaining surfaces.
 
-Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, and Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs. The next recommended runtime target is Phase 9C Role-Specific Preview/Download Route Migration.
+Status as of 2026-05-18: Phase 9A inventory/order is complete after Phase 9.0 planning, Phase 9B migrated the raw preview/download URL-generation endpoints to internal `/api/files/access?token=...` URLs, and Phase 9C migrated the scoped central/PPK/Bendahara document preview/download route handlers to document-aware internal access URLs. The next recommended runtime target is Phase 9D Update/Revision/Resubmit Attachment Movement, unless manual 9C smoke checks find a blocker.
 
 Phase 9 owns storage/file-access completion only. It builds on the existing local storage foundations: local path safety, local upload, local pending-to-formal movement, submit move planning, internal file access tokens, `/api/files/access`, and raw logical-path local streaming.
 
@@ -1038,15 +1038,15 @@ Non-goals:
 
 - Ready for reuse: `local-storage-paths.ts` path normalization, traversal prevention, root containment, owner/classification helpers.
 - Ready for reuse: `file-access-token.ts`, `internal-file-access-url.ts`, and `/api/files/access` for internal `/api/files/access?token=...` URLs.
-- Ready for 9B only: `internal-file-access.ts` can serve local raw logical-path tokens with current session, owner/role compatibility, safe logical path, root containment, content type, and disposition checks.
+- Ready for 9B/9C: `internal-file-access.ts` can serve local raw logical-path tokens and document/lampiran tokens with current session, owner/role compatibility, document/archive revalidation, safe logical path, root containment, content type, and disposition checks.
 - Ready for movement surfaces: `local-upload.ts`, `local-pending-move.ts`, and `submit-move-plan.ts` cover local upload, pending/formal classification, no-overwrite movement, and submit planning patterns.
 - Existing local runtime precedents: `/api/upload`, `/api/dokumen/rename-pending`, and `/api/dokumen/submit` show compatible local upload/move/submit behavior for clean local data.
 
 #### Route-Specific Gaps
 
-- Document/archive-aware internal access is not implemented; token verification alone cannot authorize document or archive reads.
+- Document/archive-aware internal access is implemented only for Phase 9C document/lampiran tokens; archive-id-specific tokens remain unsupported.
 - Phase 9B must remove the raw preview/download Supabase Storage fallback and preserve `{ signedUrl }`.
-- Role preview/download routes still need local session/role/document/archive parity, filename/download disposition parity, and `DIMUSNAHKAN` stale-token blocking.
+- Role preview/download routes now use local session/role/document/archive checks for the scoped central, PPK, and Bendahara paths; filename remains client-built while internal access sets inline/attachment disposition.
 - Update/resubmit movement still needs explicit DB/file ordering and failure semantics.
 - Delete/destruction routes need safe partial-failure semantics and must not claim full rollback.
 - `AttachmentEditor` still writes/deletes directly through browser Supabase Storage.
@@ -1167,6 +1167,8 @@ Deferred items:
 
 Goal: migrate document and role preview/download routes to local internal file access.
 
+Status: scoped runtime migration complete as of 2026-05-18 for the central document, PPK, and Bendahara preview/download route handlers. These routes now preserve `{ signedUrl }` while returning relative internal `/api/files/access?token=...` URLs backed by document/lampiran token revalidation. `/api/files/access` now re-checks local session binding, current document role/owner authorization, archive state, `DIMUSNAHKAN`, lampiran index, logical path safety, root containment, and file existence before streaming. No Supabase Storage fallback, old-file migration, movement, deletion, route generation, UI rewrite, DB schema change, seed, package change, or commit is part of this status.
+
 Runtime scope:
 
 - Central document routes: `/api/dokumen/$id/preview/$lampiranIndex` and `/api/dokumen/$id/download/$lampiranIndex`.
@@ -1175,6 +1177,23 @@ Runtime scope:
 - Document/archive-aware token generation or direct internal access behavior, as needed to preserve existing `{ signedUrl }` contracts.
 - Revalidate local session, role, owner/workflow authorization, document status, archive status, lampiran index, logical path safety, and physical root containment.
 - Preserve preview/download filename and content-disposition behavior.
+
+Migrated routes:
+
+- `GET /api/dokumen/$id/preview/$lampiranIndex`.
+- `GET /api/dokumen/$id/download/$lampiranIndex`.
+- `GET /api/ppk/dokumen/$id/preview/$lampiranIndex`.
+- `GET /api/ppk/dokumen/$id/download/$lampiranIndex`.
+- `GET /api/bendahara/dokumen/$id/preview/$lampiranIndex`.
+- `GET /api/bendahara/dokumen/$id/download/$lampiranIndex`.
+
+Implementation notes:
+
+- Central route authorization mirrors local document detail visibility: owner, PPK-compatible workflow states, Bendahara-compatible workflow states, and Arsiparis for `COMPLETED`/`ARCHIVED`.
+- PPK and Bendahara route-specific handlers additionally require the corresponding role and route-compatible workflow state.
+- If an archive row exists for the document, file selection uses `lampiran_snapshot`; otherwise it uses `dokumen_transaksi.lampiran_urls`.
+- Any archive row with `status_arsip='DIMUSNAHKAN'` blocks token issue and token use.
+- Internal document tokens are bound to the issuing local user id and session id, and carry only `documentId`, `lampiranIndex`, purpose, disposition, status-check marker, and expiry metadata.
 
 Non-goals:
 
@@ -1202,7 +1221,11 @@ Key risks:
 
 Deferred items:
 
-- Attachment movement, delete/remove, destructive archive approval, diagnostics, and global Supabase cleanup.
+- Update/revision/resubmit attachment movement and `AttachmentEditor` upload behavior remain Phase 9D.
+- Document delete, attachment remove/delete, and `AttachmentEditor` reset/cancel deletion remain Phase 9E.
+- Destructive archive approval and physical deletion remain Phase 9F.
+- Admin diagnostics/orphan cleanup and final storage stabilization remain Phase 9G.
+- User-management/Auth Admin, browser helper retirement, package/env cleanup, and global Supabase cleanup remain Phase 10/11.
 
 ### Phase 9D: Update/Revision/Resubmit Attachment Movement
 
