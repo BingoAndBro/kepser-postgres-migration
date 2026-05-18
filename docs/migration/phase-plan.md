@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 6G.6 is Phase 8 write/workflow migration planning/runtime. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory and kept Phase 8B as the first runtime write group. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
+Current active area after Phase 6G.6 is Phase 8 write/workflow migration planning/runtime. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory and kept Phase 8B as the first runtime write group. Phase 8F migrated scoped non-user-management master/admin metadata CRUD writes on 2026-05-18 after the Pegawai, PPK, Bendahara, and safe Arsiparis metadata write passes. `POST /api/dokumen/submit` is locally backed for the clean local target, while broader Supabase runtime retirement and remaining storage surfaces stay in later phases.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -808,6 +808,25 @@ Deferred items:
 ### Phase 8F: Master/Admin CRUD Write APIs, Non-User Management
 
 Goal: migrate master data and non-user-management admin CRUD writes that can move safely before Phase 10.
+
+Status as of 2026-05-18: in progress with scoped runtime migration completed for safe non-user-management metadata CRUD writes.
+
+Migrated in this pass:
+
+- Master fungsi write routes: `POST /api/master-fungsi`, `PATCH /api/master-fungsi/$id`, and `DELETE /api/master-fungsi/$id` now use local `dms_session` ADMIN authorization and local PostgreSQL/Drizzle writes. Delete remains a soft delete by setting `is_active=false`; create/update preserve the existing validation wrappers and duplicate-name `409` behavior where the route explicitly checked duplicates.
+- Master kegiatan write routes: `POST /api/master-kegiatan`, `PATCH /api/master-kegiatan/$id`, and `DELETE /api/master-kegiatan/$id` now use local `dms_session` ADMIN authorization and local PostgreSQL/Drizzle writes. Create/update preserve active fungsi validation where legacy had it, duplicate active `(fungsi_id,nama)` checks where legacy had them, joined `master_fungsi` response enrichment, and soft delete.
+- Master jenis/kategori/detail permintaan write routes now use local `dms_session` ADMIN authorization and local PostgreSQL/Drizzle writes for `POST`, `PATCH`, and `DELETE`. Create duplicate checks and FK active-parent validation are preserved where legacy had them; delete remains soft delete through `is_active=false`; update keeps the legacy generic failure category for constraint errors rather than exposing DB internals.
+- Master kelengkapan dokumen write routes now use local `dms_session` ADMIN authorization and local PostgreSQL/Drizzle writes for `POST`, `PATCH`, and `DELETE`. Delete remains the legacy hard delete. The route continues to write only the fields the legacy handler wrote on create/update and preserves joined kegiatan/fungsi response enrichment.
+- Arsip classification metadata CRUD writes in `POST /api/arsiparis/klasifikasi`, `PATCH /api/arsiparis/klasifikasi/$id`, and `DELETE /api/arsiparis/klasifikasi/$id` now use local `dms_session` authorization and local PostgreSQL/Drizzle writes. The legacy ADMIN-or-ARSIPARIS role behavior is preserved because this page is Arsiparis-owned metadata CRUD, not general Admin user management. Delete remains cascade soft-delete of the selected node and active descendants.
+- Ketua Tim assignment metadata writes in `POST /api/ketua-tim/`, `DELETE /api/ketua-tim/`, `DELETE /api/ketua-tim/$id`, and `PATCH /api/ketua-tim/kegiatan/$kegiatanId` now use local `dms_session` ADMIN authorization and local PostgreSQL/Drizzle writes. One assignment per kegiatan is preserved via the existing unique `kegiatan_id` semantics; replacement uses an explicit transaction for the lookup/update-or-insert route.
+
+Skipped or deferred in this pass:
+
+- No `master_jenis_dokumen` API write route exists in the audited route set; browser helper/UI retirement for `src/lib/master-data/jenis-dokumen.ts` remains a later Supabase-runtime cleanup concern.
+- `/api/users/*`, reset-password, change-password, activation/deactivation, user creation/update, role administration, password provisioning, and Supabase Auth Admin replacement remain Phase 10.
+- Admin storage diagnostics and orphan cleanup remain Phase 9 storage surface work.
+- Browser admin page/component rewrites and browser helper retirement remain later phases.
+- No workflow routes, preview/download routes, storage helpers, migrations, seeds, route generation, package files, or schema files are part of this pass.
 
 Runtime scope:
 
