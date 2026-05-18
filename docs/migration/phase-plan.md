@@ -1504,28 +1504,332 @@ For new clean local data, active server-side storage behavior is now local-files
 
 Goal: replace remaining Supabase Auth Admin/user-management/runtime dependencies and prepare final Supabase retirement.
 
-Allowed scope:
+Status: planning only. Phase 10 implementation has not started. This breakdown preserves Phase 9 storage-runtime caveats and does not claim Phase 10 or Phase 11 completion.
 
-- User management and password provisioning/change replacements.
-- Remaining Supabase Auth Admin usage.
-- Session hardening, CSRF, and rate limiting where appropriate.
-- Supabase runtime dependency audit and cleanup planning.
+Current local auth state:
+
+- Already local-backed: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`, `POST /api/auth/role-switch`, `GET /api/users/me`, `GET /api/users/me/ketua-tim`, and `GET /api/users/me/is-ketua-tim/$kegiatanId`.
+- Existing foundations: `dms_session` HttpOnly cookie, `dms_active_role` as UX state only, `getLocalServerSession(request)`, local session repository, local role resolution, `hashPassword(...)`, `verifyPassword(...)`, and `auth.users.password_hash` with Argon2id.
+- Remaining Phase 10 runtime surface: `GET/POST /api/users/`, `GET/PATCH /api/users/$id`, `POST /api/users/$id/activate`, `POST /api/users/$id/deactivate`, `POST /api/users/$id/reset-password`, `POST /api/users/me/change-password`, and `src/lib/user-helpers.ts`.
+
+Shared Phase 10 guardrails:
+
+- Preserve endpoint paths, methods, request fields, response wrappers, status categories, UI behavior, and role behavior.
+- Use local `dms_session` and local PostgreSQL/Drizzle as the runtime authority.
+- Do not trust `dms_active_role` as authorization proof.
+- Keep `ADMIN` dedicated. Do not silently treat ADMIN as PEGAWAI, PPK, BENDAHARA, or ARSIPARIS.
+- Do not combine `ADMIN` with non-admin roles in admin mutation logic.
+- Add no Supabase Auth Admin fallback to migrated user-management/password routes.
+- Do not remove global Supabase packages, env values, imports, or browser helpers in Phase 10.
+- Do not migrate, copy, backfill, or recover old Supabase Auth data unless a later human-approved phase explicitly scopes it. The migration target remains clean local seed/new data only.
+- Do not print plaintext passwords, generated password hashes, raw session tokens, token hashes, cookies, DB URLs, env values, or secrets.
+- Do not modify `src/routeTree.gen.ts`, package files, env files, DB migrations, seeds, or scripts unless a later implementation prompt explicitly scopes and approves that work.
+- Codex prompts for Phase 10 should say "Do not commit" unless the human explicitly requests a commit.
+
+### Phase 10A: User/Auth Admin Surface Inventory And Contract Planning
+
+Goal: produce the exact migration contract for remaining user-management/Auth Admin/password surfaces before runtime edits.
+
+Runtime/docs scope:
+
+- Docs/read-only audit only.
+- Inventory active callers, endpoint paths/methods, request bodies, response wrappers, status categories, validation messages, role behavior, and current Supabase Auth Admin/password usage.
+- Classify already-local auth/session/profile behavior versus still-Supabase user-management/password behavior.
 
 Non-goals:
 
-- No global Supabase dependency removal before parity is verified.
-- No cleanup mixed with unresolved behavior migration.
-- No role model changes.
+- No runtime code, helper creation, route edits, schema/migration/seed/script changes, route generation, package/env cleanup, or UI rewrite.
 
-Key validation gates:
+Candidate files to read/change:
 
-- Admin/user-management flows work through local auth/database paths.
-- Auth/session regression checks pass.
-- Grep/audit shows remaining Supabase usage is either removed or explicitly documented as reference-only.
+- Read: `src/routes/api/users/*`, `src/routes/admin.master-data.user.tsx`, `src/routes/profile.tsx`, `src/lib/user-helpers.ts`, `src/lib/user-response.ts`, `src/lib/types/user.ts`, `src/lib/schemas/user.ts`, `src/lib/auth/*`, `src/db/schema/auth/*`, `src/lib/constants/roles.ts`.
+- Change: docs only, preferably `docs/migration/phase-plan.md` or a focused Phase 10 inventory doc if a later prompt allows additional docs.
+
+Auth/RBAC guardrails:
+
+- Confirm current admin routes require ADMIN and preserve ADMIN-only behavior.
+- Record that `dms_active_role` must remain UX state only.
+- Record current self-service password route authorization separately from ADMIN-only routes.
+
+Response-shape compatibility expectations:
+
+- Preserve `{ users, total }`, `{ user }`, `{ success, message }`, and existing `{ error }` bodies/status categories unless a current behavior is explicitly documented as unsafe.
+
+Validation gates:
+
+- Grep/audit classifies all `supabase.auth`, `auth.admin`, `createAdminClient`, `createServerSupabaseClient`, `getServerSession`, password, role, and session matches in the Phase 10 surface.
+- No implementation is claimed complete.
+
+Manual validation commands for human:
+
+- `git grep -n "supabase.auth\|auth.admin\|createAdminClient\|createServerSupabaseClient\|getServerSession\|password\|user_roles\|roles" -- src/routes/api/users src/lib/user-helpers.ts src/routes/admin.master-data.user.tsx src/routes/profile.tsx`
+- `git grep -n "/api/users\|change-password\|reset-password" -- src routes docs/migration`
+
+Deferred items:
+
+- Runtime migration starts in Phase 10B or 10C only after the contract is reviewed.
+
+### Phase 10B: Local User Repository And Admin Query Foundation
+
+Goal: replace Supabase Auth Admin list/detail reads with local DB-backed user query helpers while preserving admin UI response contracts.
+
+Runtime/docs scope:
+
+- Build or verify local query helpers over `auth.users`, `auth.user_roles`, and `auth.roles`.
+- Migrate only read behavior for `GET /api/users/` and `GET /api/users/$id` if the implementation prompt scopes routes.
+- Preserve admin list/detail ordering/filter-visible behavior as far as current callers depend on it.
+
+Non-goals:
+
+- No user create/update/status/password mutations.
+- No password reset or change-password behavior.
+- No global Supabase cleanup, package/env cleanup, old data import, or UI redesign.
+
+Candidate files to read/change:
+
+- Read/change if scoped: `src/lib/user-helpers.ts` or a local replacement helper, `src/routes/api/users/index.ts`, `src/routes/api/users/$id.ts`, `src/lib/user-response.ts`, `src/lib/schemas/user.ts`, `src/db/schema/auth/*`.
+
+Auth/RBAC guardrails:
+
+- Use `getLocalServerSession(request)`.
+- Require assigned `ADMIN` for admin list/detail.
+- Do not trust active-role cookie.
+
+Response-shape compatibility expectations:
+
+- `GET /api/users/` must preserve `{ users, total }`.
+- `GET /api/users/$id` must preserve `{ user }`.
+- User rows must preserve `id`, `email`, `metadata`, `roles`, `isActive`, `disabledAt`, `createdAt`, and `updatedAt` compatibility.
+
+Validation gates:
+
+- Unauthenticated returns 401.
+- Non-admin returns 403.
+- Missing user returns 404.
+- No Supabase Auth Admin call remains in migrated read routes/helpers.
+
+Manual validation commands for human:
+
+- `pnpm test tests/unit/auth/session-token.test.ts tests/unit/auth/session-cookies.test.ts tests/unit/auth/role-resolution.test.ts`
+- Add/run focused user-list/detail route or helper tests if created in the implementation phase.
+
+Deferred items:
+
+- Create/update/status/role/password mutations remain Phase 10C/10D.
+
+### Phase 10C: Admin User Create/Update/Status/Role Assignment Migration
+
+Goal: migrate admin user creation, profile metadata update, role assignment, activation, and deactivation from Supabase Auth Admin to local PostgreSQL/Drizzle.
+
+Runtime/docs scope:
+
+- `POST /api/users/`.
+- `PATCH /api/users/$id`.
+- `POST /api/users/$id/activate`.
+- `POST /api/users/$id/deactivate`.
+- Local writes to `auth.users`, `auth.user_roles`, and `auth.roles`.
+- Revoke sessions when deactivation makes an account unable to authenticate.
+
+Non-goals:
+
+- No self-service password change.
+- No standalone admin password reset unless explicitly bundled with create-time password hashing.
+- No hard delete.
+- No user import from Supabase Auth.
+- No route path or UI rewrite.
+
+Candidate files to read/change:
+
+- `src/routes/api/users/index.ts`, `src/routes/api/users/$id.ts`, `src/routes/api/users/$id/activate.ts`, `src/routes/api/users/$id/deactivate.ts`, `src/lib/user-helpers.ts` or local user admin helper, `src/lib/auth/session-repository.ts`, `src/lib/auth/password.ts`, `src/db/schema/auth/*`.
+
+Auth/RBAC guardrails:
+
+- Require assigned `ADMIN`.
+- Preserve self-deactivation prevention.
+- Reject role payloads that would combine `ADMIN` with any non-admin role.
+- Preserve mandatory `PEGAWAI` behavior only for non-admin accounts if that remains the current UI/route contract after Phase 10A.
+
+Response-shape compatibility expectations:
+
+- Create preserves `201 { user }`.
+- Update preserves `200 { user }`.
+- Activate/deactivate preserve `{ success: true, message }`.
+- Duplicate email remains a conflict-style error.
+- Invalid role and invalid NIP/password/profile input remain validation errors.
+
+Validation gates:
+
+- Duplicate email does not create a user.
+- Invalid role is rejected.
+- ADMIN mixed with other roles is rejected.
+- Deactivated user cannot login and existing sessions are invalidated or revoked according to the scoped implementation contract.
+- Existing document/audit rows remain readable because user deactivation does not delete historical actors.
+
+Manual validation commands for human:
+
+- `pnpm test tests/e2e/spec-06-user-management.spec.ts`
+- Add/run focused API route tests for create, update, activate, deactivate, role assignment, and non-admin denial if created.
+
+Deferred items:
+
+- Password reset/change belongs to Phase 10D.
+- Hard delete remains Phase 10E decision work unless a later accepted route contract requires it.
+
+### Phase 10D: Password Hash And Admin/Self-Service Password Replacement
+
+Goal: replace Supabase password reset/change behavior with local Argon2id password hash updates.
+
+Runtime/docs scope:
+
+- `POST /api/users/$id/reset-password`.
+- `POST /api/users/me/change-password`.
+- Reuse `hashPassword(...)` and `verifyPassword(...)`.
+- Update `auth.users.password_hash`, `password_hash_algorithm`, `password_updated_at`, and session revocation according to the accepted Phase 10A/10D policy.
+
+Non-goals:
+
+- No email reset/invite flow.
+- No production bootstrap password workflow.
+- No password hash helper execution by Codex unless explicitly approved.
+- No plaintext password storage, fake hashes, env edits, package changes, or old Auth data migration.
+
+Candidate files to read/change:
+
+- `src/routes/api/users/$id/reset-password.ts`, `src/routes/api/users/me/change-password.ts`, `src/lib/auth/password.ts`, `src/lib/auth/session-repository.ts`, `src/db/schema/auth/users.ts`, `src/lib/types/user.ts`, `src/lib/schemas/user.ts`.
+
+Auth/RBAC guardrails:
+
+- Admin reset requires assigned `ADMIN`.
+- Self-service change requires a valid local `dms_session`.
+- Self-service change must verify the current password before updating the hash.
+- Do not trust `dms_active_role`.
+
+Response-shape compatibility expectations:
+
+- Admin reset preserves `{ success: true, message: 'Password berhasil direset' }`.
+- Self-service change preserves `{ success: true, message: 'Password berhasil diubah' }`.
+- Wrong current password, weak password, missing fields, and same-password checks preserve existing status categories/messages where UI-visible.
+
+Validation gates:
+
+- Wrong current password fails without revealing whether the account exists.
+- New password is hashed with Argon2id and never logged.
+- Password reset/change invalidates sessions according to the accepted policy.
+- Login with old password fails and login with new password succeeds.
+- No Supabase Auth password API remains in migrated password routes.
+
+Manual validation commands for human:
+
+- `pnpm test tests/unit/auth/session-token.test.ts tests/unit/auth/session-cookies.test.ts tests/unit/auth/role-resolution.test.ts`
+- Add/run focused password route tests for wrong-current, weak-new, same-password, admin reset, and session invalidation if created.
+
+Deferred items:
+
+- Production password provisioning and bootstrap strategy remain open unless a later human-approved phase scopes them.
+
+### Phase 10E: User Delete/Deactivate Semantics And Audit Review
+
+Goal: decide whether any hard-delete behavior is needed and protect historical workflow/audit references before adding destructive user management.
+
+Runtime/docs scope:
+
+- Audit current UI and route tree for any user delete route or delete button.
+- Audit document, archive, Ketua Tim, log, and session references to user ids.
+- Document accepted behavior before implementation.
+
+Non-goals:
+
+- No hard delete implementation by default.
+- No audit/log rewrite.
+- No FK/schema migration unless a later human-approved implementation phase scopes it.
+
+Candidate files to read/change:
+
+- `src/routes/admin.master-data.user.tsx`, `src/routes/api/users/*`, `src/db/schema/auth/*`, `src/db/schema/dokumen/*`, `src/db/schema/arsip/*`, `src/db/schema/master/ketua-tim-assignments.ts`, migration docs.
+
+Auth/RBAC guardrails:
+
+- Deactivation remains ADMIN-only.
+- Deactivation must not allow self-lockout.
+- Historical actor identity must remain resolvable or degrade safely.
+
+Response-shape compatibility expectations:
+
+- If no current delete endpoint exists, do not invent one.
+- If a later delete endpoint is accepted, document exact request/response shape before implementation.
+
+Validation gates:
+
+- Deactivated users cannot authenticate.
+- Existing dokumen, arsip, log, and Ketua Tim reads do not crash when a user is inactive.
+- No hard delete occurs without explicit accepted decision.
+
+Manual validation commands for human:
+
+- `git grep -n "deleteUser\|DELETE /api/users\|/api/users/.*/delete\|deactivate" -- src docs`
+- Run focused user-management smoke checks after any implementation phase.
+
+Deferred items:
+
+- Any true user hard-delete behavior remains deferred unless explicitly approved after this audit.
+
+### Phase 10F: Auth/User Runtime Stabilization And Tests
+
+Goal: stabilize Phase 10 user-management/Auth Admin/password migration and classify remaining Supabase usage before Phase 11.
+
+Runtime/docs scope:
+
+- Focused unit/API/runtime tests for migrated user-management/password surfaces.
+- Grep audits for Supabase Auth Admin fallback absence.
+- Manual smoke checklist for admin user page and profile password change.
+- Update docs with actual Phase 10 completion status after implementation phases.
+
+Non-goals:
+
+- No browser helper retirement.
+- No global Supabase package/env/import cleanup.
+- No route generation unless a prior scoped route change requires it and the human approves.
+- No broad UI rewrite.
+- No DB seed/migration/script execution unless explicitly approved.
+
+Candidate files to read/change:
+
+- Phase 10 touched route/helper/test/docs files only.
+- Audit-only: `src/routes/admin.master-data.user.tsx`, `src/routes/profile.tsx`, `src/lib/auth/*`, `src/routes/api/users/*`.
+
+Auth/RBAC guardrails:
+
+- Confirm every migrated admin user route uses local session authorization and assigned ADMIN checks.
+- Confirm self-service password uses the current local session.
+- Confirm active role cookie is not treated as proof.
+
+Response-shape compatibility expectations:
+
+- Admin UI and profile page should not require UI changes to keep working.
+- Any added fields must be backward-compatible.
+
+Validation gates:
+
+- `git grep` confirms migrated `/api/users/*` routes have no Supabase Auth Admin fallback.
+- Unauthorized and non-admin access fail cleanly.
+- Login, logout, session bootstrap, role switch, admin user list/create/edit/status/password reset, and self password change work for clean local data.
+- Remaining Supabase usage is classified as Phase 11 browser helper/global cleanup or reference-only docs/tests.
+
+Manual validation commands for human:
+
+- `pnpm test`
+- Optionally `pnpm build` only if the human chooses; if it changes `src/routeTree.gen.ts` due generation or line endings, restore it unless route generation was intentionally scoped.
+- Manual smoke: login, logout, session reload, admin user list, create user, edit roles, reject ADMIN mixed roles, deactivate/reactivate, admin reset password, self change password, old password rejected, new password accepted, non-admin denied admin endpoints.
+
+Deferred items:
+
+- Phase 11: global Supabase package/env/import cleanup, browser helper/UI retirement including direct browser Supabase surfaces, regression, backup/restore, LAN/release hardening, and final Supabase removal.
 
 Exit criteria:
 
-- No required Supabase Auth/Admin runtime paths remain, and final dependency/env cleanup has a verified checklist.
+- No required Supabase Auth Admin or Supabase Auth password runtime paths remain in Phase 10-owned routes.
+- User-management and password flows work through local auth/database paths for clean local data.
+- Final dependency/env/global cleanup has a verified Phase 11 checklist.
 
 ## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
 
