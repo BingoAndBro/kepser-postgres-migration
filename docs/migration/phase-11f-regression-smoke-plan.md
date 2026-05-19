@@ -548,6 +548,93 @@ Current verdict:
 - Production-like preview can now be used for follow-up smoke and long-session performance validation.
 - Do not claim long-session performance audit is complete until that follow-up validation is actually executed.
 
+## Phase 11F.4c Production Preview Follow-up Smoke And Long-Session Performance Validation
+
+Date: 2026-05-20.
+
+Status: bounded audit and production-preview HTTP probe complete. Manual Chrome DevTools login/role-switch long-session validation was not run in this pass and remains pending, so this section is not final performance certification.
+
+Scope actually executed:
+
+- Source/runtime audit only; no runtime source fix was made.
+- `pnpm build` was run and passed.
+- `pnpm preview` was run through a temporary PowerShell job on fixed validation port `http://127.0.0.1:3018/`.
+- HTTP probes were run against preview, not a browser DevTools session.
+- No DB scripts, migrations, seeds, route generation, package install/remove/update, Playwright/E2E, env edits, source edits, or commit were run.
+
+Preview probe results:
+
+| Check | Result | Notes |
+|---|---|---|
+| Preview port | PASS | Fixed port `3018`. |
+| `GET /` | PASS | Returned `200`. |
+| `GET /api/auth/session` | PASS | Returned `200` before and after a 60-second idle wait. |
+| `GET /api/master-fungsi` | PASS | Returned `200`; local PostgreSQL/Drizzle preview path still works. |
+| Direct `/__tsd/console-pipe` probe | PASS/ABSENT | Returned `404` in preview. |
+| Built output grep for `__tsd`, `console-pipe`, TanStack devtools runtime names, and JSX dev-runtime names | PASS/ABSENT | No matches found in `.output` or Nitro SSR output. |
+| Idle behavior | LIMITED PASS | The preview server stayed running after 60 seconds idle. This HTTP-only probe did not show a preview crash or request-loop symptom, but it cannot observe browser-initiated background requests. |
+
+Manual preview checks not executed in this pass:
+
+- Browser Network panel with Preserve log off.
+- Authenticated login flow request count.
+- Role switch request count.
+- Ajukan Dokumen browser request count for `/api/master-fungsi`.
+- Logout/login browser request count.
+- DevTools-closed perceived lag.
+- CPU, JS heap, DOM node, and event listener before/after measurements.
+
+Devtools and dev-mode classification:
+
+- Active source still imports and renders TanStack devtools in `src/routes/__root.tsx`.
+- `pnpm build` reported `[@tanstack/devtools-vite] Removed devtools code from: /src/routes/__root.tsx`.
+- Preview output grep found no `__tsd`, `console-pipe`, `TanStackDevtools`, `TanStackRouterDevtools`, `react/jsx-dev-runtime`, `jsxDEV`, or `jsxDevRuntimeExports` matches.
+- A direct preview request to `/__tsd/console-pipe` returned `404`.
+- Current classification for `/__tsd/console-pipe` and `/__tsd/console-pipe/sse`: dev-only tooling overhead, not a proven production-preview runtime issue.
+
+Repeated request and duplicate fetch audit:
+
+- `AppLayout` fetches `/api/auth/session` once on mount through `fetchSession()`, then fetches `/api/users/me/ketua-tim` after a valid session. Role switch uses `/api/auth/role-switch` and then assigns `window.location.href`, which causes a full app reload and a new session bootstrap. Repeated `/api/auth/session` around login/logout/role switching is therefore expected unless it continues while idle.
+- Route/page data loading is mostly `useEffect` + `apiFetch`/`fetch`, not TanStack Query. No `useQuery`, `useSuspenseQuery`, `queryFn`, `retry`, `staleTime`, `gcTime`, or `enabled:` usage was found in the audited active source paths.
+- Ajukan Dokumen has one mount-time `/api/master-fungsi` effect in `src/routes/pegawai/dokumen/aju.tsx`; no route loader for the same endpoint was found. A two-call observation in `pnpm dev` is most likely React/dev remount or tooling behavior unless reproduced in preview browser smoke.
+- `KelengkapanChecklist` fetches `/api/master-kelengkapan` when the upload step mounts and when its document-chain props change; this is navigation/step-driven, not an idle loop.
+- Several list pages intentionally refetch when filters change, for example PPK/Bendahara/Arsiparis inbox/list pages and report filters.
+- Current duplicate-fetch classification: non-blocking P1 optimization candidate, not a blocker, unless manual preview smoke proves severe lag or idle repeated calls.
+
+Listener/timer audit:
+
+- No active `setInterval`, `EventSource`, or `WebSocket` usage was found in `src/routes`, `src/components`, or `src/lib`.
+- Audited `addEventListener` usage has matching `removeEventListener` cleanup in the same effect for storage, keyboard, mousedown, and modal/viewer handlers.
+- Timeout usage is one-shot UI cleanup or abort/revoke behavior; no uncontrolled timer loop was found.
+- Current leak classification: no proven memory/listener leak from source audit. Manual heap/DOM/listener measurements remain pending.
+
+Supabase cleanup audit:
+
+- Active grep over `src`, `tests`, `package.json`, and `pnpm-lock.yaml` found no `@supabase/*` runtime/package matches.
+- Active grep over `src` and `tests` found no Supabase env constant matches.
+- Nitro preview still prints env variable names loaded from `.env` in preview mode, including historical Supabase names, but no values were printed by this audit and active source/package grep remains clean.
+
+Process/protected-file notes:
+
+- Initial worktree already had `.env` modified before this audit.
+- Initial `git diff --check` failed due whitespace in `.env`; this was not edited or repaired in this phase.
+- Build did not modify `src/routeTree.gen.ts`, package files, DB, Drizzle, Supabase, source, or tests.
+
+Performance classification:
+
+- `pnpm dev` long-session slowdown remains plausibly dev-only tooling overhead plus expected Chrome Network accumulation, especially for the `/__tsd/console-pipe*` requests.
+- Bounded preview validation is stable for unauthenticated root/session/master-data probes and does not show a preview startup crash, `pg-native` regression, JSX dev-runtime regression, or direct `__tsd` endpoint.
+- No real preview/runtime request loop was proven.
+- No real memory/listener leak was proven.
+- Duplicate navigation fetches remain a P1 optimization item, not a blocker based on current evidence.
+
+Go/no-go rule for 11G:
+
+- Phase 11G is not blocked by the Phase 11F.4c bounded audit because no preview blocker was found.
+- Phase 11G may proceed with a documented non-blocking P1 follow-up for duplicate-fetch/session-fetch optimization if the human accepts that browser DevTools long-session checks remain pending.
+- If a manual authenticated preview session later shows API calls continuing while idle, unbounded heap/listener/DOM growth, or severe preview navigation lag, stop Phase 11G and open `Phase 11F.4d Targeted Preview Performance Fix`.
+- This does not claim final release readiness or final scalability/performance certification; final 11G/11H approval remains human-controlled.
+
 ## Phase 11G Handoff
 
 Deferred next phase after 11F blockers are resolved:
