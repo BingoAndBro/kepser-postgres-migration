@@ -379,13 +379,100 @@ Manual retest required:
 5. Confirm PPK approve/reject logs show friendly labels.
 6. Continue Arsiparis/archive/destruction and storage/file-access smoke.
 
-## Phase 11G Handoff
+## Phase 11F.3 Regression Execution Report
+
+Date: 2026-05-19.
+
+Status: regression execution report recorded. Phase 11F is not complete because a production-like preview runtime blocker remains.
+
+Environment:
+
+- Local PostgreSQL.
+- Local `dms_session` auth.
+- Local filesystem storage.
+- `.env` and `.env.migration` remain human-controlled.
+- Old Supabase production/current data and old Supabase Storage files are intentionally not migrated, copied, downloaded, backfilled, synced, or recovered. Missing old Supabase-backed files must fail cleanly without Supabase fallback.
+
+## Commands Run
+
+| Priority | Command | Result | Notes |
+|---|---|---|---|
+| P0 | `pnpm test` | PASS | 25 test files, 290 tests. |
+| P1 | `pnpm build` | PASS | Build completed. Earlier `src/routeTree.gen.ts` build/line-ending side effect was restored/kept clean. |
+| P0 | Supabase runtime/package grep | PASS | No active runtime/package matches reported. |
+| P0 | Supabase env constants grep | PASS | No active `src`/`tests` matches reported. |
+| P0 | `pnpm preview` | FAIL | Runtime failed after successful build: `Error: Could not resolve "pg-native" imported by "pg". Is it installed?` |
+| P1 | Long-session performance audit | BLOCKED | Needs production-like preview runtime first to distinguish dev-only slowdown from production/runtime behavior. |
+| P2 | Playwright/E2E | SKIPPED | Not run automatically in Phase 11F. |
+
+## Manual Smoke Results
+
+| Priority | Domain | Result | Evidence/notes |
+|---|---|---|---|
+| P0 | Auth/session | PASS | Admin and Pegawai login passed in manual smoke. |
+| P1 | Admin/user management | PASS | Admin login, user list, create, edit, deactivate, reactivate, and reset-password passed. |
+| P0 | Pegawai/dokumen | PASS | Login, submit, preview/download, Laporan Saya, and Laporan Kegiatan passed. Pegawai activity log is safe after the UUID guard fix. |
+| P0 | Pegawai revisi | PASS | Revisi page fixes were retested and committed by human. `Batal` returns to `/pegawai/revisi`; display parity and console error are considered resolved by latest human confirmation. |
+| P0 | PPK | PASS | Validation, approve/reject, preview/download passed after UUID guard fix. Friendly PPK log labels passed. |
+| P0 | Bendahara | PASS | Approval and rejection passed. |
+| P0 | Arsiparis/archive | PARTIAL/BLOCKED | Downstream continuation still depends on resolving preview/runtime blocker and follow-up regression where needed. |
+| P0 | Storage/file access | PARTIAL/BLOCKED | Preview/download passed in scoped manual smoke, but production-like preview runtime is blocked by `pg-native`. |
+| P1 | UI pages/redirects | PARTIAL | Core workflow usable; known backlog remains below. |
+
+## Bugs Found / Backlog Classification
+
+| ID | Severity | Blocker? | Domain | Summary | Recommended fix phase |
+|---|---|---|---|---|---|
+| 11F3-001 | P0 | yes | Production preview/runtime | `pnpm preview` fails at runtime because `pg` imports unresolved optional `pg-native`. Blocks production-like performance testing. | Phase 11F.4a |
+| 11F3-002 | P1 | no, blocked by P0 | Performance | Long `pnpm dev` session accumulated thousands of requests and became slow. Observed `/__tsd/console-pipe/sse` and `/__tsd/console-pipe`; these are diagnostic clues, not confirmed root cause. | After Phase 11F.4a |
+| 11F3-003 | P1 | no | Auth/UI | Logout network returns 200 but UI keeps loading. | Backlog |
+| 11F3-004 | P1 | no | RBAC/UX | Admin access to `/pegawai/dokumen` shows page-level 403 instead of consistent forbidden redirect. | Backlog |
+| 11F3-005 | P1 | no | Arsiparis master data | Master Klasifikasi second child save button loading. | Backlog |
+| 11F3-006 | P2 | no | Auth/UX | Password change should auto logout after success. | Backlog |
+| 11F3-007 | P2 | no | Master data validation | Master Kelengkapan duplicate validation. | Backlog |
+| 11F3-008 | P2 | no | Document form validation | Ajukan/revisi kelengkapan tambahan duplicate validation. | Backlog |
+| 11F3-009 | P2 | no | Master data UI | Kategori/Detail filter and add-form prefill consistency. | Backlog |
+| 11F3-010 | P2 | no | Dev logging | Guard dev log mentions ARSIPARIS for PEGAWAI+PPK user. | Backlog |
+| 11F3-011 | P2 | no | Accessibility | `aria-hidden` focus warning in Admin Master User. | Backlog |
+| 11F3-012 | P3 | no | Route naming/design | `/pegawai/dokumen` vs `/pegawai/inbox` naming cleanup. | Future design cleanup |
+
+## Current Verdict
+
+Final verdict: NEEDS FIX PHASE.
+
+Rationale:
+
+- Core workflow regression is mostly PASS within the human-observed scope.
+- Production-like runtime validation is blocked by `pnpm preview` failing on `pg-native` optional dependency resolution.
+- Long-session performance concern cannot be classified as dev-only or production/runtime until preview runs.
+- Phase 11F is not complete.
+- Phase 11G is not ready.
+
+## Phase 11F.4a Handoff
 
 Recommended next phase:
 
 ```text
+Phase 11F.4a  Production Preview Runtime Blocker: pg-native Optional Dependency Resolution
+```
+
+Phase 11F.4a should:
+
+- Reproduce and inspect the `pnpm preview` runtime failure after successful build.
+- Prefer runtime/bundler analysis before expanding dependency footprint with `pg-native` installation.
+- Determine whether the `pg` optional native import should be externalized, conditionally avoided, or otherwise handled for TanStack Start preview/runtime packaging.
+- Preserve package/env/routeTree/DB guardrails unless the human explicitly approves a scoped package or build-config fix.
+- After preview works, rerun production-like smoke and then reassess the long-session performance concern.
+
+## Phase 11G Handoff
+
+Deferred next phase after 11F blockers are resolved:
+
+```text
 Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening
 ```
+
+Phase 11G is not ready until Phase 11F.4a resolves the preview runtime blocker and follow-up validation confirms production-like runtime behavior.
 
 Phase 11G should cover:
 
