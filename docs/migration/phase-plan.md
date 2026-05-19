@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, and Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces. `POST /api/dokumen/submit` is locally backed for the clean local target, while package/env cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. `POST /api/dokumen/submit` is locally backed for the clean local target, while package/env cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -3421,6 +3421,81 @@ Validation notes:
 - Lightweight validation only was used for this phase.
 - No broad tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package commands, Playwright/E2E, or commit were run.
 - No route behavior was intentionally changed. Package/env cleanup remains deferred to 11E.
+
+#### Phase 11D.4: Post-Retirement Audit And Phase 11E Handoff
+
+Date: 2026-05-19.
+
+Status: audit/docs handoff complete. No commit was made.
+
+Scope:
+
+- Audit-only verification after Phase 11D.3 helper/source cleanup.
+- No runtime source, test, package, env, route tree, DB, drizzle, migration, seed, script, or supabase-folder changes.
+- No package/env cleanup, dependency removal, route generation, heavy validation, old Supabase data/file migration, copy, download, backfill, sync, or recovery.
+
+Audit basis:
+
+- `git status --short --branch`
+- `git diff --check`
+- `git diff --name-only`
+- Targeted `git grep` over `src`, `tests`, `docs/migration`, package files, lockfile, and env files for Supabase factories, direct Supabase auth/database/storage calls, Supabase package imports, env names, legacy helper imports, local auth usage, route paths, and preserved pure/type helper imports.
+- Protected diff checks for `src`, `tests`, `src/routeTree.gen.ts`, `package.json`, `pnpm-lock.yaml`, `.env`, `.env.migration`, `db`, `drizzle`, and `supabase`.
+
+Final audit result:
+
+- No active source/runtime match was found for `createServerSupabaseClient`, `createAdminClient`, `getBrowserClient`, `createBrowserClient`, `supabase.auth`, `auth.admin`, `supabase.from`, `supabase.storage`, `storage.from`, or `SupabaseClient` in the audited `src`/`tests` runtime scope.
+- No active source/test import from `@supabase/ssr` or `@supabase/supabase-js` was found. Remaining package names are in `package.json` and `pnpm-lock.yaml` only.
+- No active source/test/docs import from the deleted legacy helper modules was found for `#/lib/supabase*`, `@/lib/supabase*`, root `#/lib/auth`, root `@/lib/auth`, `#/lib/user-helpers`, `@/lib/user-helpers`, `#/lib/dokumen/{mutations,queries,logs}`, `@/lib/dokumen/{mutations,queries,logs}`, or deleted `#/lib/master-data/{fungsi,kegiatan,jenis,kategori,detail,kelengkapan,jenis-dokumen}` modules. Remaining matches are docs/history command examples only.
+- `src/lib/constants/env.ts` still contains `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY` constants. A targeted source check found these Supabase env names only in that constants file and no `ENV_KEYS.SUPABASE*` use elsewhere in `src`; classify this as env cleanup deferred to 11E, not an active Supabase runtime dependency.
+- Absence of grep/runtime matches is strong evidence for active source/runtime helper retirement, not an absolute proof against future config-driven or indirect loading patterns. No such indirect active pattern was found in this audit.
+
+Remaining Supabase references by category:
+
+| Category | Evidence | Classification | 11E handling |
+|---|---|---|---|
+| No source/runtime match | Runtime-source grep over factories, direct auth/database/storage calls, and `SupabaseClient` returned no `src`/`tests` matches. | Phase 11D source/helper retirement complete for verified active runtime dependencies. | Keep as 11E precondition; rerun before package/env cleanup. |
+| Package dependency deferred to 11E | `package.json` still lists `@supabase/ssr` and `@supabase/supabase-js`. | Package dependency artifact only. | Remove only in 11E under human-approved package cleanup. |
+| Lockfile dependency deferred to 11E | `pnpm-lock.yaml` still contains root dependency entries and transitive Supabase package resolution blocks. | Lockfile artifact only. | Update only through approved package install/update/remove workflow in 11E. |
+| Env reference deferred to 11E | `.env` contains `VITE_SUPABASE_URL`, `SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`; `src/lib/constants/env.ts` contains matching constant names; docs mention historical/env examples. | Env/config/documentation artifact. `.env` is local/sensitive and must not be edited automatically. | Clean env examples/docs/constants only if 11E confirms no runtime requires them; do not edit `.env` or `.env.migration` without explicit human approval. |
+| Docs/history reference | `docs/`, especially migration docs and old specs/best-practice notes, retain Supabase terms, commands, historical phase notes, and examples. | Useful migration history or legacy reference. | Audit for misleading current-runtime wording; preserve useful history unless a docs hygiene task explicitly scopes deletion. |
+| Test/mock reference | Required greps found no active Supabase package/helper runtime import in `tests`. Historical docs mention old mocked Supabase route-test plans. | No current test blocker found by this audit. | Recheck in 11E before dependency removal. |
+| Blocker/unclear | None found by the required grep/protected-diff audit. | No narrow 11D.x blocker is required before 11E. | If manual review finds runtime indirection not covered by grep, split a narrow 11D.x follow-up before package/env cleanup. |
+
+Pure/type helper preservation audit:
+
+- `src/lib/dokumen/index.ts` still exports parse helpers and pure filename/path helpers only.
+- `src/lib/dokumen/storage.ts` still provides `buildStorageFilename`, `buildDokumenFilename`, `storagePathBelongsToUser`, and `isStoragePathPending` without Supabase client imports or storage/database calls.
+- `src/lib/master-data/index.ts` re-exports only `shared.ts`.
+- `src/lib/master-data/shared.ts` preserves row types such as `FungsiRow`, `KegiatanRow`, `KelengkapanRow`, and `JenisDokumenRow`.
+- `src/lib/user-response.ts` validates role arrays through `roleArraySchema` directly and no longer imports the deleted root auth helper.
+
+Route/runtime grep audit:
+
+- `/api/dokumen/submit`, `/api/dokumen/rename-pending`, `/api/dokumen/$id/nominal`, `/api/files/access`, and `/api/upload` remain registered/local runtime surfaces in `src/routes` and caller references.
+- The audited API routes use `getLocalServerSession(...)` and `hasLocalRole(...)` patterns under the local auth boundary where authorization is required.
+- `dms_session` and `dms_active_role` references are concentrated in local auth/session docs and source; `dms_active_role` remains UX state only and server checks must continue to validate assigned roles.
+
+Phase 11D completion verdict:
+
+- Phase 11D source/helper retirement is complete for verified active source/runtime Supabase helper dependencies.
+- This verdict does not claim package cleanup, lockfile cleanup, env cleanup, historical docs cleanup, full regression, release hardening, backup/restore, LAN readiness, or old Supabase data/file migration.
+- Old Supabase production/current data and old Supabase Storage files remain intentionally not migrated, copied, downloaded, backfilled, synced, or recovered.
+
+Phase 11E handoff scope:
+
+- Remove `@supabase/ssr` and `@supabase/supabase-js` from `package.json` and `pnpm-lock.yaml` only if a fresh 11E audit again confirms no source/test package dependency remains.
+- Clean `SUPABASE_*` and `VITE_SUPABASE_*` env documentation/references only if no runtime requires them. Treat `.env` and `.env.migration` as local/sensitive and do not edit them automatically.
+- Audit `src/lib/constants/env.ts` and any env-reference docs/examples as part of 11E. Remove or narrow Supabase constants only if no active code uses them.
+- Preserve useful historical migration references in docs/specs; delete or rewrite only misleading current-runtime instructions when explicitly scoped.
+- Run package install/update/remove only under a human-approved 11E prompt. If package/env/docs cleanup risks diverge materially, split 11E into narrower cleanup slices instead of broad cleanup execution.
+- Do not add Supabase fallback, restore old Supabase helpers, migrate/copy/backfill/recover old Supabase data/files, or claim Phase 11E completion from this 11D.4 audit.
+
+Validation notes:
+
+- Lightweight validation only was used for this phase.
+- No `pnpm build`, broad `pnpm test`, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
+- Manual validation after review may run `pnpm test`, and `pnpm build` only if the human chooses.
 
 ### Phase 11E: Package/Env/Import Cleanup
 
