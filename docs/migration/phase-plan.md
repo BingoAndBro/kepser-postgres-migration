@@ -3807,53 +3807,104 @@ git grep -n "ENV_KEYS\.SUPABASE\|ENV_KEYS\.VITE_SUPABASE\|SUPABASE_URL\|SUPABASE
 - `.env`/`.env.migration` diff was checked without printing content; no diff was present.
 - No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
 
-### Phase 11F: Full Regression And Manual Smoke Validation
+### Phase 11F: Full Regression, Smoke Validation, And Release-Hardening Planning
 
-Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.
+Date: 2026-05-19.
+
+Status: planning/report preparation complete. No runtime tests, build, E2E, DB scripts, package commands, route generation, source edits, test edits, env edits, or commit were run in this phase.
+
+Goal: create a practical human-executable regression, smoke validation, and release-hardening planning report for the local PostgreSQL + Drizzle + local `dms_session` auth + local filesystem storage app.
+
+Focused report:
+
+- `docs/migration/phase-11f-regression-smoke-plan.md`
 
 Runtime/docs scope:
 
-- Human-run test and manual smoke plan.
-- Regression report with pass/fail, skipped checks, known issues, and rollback decision.
-- Focus on clean local data, not old Supabase data recovery.
+- Audited available test files, E2E specs, Playwright config, package test/build scripts, migration contracts, and active route names through lightweight read/grep only.
+- Produced test inventory grouped into must-run, recommended focused tests, optional heavy/E2E tests, and manual-only smoke.
+- Produced exact human-run command plan.
+- Produced domain-based manual smoke checklist.
+- Produced pass/fail regression report template.
+- Produced stop/go, blocker, rollback/stash, and next hardening criteria.
+- Kept execution results separate from planned validation.
 
 Non-goals:
 
-- No feature work hidden inside regression.
-- No route generation unless explicitly approved.
-- No Supabase fallback to make tests pass.
+- No feature work, runtime bug fixes, route generation, DB scripts, migrations, seeds, package/env cleanup, Supabase fallback, old Supabase data/file migration, or broad docs rewrite.
+- No automatic `pnpm test`, `pnpm build`, Playwright/E2E, dev server, typecheck, package install/update/remove, or commit.
 
-Candidate files to read/change:
+Test inventory summary:
 
-- Read: `tests/`, Playwright config, migration docs, user-management spec, storage contracts, route docs.
-- Change: regression report docs only unless a separate implementation phase fixes a found bug.
+- Must-run before release: `pnpm test`, which covers `tests/fsm.test.ts`, auth unit tests, storage unit tests, dokumen submit/runtime tests, and utility tests.
+- Recommended focused tests: FSM, auth/session, storage/file-access/upload/rename-pending, and dokumen submit/preflight/compensation tests listed in the focused report.
+- Optional heavy/E2E tests: `pnpm build` plus `tests/e2e/submit-flow.spec.ts`, `tests/e2e/approval-flow.spec.ts`, and `tests/e2e/spec-06-user-management.spec.ts` when the human prepares app/DB/browser prerequisites.
+- Manual-only smoke: auth/session, admin user management, Pegawai document flows, PPK, Bendahara, Arsiparis archive/destruction, storage/file access, and UI rendering.
 
-Guardrails:
+Regression command plan for human execution:
 
-- If `pnpm build` or route generation modifies `src/routeTree.gen.ts`, keep it only when route generation was intentionally scoped and approved; otherwise restore/revert that generated diff with human approval.
-- Tests must use local clean data and local filesystem storage.
-- Do not run DB scripts, migrations, or seeds unless explicitly approved.
+```powershell
+pnpm test
+pnpm build
+pnpm test tests/e2e/submit-flow.spec.ts
+pnpm test tests/e2e/approval-flow.spec.ts
+pnpm test tests/e2e/spec-06-user-management.spec.ts
+git grep -n "@supabase\|createServerSupabaseClient\|createAdminClient\|getBrowserClient\|createBrowserClient\|supabase\.auth\|auth.admin\|supabase\.from\|supabase\.storage\|storage\.from\|SupabaseClient" -- src tests package.json pnpm-lock.yaml
+git grep -n "ENV_KEYS\.SUPABASE\|ENV_KEYS\.VITE_SUPABASE\|SUPABASE_URL\|SUPABASE_ANON_KEY\|SUPABASE_SERVICE_ROLE_KEY\|VITE_SUPABASE_URL\|VITE_SUPABASE_ANON_KEY" -- src tests
+```
 
-Validation gates:
+Command interpretation:
 
-- Auth/session: login, logout, reload session, role switch, inactive user rejection, session revocation after password reset/change.
-- User management: list/create/update/activate/deactivate/reset-password/change-password, ADMIN exclusivity, no hard delete.
-- Storage: upload, pending-to-formal movement, preview, download, reset/cancel cleanup, missing file failure, path traversal rejection, `DIMUSNAHKAN` blocking.
-- Workflow: submit, material approval, rejection/revision, PPK resubmit/kembalikan, Bendahara approve/reject, non-material `TERSIMPAN`.
-- Archive/admin: archive, active/inactive/usul-musnah lifecycle, destruction, diagnostics, orphan cleanup dry-run/deletion safety.
-- UI: Pegawai, PPK, Bendahara, Arsiparis, and Admin pages render and enforce expected access.
+- `pnpm test` is the minimum required release regression command.
+- `pnpm build` is optional but recommended before release-candidate labeling.
+- E2E commands are optional heavy checks because package scripts provide `test: vitest run` and no dedicated Playwright script; the existing E2E specs import `@playwright/test` and require a running local app plus local test data.
+- Do not claim any command passed unless the human executes and records it.
 
-Manual validation commands for human:
+Manual smoke checklist summary:
 
-- `pnpm test`
-- Optional: `pnpm build`
-- Optional focused E2E: `pnpm test tests/e2e/submit-flow.spec.ts`
-- Optional focused E2E: `pnpm test tests/e2e/approval-flow.spec.ts`
-- Optional focused E2E: `pnpm test tests/e2e/spec-06-user-management.spec.ts`
+- P0 auth/session: login, logout, session reload, role switch, inactive user rejection, password reset/change session revocation, and server-side rejection of unauthorized roles despite `dms_active_role`.
+- P1 admin/user management: list, create, update, roles, ADMIN exclusivity, activate/deactivate, reset password, self change password, and no hard-delete behavior.
+- P0 Pegawai/dokumen: list, Material submit, Non-Material submit, no meaningful Non-Material nominal, draft/edit/revisi, upload, cancel/reset pending cleanup, preview/download.
+- P0 PPK: inbox, approve, reject to USER, kembalikan PPK-targeted revision, resubmit, wrong-role denial.
+- P0 Bendahara: inbox, approve, reject to PPK, completed docs, wrong-role denial.
+- P0 Arsiparis/archive: completed inbox, archive, `AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN`, blocked preview/download/file access after destruction, stale-token denial, diagnostics/orphan cleanup safety.
+- P0 storage/file access: upload local pending, rename/move to formal, old Supabase-backed missing files fail cleanly without fallback, path traversal rejection, wrong-owner denial, role-compatible access, filename/content-disposition sanity, no physical path/env/secret leakage.
+- P1 UI pages: Pegawai, PPK, Bendahara, Arsiparis, Admin, login, and forbidden redirects.
+
+Stop/go criteria:
+
+- Commit-ready for this planning phase requires docs-only diffs, clean `git diff --check`, and protected-file diffs showing no changes to runtime source, tests, packages, env files, route tree, DB, Drizzle, Supabase, migrations, seeds, or scripts.
+- Release-candidate requires human-run `pnpm test` pass, optional build pass or explicit accepted skip, P0 manual smoke pass or documented non-blocking rationale, clean active Supabase audit, and no secret/path/token leakage.
+- Must-fix blockers include auth/RBAC bypass, `dms_active_role` treated as server authorization, `DIMUSNAHKAN` file access including stale-token access, active Supabase runtime/package/env-constant reappearance, package/env secret leak, Non-Material meaningful nominal acceptance, path traversal or wrong-owner file access, physical path/env/secret leakage, or invalid workflow status/current_step/revision_target.
+- Rollback/stash criteria: if a blocker is found, stop and document it for a separate fix phase; if heavy validation creates unapproved file changes, inspect and revert/stash only with human approval; if protected files change during 11F planning, stop and classify the process violation.
+
+Known expected limitations:
+
+- Missing old Supabase-backed files failing cleanly without fallback is expected and not a blocker.
+- Historical Supabase docs/spec references are not blockers.
+- `.env` and `.env.migration` remain human-controlled and must not be printed or edited by this phase.
+- Final release/go-live decisions remain human-controlled after executed evidence is reviewed.
+
+Release-hardening handoff:
+
+- Next recommended phase: `Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening`.
+- Phase 11G should cover local PostgreSQL backup/restore drill, storage root backup/restore strategy, env secret rotation, session/file token secret validation, LAN base URL/host/cookie/firewall review, CSRF/rate-limit review, logging/error leakage review, admin bootstrap/password provisioning, DB migration/seeding runbook, and rollback runbook.
+- Final readiness gate: `Phase 11H  Final Release Decision Or Production Readiness Gate`, controlled by the human after regression, backup/restore, LAN, and security-hardening evidence exists.
+
+11F lightweight audit result:
+
+- `git status --short --branch` initially showed branch `migration/postgres-local` with no tracked changes; git also warned that `C:\Users\BingoAndBro/.config/git/ignore` could not be accessed.
+- `git diff --check` initially passed.
+- `git diff --name-only` initially returned no files.
+- Test inventory found unit tests under auth, dokumen, storage, utils, `tests/fsm.test.ts`, and three E2E specs under `tests/e2e`.
+- `playwright.config.ts` exists and points Playwright to `tests/e2e` with Chromium, one worker, and `PLAYWRIGHT_BASE_URL` defaulting to `http://localhost:3000`.
+- Package scripts include `test: vitest run` and `build: vite build`; no `test:e2e` script was found.
+- Required Supabase runtime/package grep over `src`, `tests`, `package.json`, and `pnpm-lock.yaml` returned no matches.
 
 Deferred items / exit criteria:
 
-- Exit when critical workflow smoke checks pass or blocking issues are documented with a fix/rollback decision.
+- Phase 11F exits with the human-executable plan and report template only.
+- Actual regression execution, smoke evidence, blocker triage, backup/restore, LAN deployment, CSRF/rate-limit review, and final go/no-go remain deferred to human-run validation and Phase 11G/11H.
 
 ### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening
 
