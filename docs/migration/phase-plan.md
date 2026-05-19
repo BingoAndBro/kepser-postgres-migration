@@ -3072,6 +3072,126 @@ Deferred items / exit criteria:
 
 - Exit when no active runtime helper dependency remains, or when any remaining helper is explicitly documented as reference/test-only and not shipped runtime.
 
+#### Phase 11D.1: Legacy Supabase Helper/Server Caller Inventory And Classification
+
+Date: 2026-05-19.
+
+Status: docs/audit inventory complete. No helpers were deleted, no runtime routes were migrated, no imports were removed, no package/env cleanup was performed, and no commit was made.
+
+Scope:
+
+- Inventory and classify remaining Supabase helper/server references after Phase 11C.7.
+- Use import/caller evidence, not helper-export presence alone, to decide whether a file is an active runtime dependency.
+- Preserve the Phase 11C completion caveat: active browser UI runtime is retired, but server/helper cleanup remains.
+- Defer all source cleanup to later 11D slices.
+
+Classification categories used:
+
+| Category | Meaning |
+|---|---|
+| Active server runtime dependency | An active server route can execute Supabase client/Auth/Admin/database/storage behavior today. Must be migrated or explicitly retired before helper removal. |
+| Active browser runtime dependency | A browser page/component imports or calls browser Supabase runtime today. |
+| Legacy helper still imported by active runtime | A helper is superseded by local modules but remains on an active route import path. |
+| Dead/unused helper candidate | Caller grep found no active source import of the runtime helper functions, but deletion remains deferred. |
+| Tests/mock reference | Tests mock or reference Supabase helper names without proving live runtime dependency. |
+| Docs/history reference | Migration docs/specs/history mention Supabase helpers. These references are not runtime blockers. |
+| Safe removal candidate after caller migration | Removal appears reasonable only after active callers are migrated and final grep/build validation is approved. |
+| Requires runtime migration before removal | A source route/helper must be migrated or explicitly retired before deleting the helper. |
+| Blocker/unclear | Caller or compatibility status is not proven enough for removal. |
+
+Audit commands used:
+
+- `git status --short --branch`
+- `git grep -n "getBrowserClient\|createBrowserClient\|supabase-browser\|from '#/lib/supabase'\|from '@/lib/supabase'" -- src/routes src/components src/lib tests docs/migration`
+- `git grep -n "createServerSupabaseClient\|createAdminClient\|supabase\.auth\|auth.admin\|supabase\.from\|supabase\.storage\|storage\.from" -- src/routes src/components src/lib tests docs/migration`
+- `git grep -n "from '#/lib/auth'\|from '@/lib/auth'\|from '#/lib/supabase-server'\|from '@/lib/supabase-server'\|from '#/lib/supabase-admin'\|from '@/lib/supabase-admin'\|from '#/lib/supabase-browser'\|from '@/lib/supabase-browser'\|from '#/lib/supabase'\|from '@/lib/supabase'\|from '#/lib/user-helpers'\|from '@/lib/user-helpers'" -- src tests docs/migration`
+- `git grep -n "src/lib/auth.ts\|src/lib/user-helpers.ts\|src/lib/supabase-server.ts\|src/lib/supabase-admin.ts\|src/lib/supabase-browser.ts\|src/lib/supabase.ts\|src/lib/dokumen/mutations.ts\|src/lib/dokumen/queries.ts" -- docs src tests`
+- `git grep -n "dokumen/index\|dokumen/\$id.nominal\|rename-pending\|nominal\|GET /api/dokumen\|PATCH /api/dokumen/\$id/nominal\|rename pending" -- src docs/migration tests`
+- `git grep -n "getLocalServerSession\|hasLocalRole\|apiFetch\|apiMutation\|local-submit\|local-user" -- src/routes src/lib docs/migration`
+- Follow-up source-only checks for `@supabase/ssr`, `@supabase/supabase-js`, `SupabaseClient`, dokumen helper exports, and active imports from `#/lib/dokumen-helpers`, `#/lib/dokumen`, and `#/lib/master-data`.
+
+Active browser runtime finding:
+
+- No active `src/routes` or `src/components` import of `getBrowserClient`, `#/lib/supabase-browser`, or `#/lib/supabase` remains after 11C.7.
+- Source matches are limited to `src/lib/supabase-browser.ts` and `src/lib/supabase.ts` helper/export surfaces.
+- Active browser UI runtime is therefore retired for the audited grep scope.
+- Do not delete the helper files in 11D.1. Removal/quarantine belongs after server/helper callers are handled and final grep validation is approved.
+
+Remaining helper/server classification:
+
+| Surface | Evidence | Classification | Safe to remove now? | Required next action |
+|---|---|---|---|---|
+| `src/lib/supabase-browser.ts` | Defines `getBrowserClient()` and imports `createBrowserClient`; no active `src/routes` or `src/components` caller remains. | Dead/unused helper candidate; safe removal candidate after final caller validation. | No. 11D.1 is docs-only, and package/env cleanup is not scoped. | Defer to 11D.3 or 11E after server/helper cleanup and final source/package/env audit. |
+| `src/lib/supabase.ts` | Re-exports `createServerSupabaseClient` and `getBrowserClient`; no active source import found by the audited import grep. | Dead/unused re-export barrel candidate; docs/history reference. | No. | Defer to 11D.3 after direct helper callers are migrated and re-export absence is rechecked. |
+| `src/lib/supabase-server.ts` | Imported by `src/routes/api/dokumen/index.ts` and `src/routes/api/dokumen/$id.nominal.ts`. | Active server runtime dependency. | No. | Migrate or explicitly retire those route callers in 11D.2 before helper cleanup. |
+| `src/lib/supabase-admin.ts` | Imported by `src/routes/api/dokumen/rename-pending.ts`; tests mock it. | Active server runtime dependency for one route plus tests/mock reference. | No. | Replace the `rename-pending` document lookup with local Drizzle/local helper in 11D.2, then re-audit tests. |
+| `src/lib/auth.ts` | Imported by `src/routes/api/dokumen/index.ts` as `getServerSession as getSession` and by `src/routes/api/dokumen/$id.nominal.ts` as `getServerSession`; internally wraps `supabase.auth.getSession()`, `supabase.auth.getUser()`, role reads, and active-role cookie helpers. | Legacy helper still imported by active runtime; partially superseded by `src/lib/auth/local-server-auth.ts` and session repository modules. | No. | Keep until active route callers are migrated. Later split/retire Supabase session helpers only after checking whether cookie helpers are still imported anywhere. |
+| `src/lib/user-helpers.ts` | No active `src/routes/api/users/*` import found after Phase 10; still imports `SupabaseClient` and contains Auth Admin list/create/update/reset/status helpers. | Dead/unused helper candidate for runtime; docs/history reference. | No. | Re-audit in 11D.3 and remove/quarantine only if tests/docs impact is explicitly scoped. |
+| `src/lib/dokumen/mutations.ts` | Supabase-backed `createDokumen`, `updateDokumen`, `updateDokumenStatus`; `createDokumen` is active through `POST /api/dokumen` via `#/lib/dokumen-helpers`. | Legacy helper still imported by active runtime; requires runtime migration before removal. | No. | 11D.2 should migrate or explicitly retire `POST /api/dokumen` draft-create path before removing this helper. |
+| `src/lib/dokumen/queries.ts` | Supabase-backed reads; active `getDokumenById` caller remains in `POST /api/dokumen/rename-pending`; other query functions have no active runtime callers in current grep. | Legacy helper still imported by active runtime for `rename-pending`; partial dead-code candidate for unused exports. | No. | Replace `rename-pending` ownership lookup first; later classify unused query exports in 11D.3. |
+| `src/lib/dokumen/logs.ts` | Supabase-backed `insertLog` and `getLogsByDokumen`; active `insertLog` caller remains in `PATCH /api/dokumen/$id/nominal`. | Legacy helper still imported by active runtime; requires runtime migration before removal. | No. | 11D.2 nominal migration must use local append-only audit insert before this helper can be retired. |
+| `src/lib/dokumen/storage.ts` | Imports `SupabaseClient`; storage move/remove functions call Supabase Storage, but active source callers found only for pure/type helpers such as `buildStorageFilename`, `storagePathBelongsToUser`, and type exports. Tests mock `canAccessStoragePath` for old raw-preview wiring. | Mixed helper: active pure helper/type surface plus dead/unused Supabase storage functions candidate. | No. | Do not delete whole file while pure/type helpers are imported. 11D.3 should split pure helpers/types from Supabase storage functions or retire unused storage functions after caller validation. |
+| `src/lib/master-data/*` Supabase helper functions | Follow-up `SupabaseClient` grep shows legacy master-data helper files still type against Supabase clients, while current active pages import only shared row types after 11C. | Dead/unused helper candidate for runtime, except shared type exports. | No. | Defer to 11D.3 or a later helper quarantine pass; do not remove shared types used by admin pages and form types. |
+
+Active API route classification:
+
+| Route | Current Supabase helper imported | Active runtime? | Current local replacement status | Risk | Recommended 11D.2 action |
+|---|---|---|---|---|---|
+| `GET /api/dokumen` in `src/routes/api/dokumen/index.ts` | Same file imports `createServerSupabaseClient` and `getServerSession`, but `GET` itself uses `getLocalServerSession`, `hasLocalRole`, local `db`, and Drizzle joins. | Yes, but the `GET` handler is local-backed. | Local replacement already active for the Pegawai list used by `src/routes/pegawai/dokumen/index.tsx`. | Low for `GET`; do not regress it while touching the mixed file. | Do not migrate `GET`; only isolate or migrate the Supabase-backed `POST` branch. |
+| `POST /api/dokumen` in `src/routes/api/dokumen/index.ts` | `createServerSupabaseClient`, `getServerSession as getSession`, and `createDokumen`. | Active route path, but current UI appears to use `/api/dokumen/submit` for normal submit. Treat as active/compatibility until explicitly retired. | Local submit exists under `/api/dokumen/submit`; no local replacement for this exact draft-create branch is wired. | Medium. Removing casually may break legacy compatibility; migrating casually may duplicate submit semantics. | Split as 11D.2a. Decide whether to retire as inactive compatibility path with approval or migrate narrowly to local session plus Drizzle draft creation. |
+| `PATCH /api/dokumen/$id/nominal` in `src/routes/api/dokumen/$id.nominal.ts` | `createServerSupabaseClient`, `getServerSession`, and Supabase-backed `insertLog`. | Yes. Route tree registers `/api/dokumen/$id/nominal`, and docs keep it as the deferred cross-role nominal route. | No local replacement route found for this exact cross-role contract. Related document update/resubmit routes handle some nominal fields but not this compatibility path. | High. It is cross-role and audit-sensitive, and Phase 8G explicitly warned not to narrow it casually. | Split as 11D.2b. Migrate with local `dms_session`, creator/ARSIPARIS/ADMIN authorization parity, local Drizzle update, and append-only local audit insert. |
+| `POST /api/dokumen/rename-pending` in `src/routes/api/dokumen/rename-pending.ts` | `createAdminClient` only for `getDokumenById(admin, dokId)` document lookup. | Yes. Route tree registers `/api/dokumen/rename-pending`; tests cover it. | Storage movement and auth are local-backed through `getLocalServerSession` and `local-pending-move`, but document lookup remains Supabase-helper-backed. | Low to medium. It is a narrow ownership lookup, but storage-adjacent behavior must not change response/error shape. | Split as 11D.2c. Replace only document lookup with local Drizzle/local query, preserve local movement behavior and response shape, then remove `createAdminClient` import. |
+
+Auth/user helper classification:
+
+- `src/lib/auth.ts` is superseded for local runtime by `src/lib/auth/local-server-auth.ts`, `src/lib/auth/session-repository.ts`, session-token/cookie helpers, and local role-resolution modules. It is not safe to delete because active dokumen routes still import its Supabase session functions. Cookie helper exports also require import-level verification before any split.
+- `src/lib/user-helpers.ts` is superseded by `src/lib/users/local-user-queries.ts`, `src/lib/users/local-user-mutations.ts`, `src/lib/users/local-user-passwords.ts`, and local `/api/users/*` routes. Current grep found no active source import from `#/lib/user-helpers`, so it is a dead/unused helper candidate, not an active runtime dependency. Deletion remains deferred to 11D.3.
+
+Dokumen helper classification:
+
+- `src/lib/dokumen/mutations.ts` remains active only through legacy `createDokumen` on `POST /api/dokumen`. `updateDokumen` and `updateDokumenStatus` are candidate unused Supabase exports by current caller grep, but the file cannot be removed while `createDokumen` is active.
+- `src/lib/dokumen/queries.ts` remains active through `getDokumenById` on `POST /api/dokumen/rename-pending`. Other Supabase query exports are candidate unused legacy helpers by current caller grep, but must be rechecked after `rename-pending` is migrated.
+- `src/lib/dokumen/logs.ts` remains active through `insertLog` on `PATCH /api/dokumen/$id/nominal`.
+- `src/lib/dokumen/storage.ts` should not be deleted as a whole because pure helper/type surfaces are still imported by active components/routes. Its Supabase Storage functions are cleanup candidates only after a split or export-level cleanup plan.
+
+Tests/docs/reference classification:
+
+- `tests/unit/dokumen/submit-route-parity.test.ts`, `tests/unit/storage/raw-preview-internal-url-runtime.test.ts`, `tests/unit/storage/raw-preview-internal-url-wiring.test.ts`, and `tests/unit/storage/rename-pending-local-route.test.ts` contain mocks or assertions for Supabase helper names. Classification: tests/mock reference, not live runtime dependency.
+- Migration docs and historical specs contain many Supabase references. Classification: docs/history reference. Do not delete historical references in 11D.1.
+- `src/routeTree.gen.ts` registers `/api/dokumen`, `/api/dokumen/rename-pending`, and `/api/dokumen/$id/nominal`. Classification: route registration evidence only; no route tree modification is allowed in 11D.1.
+
+Safe removal candidates, deferred:
+
+- `src/lib/supabase-browser.ts`: candidate only after final source/package/env audit proves no imports remain.
+- `src/lib/supabase.ts`: candidate re-export barrel after direct helper callers are gone.
+- `src/lib/user-helpers.ts`: candidate after source/test/doc impact is explicitly scoped.
+- Legacy Supabase functions in `src/lib/master-data/*`, unused exports in `src/lib/dokumen/queries.ts`, `src/lib/dokumen/mutations.ts`, and Supabase Storage functions in `src/lib/dokumen/storage.ts`: candidates only after export-level caller validation and any needed pure-helper/type split.
+
+Not safe to remove now:
+
+- `src/lib/supabase-server.ts`: active callers in `POST /api/dokumen` and `PATCH /api/dokumen/$id/nominal`.
+- `src/lib/supabase-admin.ts`: active caller in `POST /api/dokumen/rename-pending`.
+- `src/lib/auth.ts`: active callers in the same dokumen routes.
+- `src/lib/dokumen/mutations.ts`: active `createDokumen` path.
+- `src/lib/dokumen/queries.ts`: active `getDokumenById` path.
+- `src/lib/dokumen/logs.ts`: active `insertLog` path.
+- `src/lib/dokumen/storage.ts`: active pure helper/type imports even though Supabase storage functions look unused.
+- Supabase packages/env references: not scoped until 11E and still required by active server/helper files.
+
+Recommended next sequence:
+
+1. 11D.2a: Resolve `POST /api/dokumen` mixed-route debt. Prefer proving it is inactive and explicitly retiring it only if approved; otherwise migrate it narrowly to local `dms_session` and local Drizzle draft creation while leaving `GET /api/dokumen` unchanged.
+2. 11D.2b: Migrate `PATCH /api/dokumen/$id/nominal` as its own cross-role nominal compatibility slice. Preserve creator/ARSIPARIS/ADMIN access, `ARCHIVED` blocking, material nominal validation, update response shape, and append-only audit logging.
+3. 11D.2c: Migrate only the `rename-pending` document lookup from Supabase admin/helper to a local Drizzle/local query. Preserve local pending movement behavior and tests.
+4. 11D.3: Helper import cleanup/dead-code removal after active callers are gone. Re-audit `src/lib/auth.ts`, `src/lib/user-helpers.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, `src/lib/supabase.ts`, `src/lib/dokumen/*`, and `src/lib/master-data/*`; split pure/type helpers before deleting mixed files.
+5. 11D.4: Final grep/audit and handoff into 11E. Confirm no active runtime Supabase source dependency remains before any package/env cleanup.
+
+Open blockers/questions:
+
+- `POST /api/dokumen` draft-create branch needs an explicit keep/migrate/retire decision before deleting `supabase-server`, `auth.ts` Supabase session helpers, or `dokumen/mutations.ts`.
+- `PATCH /api/dokumen/$id/nominal` should be split from other cleanup because its cross-role contract is higher risk.
+- `src/lib/dokumen/storage.ts` needs a split/delete strategy because pure filename/path helpers are still active while Supabase Storage functions appear unused.
+
 ### Phase 11E: Package/Env/Import Cleanup
 
 Goal: remove global Supabase packages and env references only after active runtime/helper usage is retired.
