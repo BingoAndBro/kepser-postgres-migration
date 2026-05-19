@@ -473,7 +473,7 @@ Goal: Confirm compatibility and prepare the local/LAN release.
 
 Current status:
 
-- Phase 11D.4 completed the post-retirement audit on 2026-05-19. Lightweight grep/protected-diff checks found no active source/runtime Supabase helper dependency remaining in the audited `src`/`tests` runtime scope. Remaining Supabase references are package/lockfile artifacts, env/constants/docs references, and migration history. Next recommended target is Phase 11E package/env/global cleanup under explicit human approval; Phase 11D.4 does not claim package/env cleanup, regression, backup/restore, LAN readiness, or old Supabase data/file migration.
+- Phase 11D.4 completed the post-retirement audit on 2026-05-19. Lightweight grep/protected-diff checks found no active source/runtime Supabase helper dependency remaining in the audited `src`/`tests` runtime scope. Remaining Supabase references are package/lockfile artifacts, env/constants/docs references, and migration history. Phase 11E.1 then completed package/env cleanup planning and a fresh no-change audit on 2026-05-19; next recommended target is Phase 11E.2 package dependency removal only if a fresh source/test grep is still clean and the package cleanup is explicitly approved. Phase 11E.1 does not claim package/env cleanup, regression, backup/restore, LAN readiness, or old Supabase data/file migration.
 
 Allowed scope:
 

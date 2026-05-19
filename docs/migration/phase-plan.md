@@ -3544,6 +3544,69 @@ Deferred items / exit criteria:
 
 - Exit when runtime package/env cleanup is complete or remaining references are documented as historical docs/tests only.
 
+#### Phase 11E.1: Package/Env Cleanup Planning And Fresh Audit
+
+Date: 2026-05-19.
+
+Status: audit/planning complete. No package/env cleanup is complete, and Phase 11E is not complete.
+
+Scope:
+
+- Fresh lightweight audit after Phase 11D.4.
+- Documentation-only planning in this file.
+- No source runtime, test, route tree, package, lockfile, env, DB, drizzle, migration, seed, script, or supabase-folder changes.
+- No package install/remove/update, dependency cleanup, route generation, heavy validation, old Supabase data/file migration, copy, download, backfill, sync, recovery, or commit.
+
+Fresh source/runtime audit result:
+
+- No active `src`/`tests` match was found for `createServerSupabaseClient`, `createAdminClient`, `getBrowserClient`, `createBrowserClient`, `supabase.auth`, `auth.admin`, `supabase.from`, `supabase.storage`, `storage.from`, or `SupabaseClient`.
+- No active `src`/`tests` package import match was found for `@supabase/ssr` or `@supabase/supabase-js`.
+- The legacy helper import grep found only docs/migration command examples for removed root `#/lib/auth`, `#/lib/supabase*`, and `#/lib/user-helpers` patterns; no active `src`/`tests` import was found.
+- Absence of grep/runtime matches is strong evidence that active source/runtime Supabase helper usage is retired, but it is not absolute proof against future config-driven or indirect loading patterns. No such indirect active pattern was found in this audit.
+
+Remaining Supabase-related references by category:
+
+| Category | Evidence | Classification | Later handling |
+|---|---|---|---|
+| Source/runtime blocker | Required runtime grep over `src` and `tests` returned no active matches. | No blocker found for 11E.2 planning. | Rerun fresh grep before package removal. |
+| Package dependency candidate for 11E.2 removal | `package.json` still lists `@supabase/ssr` and `@supabase/supabase-js`. | Package dependency candidate only; not proof of active runtime usage. | Remove only in a human-approved package cleanup slice after a fresh no-match source/test audit. |
+| Lockfile artifact for 11E.2 update | `pnpm-lock.yaml` still contains root dependency entries and Supabase package resolution blocks. | Lockfile artifact tied to package dependency state. | Update only through approved package-manager workflow for 11E.2. |
+| Env variable name candidate for 11E.3 cleanup | `.env` contains `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY` names. | Env cleanup candidate; values were not printed. | Human-approved env cleanup only; do not delete `.env` or overwrite it from `.env.migration`. |
+| Env value present but not printed | `.env` has non-empty values for the five Supabase env names above. `.env.migration` has no Supabase env names in the targeted name inspection. | Sensitive local env state; presence only was recorded. | Do not print, copy, or auto-edit values. |
+| Local runtime env names to preserve | `.env` includes `APP_URL`, `DATABASE_URL`, `NODE_ENV`, and `FIRECRAWL_API_KEY`. `.env.migration` includes `APP_URL`, `DATABASE_URL`, `DMS_DEV_SEED_PASSWORD_HASH`, `FILE_SIGNING_SECRET`, `SESSION_SECRET`, `STORAGE_ROOT`, `USE_LOCAL_AUTH`, `USE_LOCAL_STORAGE`, `USE_POSTGRES`, `HOST`, and `PORT`. | Local/development/runtime env names, not Supabase cleanup targets by name alone. | Preserve local runtime recoverability; reconcile names only in a human-approved env cleanup slice. |
+| Src env constant candidate for 11E.3 cleanup | `src/lib/constants/env.ts` still contains the five Supabase env key constants. | Source env constant cleanup candidate, not active runtime dependency by the current grep. | Remove or narrow only after confirming no source usage and in a scoped 11E.3 slice. |
+| Docs current-runtime wording candidate | `README.md` is generic TanStack starter text. Docs under `docs/BEST_PRACTICES.md`, `docs/drizzle-zod-best-practices.md`, `docs/mvp-best-practices.md`, `docs/src-architecture-summary.md`, and some specs still describe Supabase as current or show Supabase setup/examples. | Docs cleanup candidate where wording is current-runtime or setup guidance rather than history. | Prefer narrow wording corrections; do not purge useful history during planning. |
+| Docs/history reference to preserve | `docs/migration/*`, `docs/specs/*`, historical phase notes, Supabase audit docs, old implementation plans, and migration rationale retain many Supabase references. | Historical/reference documentation. | Preserve unless later docs hygiene explicitly scopes deletion or correction of misleading current-runtime wording. |
+| Package script/build/test reference | `package.json` scripts use local Drizzle, seed, dotenv, and test/build commands; no Supabase package script was found. | No package-script blocker. | Do not run package commands in 11E.1; human-approved 11E.2 should choose the package workflow. |
+| Blocker/unclear | None found by required grep/protected-diff audit. | No narrow follow-up blocker before package-removal planning. | If manual review finds indirect runtime loading, split a narrow blocker phase before 11E.2. |
+
+Env policy for 11E:
+
+- Do not delete `.env`.
+- Do not overwrite `.env` with `.env.migration`.
+- Do not edit `.env` or `.env.migration` without explicit human approval.
+- Do not print env values, secrets, tokens, DB URLs, storage roots, hashes, cookie/session secrets, or service keys.
+- Report env variable names and presence only.
+- Treat `.env` as the final local runtime env file after human-approved cleanup.
+- Treat `.env.migration` as a human reference only; do not automatically copy from it.
+- Prioritize local runtime recoverability over maximizing cleanup completeness.
+
+Recommended 11E sequence:
+
+1. Phase 11E.2: remove Supabase package dependencies from `package.json` and `pnpm-lock.yaml`.
+   Requirements: rerun fresh source/test grep first; remove only `@supabase/ssr` and `@supabase/supabase-js` if no source/test dependency remains; use approved package-manager workflow, likely `pnpm remove` or a documented package edit plus `pnpm install` depending repo practice; do not edit env files in this slice unless separately approved; start from a clean reviewed git state.
+2. Phase 11E.3: env constants/docs cleanup.
+   Requirements: do not delete `.env`; do not overwrite `.env` from `.env.migration`; list env variable names only; remove or narrow Supabase constants from `src/lib/constants/env.ts` only if unused; update current-runtime setup/docs wording; preserve historical migration/spec notes unless clearly obsolete, misleading, or duplicated.
+3. Phase 11E.4: final package/env/global audit and regression handoff.
+   Requirements: grep package/env/source/docs again; classify any remaining references as active, artifact, env, current-docs, or historical; recommend human-run `pnpm test` and optional `pnpm build`; prepare Phase 11F or release-hardening handoff without overclaiming cleanup completion.
+
+11E.1 validation notes:
+
+- Lightweight validation only was used.
+- `git diff --check` passed.
+- Protected diffs for `src`, `tests`, `src/routeTree.gen.ts`, `package.json`, `pnpm-lock.yaml`, `.env`, `.env.migration`, `db`, `drizzle`, and `supabase` showed no changes at audit time. The env diff check was guarded to avoid printing sensitive values.
+- No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
+
 ### Phase 11F: Full Regression And Manual Smoke Validation
 
 Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.
