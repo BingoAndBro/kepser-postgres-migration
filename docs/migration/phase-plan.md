@@ -3235,6 +3235,72 @@ Validation notes:
 - Expected source audit after this phase: `src/routes/api/dokumen/index.ts` has no `createServerSupabaseClient`, legacy `getServerSession/getSession`, `createDokumen`, or `supabase.from` runtime dependency.
 - Expected broader audit after this phase: remaining Supabase matches in `src/routes/api/dokumen/$id.nominal.ts` and `src/routes/api/dokumen/rename-pending.ts` are deferred 11D.2b/11D.2c work, not regressions from 11D.2a.
 
+#### Phase 11D.2b: Resolve PATCH /api/dokumen/$id/nominal Supabase Runtime Dependency
+
+Date: 2026-05-19.
+
+Status: scoped runtime/docs migration complete for `PATCH /api/dokumen/$id/nominal` in `src/routes/api/dokumen/$id.nominal.ts`. No commit was made.
+
+Runtime decision:
+
+- Chosen path: narrow local migration, not helper deletion.
+- The route path and method remain `PATCH /api/dokumen/$id/nominal`.
+- The request body still validates the legacy fields `{ nominal_realisasi?: number | null, is_non_material?: boolean }` through `updateNominalSchema`.
+- The route now uses `getLocalServerSession(request)` and assigned local session roles. It does not trust `dms_active_role` alone.
+- Authorization preserves the documented legacy cross-role contract for the local role model: document creator, assigned `ARSIPARIS`, or assigned `ADMIN`. Legacy `SUPERADMIN` is not a local role in the canonical role set, so no local `SUPERADMIN` grant was introduced.
+- Assigned `PPK` and `BENDAHARA` roles are not granted by this route unless the caller is also the document creator.
+
+Local data behavior:
+
+- Document lookup now reads local `dokumen.dokumen_transaksi` through Drizzle.
+- Invalid UUID-like route ids fail cleanly as `404 { error: 'Dokumen tidak ditemukan' }`, matching nearby local document routes.
+- Missing documents still return `404 { error: 'Dokumen tidak ditemukan' }`.
+- The route updates only `dokumen_transaksi.nominal_realisasi`. It does not update status, current step, revision target, lampiran metadata, ownership fields, archive metadata, or workflow fields.
+- `is_non_material` remains accepted by the schema for request-shape compatibility but does not determine or persist document type. The stored `dokumen_transaksi.is_non_material` value controls validation, because this nominal route must not convert document type.
+- Drizzle numeric writes convert provided numbers to strings for the local PostgreSQL numeric column and preserve `null` when the request explicitly sends `nominal_realisasi: null`.
+
+Validation and safety:
+
+- Existing JSON parse errors still return `400 { error: 'Invalid JSON body' }`.
+- Existing Zod validation failures still return `400 { error: 'Validasi gagal', details }`.
+- Material validation still uses `validateNominalForMaterial(...)`, preserving the existing rule that material documents require an effective nominal value greater than zero and non-material documents are exempt.
+- Non-Material documents remain exempt from nominal requirement, but the route rejects attempts to write a non-null `nominal_realisasi` to an existing Non-Material document with `400 { error: 'Dokumen Non-Material tidak memiliki nominal_realisasi' }`. Sending `nominal_realisasi: null` remains allowed as a cleanup/no-nominal value.
+- The legacy `ARCHIVED` block is preserved as `400 { error: 'Tidak bisa update dokumen yang sudah diarsipkan' }`.
+- Additional safe destroyed-archive protection was added: if a related `arsip` row has `status_arsip='DIMUSNAHKAN'`, the route returns `400 { error: 'Tidak bisa update dokumen yang sudah dimusnahkan' }` and performs no mutation. This intentionally fails closed for destroyed archive contexts rather than preserving a historically unsafe permissive edge case.
+
+Audit and transaction behavior:
+
+- Supabase-backed `insertLog(...)` is no longer used by this route.
+- Successful nominal updates append one local `dokumen.log_aktivitas` row inside the same Drizzle transaction as the nominal update.
+- The audit action remains `UPDATE_NOMINAL`.
+- The audit `catatan` remains `Update nominal: <effective nominal>` and uses the same nullish-coalescing semantics as the legacy route for the effective nominal value.
+- `step_urutan` is inserted as `null`, matching the old helper default.
+- If either the nominal update or audit insert fails, the transaction rolls back and the route returns `500 { error: 'Update gagal' }`. The route does not return success after a nominal update without the append-only audit row.
+
+Response compatibility:
+
+- Unauthenticated remains `401 { error: 'Unauthorized' }`.
+- Unauthorized remains `403 { error: 'Akses ditolak' }`.
+- Missing/invalid id remains `404 { error: 'Dokumen tidak ditemukan' }`.
+- Archived and validation failures remain `400` with `{ error }` or `{ error, details }` shapes.
+- No nominal field supplied returns `200 { success: true, message: 'Tidak ada perubahan' }`.
+- Successful nominal update returns `200 { success: true }`.
+
+Supabase dependency status after 11D.2b:
+
+- `src/routes/api/dokumen/$id.nominal.ts` no longer imports or uses `createServerSupabaseClient`, legacy `getServerSession/getSession`, Supabase-backed `insertLog`, `supabase.from`, or `supabase.auth`.
+- No Supabase fallback was added.
+- No Supabase helper files were deleted. `src/lib/dokumen/logs.ts`, `src/lib/auth.ts`, `src/lib/supabase-server.ts`, and related legacy helpers remain for later audited cleanup only.
+- 11D.2a remains complete for `POST /api/dokumen`.
+- 11D.2c remains deferred: `POST /api/dokumen/rename-pending` still has a Supabase admin/helper-backed document lookup while its auth and local pending movement behavior are already local-backed.
+- Do not claim global Supabase helper retirement, package/env cleanup, or helper deletion complete after 11D.2b.
+
+Validation notes:
+
+- Lightweight validation only was used for this phase. Heavy validation such as `pnpm build`, broad tests, typecheck, dev server, DB scripts, migrations, seeds, route generation, package commands, and Playwright/E2E remain human-run only.
+- Expected source audit after this phase: `src/routes/api/dokumen/$id.nominal.ts` has no `createServerSupabaseClient`, legacy `getServerSession/getSession`, Supabase-backed `insertLog`, `supabase.from`, or `supabase.auth` runtime dependency.
+- Expected broader audit after this phase: remaining Supabase matches in `src/routes/api/dokumen/rename-pending.ts` are deferred 11D.2c work, not regressions from 11D.2b.
+
 ### Phase 11E: Package/Env/Import Cleanup
 
 Goal: remove global Supabase packages and env references only after active runtime/helper usage is retired.
