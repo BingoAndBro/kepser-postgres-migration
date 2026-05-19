@@ -3192,6 +3192,49 @@ Open blockers/questions:
 - `PATCH /api/dokumen/$id/nominal` should be split from other cleanup because its cross-role contract is higher risk.
 - `src/lib/dokumen/storage.ts` needs a split/delete strategy because pure filename/path helpers are still active while Supabase Storage functions appear unused.
 
+#### Phase 11D.2a: Resolve POST /api/dokumen Supabase Runtime Dependency
+
+Date: 2026-05-19.
+
+Status: scoped runtime/docs migration complete for the `POST /api/dokumen` branch in `src/routes/api/dokumen/index.ts`. No commit was made.
+
+Decision:
+
+- Chosen path: narrow local migration, not retirement.
+- Reason: current active Pegawai submit UI uses `POST /api/dokumen/submit`, but historical specs/docs still describe bare `POST /api/dokumen` draft creation and Phase 11D.1 classified it as compatibility debt. Absence of an obvious active UI caller is not enough evidence to safely delete the route.
+- The migrated branch remains draft-oriented compatibility behavior only. It does not duplicate `/api/dokumen/submit` orchestration.
+
+Runtime changes:
+
+- Removed `createServerSupabaseClient`, legacy `getServerSession as getSession`, and Supabase-backed `createDokumen` imports from `src/routes/api/dokumen/index.ts`.
+- Removed the route-local Supabase client helper that was used only by the POST branch.
+- `POST /api/dokumen` now uses `getLocalServerSession(request)` and requires assigned `PEGAWAI` via `hasLocalRole(session, 'PEGAWAI')`.
+- The route still validates JSON with the existing `createDokumenSchema`.
+- The route still looks up `master_kegiatan.nama` for title generation and returns `400 { error: 'Kegiatan tidak ditemukan' }` when the kegiatan id is unknown.
+- The route inserts one local `dokumen.dokumen_transaksi` row with `status='DRAFT'`, `created_by=session.user.id`, generated `judul`, and the legacy draft fields: `fungsi_id`, `kegiatan_jenis_id`, `is_ketua_tim`, `tahun`, `tanggal`, and `lampiran_urls`.
+- The route explicitly preserves old helper defaults/nulls for the draft-only branch: `nominal_realisasi='0'`, `is_non_material=false`, `jenis_dokumen_id=null`, `keterangan_detail=null`, and material request-chain ids as `null`.
+- The route returns `201 { dokumen }` using the same local parser shape as the existing document list/detail code, including `fungsi_nama` and `kegiatan_nama` where available.
+
+Compatibility notes:
+
+- GET `/api/dokumen` was intentionally preserved: it still uses local `getLocalServerSession`, requires `PEGAWAI`, filters `created_by=session.user.id`, orders by `created_at desc`, uses the same Drizzle joins to fungsi/kegiatan, and returns `{ dokumen }`.
+- Current bare POST request validation remains based on `createDokumenSchema`. Fields outside that schema remain non-contract submit-era fields for `/api/dokumen/submit`, not bare draft-create behavior.
+- Current legacy POST parsed optional request-chain ids through the schema but did not pass them into `createDokumen(...)`; 11D.2a preserves that omission rather than silently turning this branch into submit-like material/non-material orchestration.
+- No audit log is appended by bare draft creation because the legacy `POST /api/dokumen` branch did not append one.
+- No file upload, pending-to-formal movement, delete, preview/download, submit transition, FSM transition, archive lifecycle, or storage fallback behavior changed.
+
+Remaining 11D.2 dependencies:
+
+- 11D.2b remains: `PATCH /api/dokumen/$id/nominal` still imports legacy Supabase server/session behavior and Supabase-backed audit helper behavior.
+- 11D.2c remains: `POST /api/dokumen/rename-pending` still has a deferred Supabase admin/helper-backed document lookup even though its auth and local pending movement behavior are already local-backed.
+- Do not claim global Supabase helper retirement, package/env cleanup, or helper deletion complete after 11D.2a.
+
+Validation notes:
+
+- Lightweight validation only was used for this phase. Heavy validation such as `pnpm build`, broad tests, typecheck, dev server, DB scripts, migrations, seeds, route generation, package commands, and Playwright/E2E remain human-run only.
+- Expected source audit after this phase: `src/routes/api/dokumen/index.ts` has no `createServerSupabaseClient`, legacy `getServerSession/getSession`, `createDokumen`, or `supabase.from` runtime dependency.
+- Expected broader audit after this phase: remaining Supabase matches in `src/routes/api/dokumen/$id.nominal.ts` and `src/routes/api/dokumen/rename-pending.ts` are deferred 11D.2b/11D.2c work, not regressions from 11D.2a.
+
 ### Phase 11E: Package/Env/Import Cleanup
 
 Goal: remove global Supabase packages and env references only after active runtime/helper usage is retired.
