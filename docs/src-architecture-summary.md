@@ -1,13 +1,15 @@
 # Ringkasan Arsitektur `src/`
 
-Snapshot analisis ini dibuat dari struktur kode aktual di `src/` pada 2026-05-09, dengan konteks domain mengacu ke `AGENTS.md`.
+Snapshot historis ini dibuat dari struktur kode aktual di `src/` pada 2026-05-09, dengan konteks domain mengacu ke `AGENTS.md`.
+
+Status per 2026-05-19: dokumen ini adalah referensi arsitektur pre-migration, bukan panduan current-runtime. Runtime migrasi aktif bergerak ke local PostgreSQL melalui Drizzle, local `dms_session` auth, local filesystem storage, dan env lokal; jangan memakai bagian Supabase di bawah sebagai instruksi setup runtime baru.
 
 ## Gambaran umum
 
-Aplikasi ini adalah DMS berbasis TanStack Start dengan pola yang saat ini lebih dekat ke **SPA client-heavy** daripada SSR penuh:
+Pada snapshot 2026-05-09, aplikasi ini adalah DMS berbasis TanStack Start dengan pola yang lebih dekat ke **SPA client-heavy** daripada SSR penuh:
 
 - routing memakai file-based route TanStack Start
-- autentikasi dan data utama memakai Supabase
+- autentikasi dan data utama masih memakai Supabase pada snapshot tersebut
 - validasi boundary utama memakai Zod
 - workflow status dokumen dipusatkan di `src/lib/fsm.ts`
 - banyak page memanggil API route internal dengan `fetch()`
@@ -505,27 +507,27 @@ Akibatnya, `dokumen-helpers.ts`, `arsiparis/search.ts`, dan endpoint daftar lain
 
 Ini bukan review bug, tetapi hal-hal yang membentuk karakter kode saat ini:
 
-1. **Supabase adalah sumber data nyata utama, bukan Drizzle.**  
+1. **Supabase adalah sumber data nyata utama, bukan Drizzle.**
    `src/lib/db/schema.ts` hanya memodelkan sebagian tabel, sementara banyak endpoint membaca tabel tambahan langsung lewat Supabase (`master_jenis_permintaan`, `arsip`, `master_klasifikasi_arsip`, dll).
 
-2. **Arsitektur berjalan client-heavy.**  
+2. **Arsitektur berjalan client-heavy.**
    Walau ada `guards.ts` dan pola server helper, auth gate nyata banyak terjadi di client (`AppLayout`, `useEffect` pada role layout/page).
 
-3. **Ada jalur ganda antara helper browser dan API route.**  
+3. **Ada jalur ganda antara helper browser dan API route.**
    Contoh: master data bisa diakses lewat `lib/master-data.ts` langsung dari browser, tetapi API CRUD server juga tetap tersedia.
 
-4. **Ada route legacy yang dipertahankan sebagai redirect.**  
+4. **Ada route legacy yang dipertahankan sebagai redirect.**
    Folder `src/routes/dokumen/` berfungsi sebagai kompatibilitas untuk jalur lama menuju `src/routes/pegawai/dokumen/*`.
 
-5. **Ada komponen/helper redundan atau transisional.**  
+5. **Ada komponen/helper redundan atau transisional.**
    `RoleSwitcher.tsx`, `UserMenu.tsx`, dan sebagian helper file terlihat tidak lagi menjadi jalur utama karena logikanya sudah terserap ke `AppLayout` atau helper lain.
 
-6. **Ada artefak tooling di dalam `src/`.**  
+6. **Ada artefak tooling di dalam `src/`.**
    `src/graphify-out/` berisi cache AST tooling, dan `src/routes/arsip/` saat ini kosong.
 
 ## Kesimpulan ringkas
 
-Struktur aplikasi sudah cukup jelas secara domain: role-based DMS dengan pusat logika pada Supabase, API route internal, helper dokumen, dan FSM status. Kode paling sentral untuk memahami aplikasi ini adalah:
+Pada snapshot historis ini, struktur aplikasi sudah cukup jelas secara domain: role-based DMS dengan pusat logika pada Supabase, API route internal, helper dokumen, dan FSM status. Untuk current-runtime, baca dokumen migration Phase 11 terbaru sebelum memakai daftar ini sebagai panduan implementasi. Kode paling sentral untuk memahami alur historis aplikasi adalah:
 
 - `src/components/layout/AppLayout.tsx`
 - `src/lib/auth.ts`

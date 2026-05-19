@@ -3658,6 +3658,53 @@ Deferred cleanup:
 - Protected diffs confirmed no changes under `src`, `tests`, `src/routeTree.gen.ts`, `.env`, `.env.migration`, `db`, `drizzle`, or `supabase`.
 - No `pnpm build`, broad `pnpm test`, full typecheck, dev server, DB scripts, migrations, seeds, route generation, dependency upgrades, `pnpm update`, Playwright/E2E, or commit was run.
 
+#### Phase 11E.3: Supabase Env Constants And Current-Runtime Docs Cleanup
+
+Date: 2026-05-19.
+
+Status: source env constants cleanup and scoped current-runtime docs wording cleanup complete. Phase 11E is not complete; final audit/regression is deferred to Phase 11E.4/11F.
+
+Scope:
+
+- Removed only unused Supabase-specific constants from `src/lib/constants/env.ts`: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY`.
+- Preserved non-Supabase source env constants; `NODE_ENV` remains in `ENV_KEYS`.
+- Updated current-runtime docs wording in scoped best-practice/architecture docs so Supabase examples are marked as legacy/pre-migration reference and the active target is local PostgreSQL, Drizzle, local `dms_session` auth, local filesystem storage, and local env variables.
+- Updated this phase plan and the migration roadmap status.
+- No `.env` or `.env.migration` values were printed. Env file inspection, where used, listed variable names only.
+- `.env` and `.env.migration` were not modified.
+- Package cleanup remains complete from Phase 11E.2; no package files were changed in 11E.3.
+- No old Supabase data/file migration, copy, download, backfill, sync, or recovery was performed.
+
+Fresh audit result:
+
+- No active `src`/`tests` match was found for `@supabase/ssr`, `@supabase/supabase-js`, `createServerSupabaseClient`, `createAdminClient`, `getBrowserClient`, `createBrowserClient`, `supabase.auth`, `auth.admin`, `supabase.from`, `supabase.storage`, `storage.from`, or `SupabaseClient`.
+- Pre-edit source/test env-key grep found the five Supabase env names only in `src/lib/constants/env.ts`; no `ENV_KEYS.SUPABASE*` or `ENV_KEYS.VITE_SUPABASE*` usage was found.
+- `.env` still contains Supabase variable names and must remain a human cleanup item; `.env.migration` contains local runtime variable names and was not used to overwrite `.env`.
+- Current-runtime docs candidates were limited to docs that still described Supabase as the active DB/auth/storage setup. Historical migration/spec references remain preserved.
+
+Remaining Supabase references by category:
+
+| Category | Evidence | Handling |
+|---|---|---|
+| Active source/runtime blocker | Source/test runtime greps returned no matches. | No blocker found for this slice. |
+| Unused source env constant candidate | The five Supabase env names existed only in `src/lib/constants/env.ts` before editing. | Removed from source constants. |
+| Docs current-runtime wording candidate | `docs/BEST_PRACTICES.md`, `docs/drizzle-zod-best-practices.md`, `docs/mvp-best-practices.md`, and `docs/src-architecture-summary.md` described Supabase as active setup/runtime. | Narrowly reframed as local runtime or legacy/pre-migration reference. |
+| Docs historical/migration reference to preserve | `docs/migration/*`, `docs/specs/*`, and historical plans/audits still mention Supabase. | Preserved unless misleading current-runtime status needed a targeted update. |
+| Package/lockfile | Phase 11E.2 removed Supabase packages and lockfile subtree. | No package changes in 11E.3. |
+| Env file names requiring human cleanup later | `.env` still has Supabase variable names. | Do not edit automatically; human-approved cleanup only. |
+| Blocker/unclear | None found by lightweight grep. | Final confirmation deferred to 11E.4. |
+
+11E.3 validation notes:
+
+- Lightweight validation only was used.
+- `git diff --check` passed.
+- Post-edit source/test env-key grep returned no matches.
+- Post-edit package grep for `@supabase/ssr` and `@supabase/supabase-js` returned no matches in `src`, `tests`, `package.json`, or `pnpm-lock.yaml`.
+- Post-edit source/test Supabase runtime grep returned no matches.
+- Remaining docs Supabase grep matches are classified as legacy/pre-migration reference, migration history, specs history, or historical audit/status text.
+- Protected diffs confirmed no changes to `.env`, `.env.migration`, `package.json`, `pnpm-lock.yaml`, `src/routeTree.gen.ts`, `db`, `drizzle`, or `supabase`.
+- No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
+
 ### Phase 11F: Full Regression And Manual Smoke Validation
 
 Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.

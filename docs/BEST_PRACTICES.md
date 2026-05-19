@@ -4,7 +4,7 @@
 - **Framework**: TanStack Start (TanStack Router + React Start)
 - **UI Library**: React 19
 - **Styling**: Tailwind CSS v4
-- **Database/Auth**: Supabase
+- **Database/Auth/Storage**: local PostgreSQL + local `dms_session` auth + local filesystem storage
 - **Language**: TypeScript
 - **Build Tool**: Vite
 - **Package Manager**: pnpm
@@ -36,7 +36,9 @@ src/
 │
 └── lib/                 # Utilities and helpers
     ├── utils.ts        # cn(), formatDate(), etc.
-    ├── supabase.ts     # Supabase clients
+    ├── db.ts           # Local PostgreSQL/Drizzle access
+    ├── auth.ts         # Local session helpers
+    ├── storage.ts      # Local filesystem storage helpers
     └── validations.ts  # Zod schemas
 ```
 
@@ -79,7 +81,7 @@ export const Route = createFileRoute('/posts/$postId')({
   beforeLoad: ({ params }) => {
     // Run before component renders
   },
-  
+
   // Server-side API handlers
   server: {
     middleware: [authMiddleware],
@@ -89,7 +91,7 @@ export const Route = createFileRoute('/posts/$postId')({
       }
     }
   },
-  
+
   // Component
   component: PostDetail,
 })
@@ -187,15 +189,15 @@ export const Route = createFileRoute('/api/posts')({
 ```tsx
 export const getPost = createServerFn().handler(async ({ data }) => {
   const post = await db.posts.find(data.id)
-  
+
   if (!post) {
     throw notFound()
   }
-  
+
   if (!post.published && !context.session.user.isAdmin) {
     throw new Response('Forbidden', { status: 403 })
   }
-  
+
   return post
 })
 ```
@@ -234,10 +236,10 @@ function PostList() {
     queryKey: ['posts'],
     queryFn: () => fetch('/api/posts').then(r => r.json()),
   })
-  
+
   if (isLoading) return <Skeleton />
   if (error) return <ErrorMessage error={error} />
-  
+
   return <PostGrid posts={data.posts} />
 }
 ```
@@ -251,11 +253,11 @@ const mutation = useMutation({
   onMutate: async (newPost) => {
     await queryClient.cancelQueries({ queryKey: ['posts'] })
     const previous = queryClient.getQueryData(['posts'])
-    
+
     queryClient.setQueryData(['posts'], (old) => ({
       posts: [...old.posts, { ...newPost, id: 'temp' }]
     }))
-    
+
     return { previous }
   },
   onError: (err, newPost, context) => {
@@ -305,7 +307,7 @@ export function ContactForm() {
     },
     null
   )
-  
+
   return (
     <form action={formAction}>
       <input name="email" type="email" />
@@ -329,12 +331,12 @@ interface ButtonProps {
   onClick?: () => void
 }
 
-export function Button({ 
-  variant = 'primary', 
-  size = 'md', 
-  disabled, 
-  children, 
-  onClick 
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  disabled,
+  children,
+  onClick
 }: ButtonProps) {
   const base = "font-medium rounded-lg transition-colors"
   const variants = {
@@ -347,9 +349,9 @@ export function Button({
     md: "px-4 py-2",
     lg: "px-6 py-3 text-lg",
   }
-  
+
   return (
-    <button 
+    <button
       className={`${base} ${variants[variant]} ${sizes[size]}`}
       disabled={disabled}
       onClick={onClick}
@@ -407,7 +409,7 @@ type RequestState<T> =
 
 function useRequest<T>(fetcher: () => Promise<T>) {
   const [state, setState] = useState<RequestState<T>>({ status: 'idle' })
-  
+
   const execute = async () => {
     setState({ status: 'loading' })
     try {
@@ -417,7 +419,7 @@ function useRequest<T>(fetcher: () => Promise<T>) {
       setState({ status: 'error', error })
     }
   }
-  
+
   return { state, execute }
 }
 ```
@@ -490,10 +492,10 @@ const [state, dispatch] = useReducer(counterReducer, { count: 0 })
   --color-brand-50: oklch(0.97 0.02 261);
   --color-brand-500: oklch(0.55 0.15 261);
   --color-brand-900: oklch(0.25 0.05 261);
-  
+
   --font-sans: 'Inter Variable', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  
+
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
 }
@@ -546,17 +548,17 @@ const buttonVariants = cva(
 ```tsx
 // Theme toggle component
 export function ThemeToggle() {
-  const [theme, setTheme] = useState(() => 
+  const [theme, setTheme] = useState(() =>
     localStorage.theme || 'system'
   )
-  
+
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.theme = newTheme
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
   }
-  
+
   return <button onClick={toggleTheme}>Toggle {theme}</button>
 }
 ```
@@ -576,7 +578,9 @@ export function ThemeToggle() {
 
 ---
 
-## 8. Supabase Patterns
+## 8. Legacy Supabase Patterns
+
+This section is retained only as pre-migration reference material. The current DMS runtime uses local PostgreSQL through Drizzle, local `dms_session` cookie auth, local filesystem storage, and local env variables such as `DATABASE_URL`, `SESSION_SECRET`, file-token/storage-root settings, `APP_URL`, `HOST`, and `PORT`.
 
 ### Server Client (Server-Side)
 ```tsx
@@ -586,7 +590,7 @@ import { cookies } from 'next/headers'
 
 export async function createClient() {
   const cookieStore = await cookies()
-  
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -631,7 +635,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
-  
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -647,14 +651,14 @@ export async function updateSession(request: NextRequest) {
       },
     }
   )
-  
+
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   // Protect routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
-  
+
   return response
 }
 ```
@@ -713,11 +717,11 @@ import { redirect } from '@tanstack/react-router'
 
 export const requireAuth = createServerFn().handler(async () => {
   const session = await getSession()
-  
+
   if (!session) {
     throw redirect({ to: '/login' })
   }
-  
+
   return session
 })
 
@@ -741,7 +745,7 @@ const result = await db.query(
   [userId]
 )
 
-// With Supabase
+// Legacy Supabase example
 const { data } = await supabase
   .from('posts')
   .select('*')
@@ -800,10 +804,10 @@ return <MemoizedButton onClick={handleClick} />
 ### Image Optimization
 ```tsx
 // Always specify dimensions
-<img 
-  src="/api/image?src=photo.jpg" 
-  width={400} 
-  height={300} 
+<img
+  src="/api/image?src=photo.jpg"
+  width={400}
+  height={300}
   alt="Description"
   loading="lazy"
 />
@@ -853,16 +857,16 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false }
-  
+
   static getDerivedStateFromError(): State {
     return { hasError: true }
   }
-  
+
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     // Log to error tracking service
     console.error('Error:', error, info.componentStack)
   }
-  
+
   render() {
     if (this.state.hasError) {
       return this.props.fallback
@@ -877,7 +881,7 @@ export class ErrorBoundary extends Component<Props, State> {
 // Standard error format
 export function errorResponse(message: string, status: number = 400) {
   return Response.json(
-    { 
+    {
       error: true,
       message,
       timestamp: new Date().toISOString(),
@@ -921,15 +925,15 @@ describe('Button', () => {
     render(<Button>Click me</Button>)
     expect(screen.getByText('Click me')).toBeInTheDocument()
   })
-  
+
   it('calls onClick when clicked', () => {
     const handleClick = vi.fn()
     render(<Button onClick={handleClick}>Click me</Button>)
-    
+
     fireEvent.click(screen.getByText('Click me'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
-  
+
   it('is disabled when disabled prop is true', () => {
     render(<Button disabled>Disabled</Button>)
     expect(screen.getByText('Disabled')).toBeDisabled()
@@ -966,22 +970,22 @@ import { test, expect } from '@playwright/test'
 test.describe('Authentication', () => {
   test('user can login', async ({ page }) => {
     await page.goto('/login')
-    
+
     await page.fill('[name="email"]', 'test@example.com')
     await page.fill('[name="password"]', 'password123')
     await page.click('[type="submit"]')
-    
+
     await expect(page).toHaveURL('/dashboard')
     await expect(page.locator('text=Welcome')).toBeVisible()
   })
-  
+
   test('shows error on invalid credentials', async ({ page }) => {
     await page.goto('/login')
-    
+
     await page.fill('[name="email"]', 'invalid@example.com')
     await page.fill('[name="password"]', 'wrongpassword')
     await page.click('[type="submit"]')
-    
+
     await expect(page.locator('text=Invalid credentials')).toBeVisible()
   })
 })
@@ -1071,7 +1075,7 @@ pnpm lint-staged
 | **Components** | Server by default, client when needed |
 | **TypeScript** | Discriminated unions, Zod validation |
 | **Styling** | Tailwind v4 + CVA for variants |
-| **Database** | Supabase with RLS enabled |
+| **Database** | Local PostgreSQL through Drizzle |
 | **Security** | Always validate, parameterize queries |
 | **Performance** | SSR, lazy loading, memoization |
 | **Testing** | Unit, integration, and E2E tests |

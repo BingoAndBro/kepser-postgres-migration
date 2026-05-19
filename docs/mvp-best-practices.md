@@ -1,6 +1,6 @@
 # Best Practices: DMS MVP Tech Stack
 
-Best practice document untuk proyek DMS (Dynamic Document Workflow Management System) menggunakan TanStack Start, Drizzle ORM, Supabase, shadcn/ui, dan Zod.
+Best practice document untuk proyek DMS (Dynamic Document Workflow Management System) menggunakan TanStack Start, Drizzle ORM, local PostgreSQL, local `dms_session` auth, local filesystem storage, shadcn/ui, dan Zod.
 
 ## Tech Stack Overview
 
@@ -8,13 +8,13 @@ Best practice document untuk proyek DMS (Dynamic Document Workflow Management Sy
 |---|---|---|
 | **Framework** | TanStack Start (SSR) | File-based routing, server functions built-in |
 | **Language** | TypeScript | Type safety di seluruh stack |
-| **Database** | Supabase (PostgreSQL) | Managed DB, RLS built-in |
-| **Auth** | Supabase Auth | JWT + RLS native |
-| **File Storage** | Supabase Storage | 1GB free tier |
+| **Database** | Local PostgreSQL | Drizzle-backed local/LAN runtime |
+| **Auth** | Local `dms_session` auth | Cookie session, server-side role checks |
+| **File Storage** | Local filesystem storage | Files served only through authorized API routes |
 | **ORM** | Drizzle ORM | Type-safe query, schema-as-code |
 | **UI Components** | shadcn/ui | Headless + styled, copy-paste |
 | **Validation** | Zod | Schema validation: form → API → DB |
-| **Hosting** | Vercel | Deploy TanStack Start MVP |
+| **Hosting** | Local/LAN target | Deployment hardening remains migration work |
 | **Package Manager** | pnpm | Wajib digunakan |
 
 ---
@@ -41,7 +41,8 @@ src/
 └── lib/
     ├── db/
     ├── schemas/
-    └── supabase.ts
+    ├── auth/
+    └── storage/
 ```
 
 ### 1.2 Server Functions
@@ -206,11 +207,13 @@ pnpm drizzle-kit push
 
 ---
 
-## 3. Supabase Best Practices
+## 3. Legacy Supabase Best Practices
 
-### 3.1 Row Level Security (RLS)
+Bagian ini dipertahankan sebagai referensi historis/pre-migration. Runtime aktif DMS saat ini memakai local PostgreSQL + Drizzle, local `dms_session` auth, local filesystem storage, dan variabel lokal seperti `DATABASE_URL`, `SESSION_SECRET`, file-token/storage-root settings, `APP_URL`, `HOST`, dan `PORT`.
 
-**WAJIKAN RLS di semua tabel.** Contoh kebijakan untuk `dokumen_transaksi`:
+### 3.1 Legacy Row Level Security (RLS)
+
+Contoh legacy Supabase RLS untuk `dokumen_transaksi`:
 
 ```sql
 -- Enable RLS
@@ -232,7 +235,7 @@ CREATE POLICY "PPK can view all documents" ON dokumen_transaksi
   );
 ```
 
-### 3.2 Auth Integration
+### 3.2 Legacy Auth Integration
 
 ```typescript
 // src/lib/supabase/server.ts
@@ -246,9 +249,9 @@ export function createServerClient() {
 }
 ```
 
-### 3.3 Storage
+### 3.3 Legacy Storage
 
-Gunakan Supabase Storage untuk lampiran:
+Contoh legacy Supabase Storage untuk lampiran:
 
 ```typescript
 // Upload file
@@ -262,9 +265,9 @@ const { data: { publicUrl } } = supabase.storage
   .getPublicUrl(`${userId}/${dokumenId}/${fileName}`);
 ```
 
-### 3.4 Realtime (Optional)
+### 3.4 Legacy Realtime (Optional)
 
-Untuk live updates:
+Contoh legacy live updates:
 
 ```typescript
 const channel = supabase
@@ -427,10 +430,18 @@ try {
 ### 6.1 Environment Variables
 
 ```bash
-# .env - Local development
-SUPABASE_URL=http://localhost:54321
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# .env - Local development, variable names only
+DATABASE_URL=
+APP_URL=
+SESSION_SECRET=
+FILE_SIGNING_SECRET=
+DMS_FILE_TOKEN_SECRET=
+DMS_LOCAL_STORAGE_ROOT=
+USE_LOCAL_AUTH=
+USE_LOCAL_STORAGE=
+USE_POSTGRES=
+HOST=
+PORT=
 ```
 
 **PERINGATAN: Jangan pernah commit .env ke git!**
@@ -438,11 +449,11 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ### 6.2 Server-Side Only
 
 ```typescript
-// Bendaharam - Server-side only
-const supabase = createServerClient();
+// Server-side only
+const session = await getLocalServerSession(request);
 
-// Browser - Client-side only
-const supabase = createBrowserClient(); // Hanya gunakan anon key
+// Browser
+// Jangan membaca session credential langsung; panggil API yang memvalidasi server-side.
 ```
 
 ### 6.3 Input Validation
@@ -538,7 +549,8 @@ d:\GitHub\mvp\
 ├── docs/
 │   ├── routing-sop.md
 │   ├── drizzle-schema.md
-│   ├── supabase-rls.md
+│   ├── local-auth.md
+│   ├── local-storage.md
 │   └── *-best-practices.md    # Dokumen ini
 ├── src/
 │   ├── routes/                # TanStack file-based routes & server functions
@@ -573,10 +585,8 @@ d:\GitHub\mvp\
 │       │   ├── dokumen.ts
 │       │   └── user.ts
 │       ├── fsm.ts           # Document status FSM
-│       └── supabase.ts      # Supabase clients
-├── supabase/
-│   ├── migrations/           # SQL migrations
-│   └── functions/           # Edge functions
+│       ├── auth/            # Local auth helpers
+│       └── storage/         # Local storage helpers
 └── .env                     # Environment variables
 ```
 
@@ -622,27 +632,30 @@ test("should create dokumen with valid data", async () => {
 
 ## 10. Deployment Best Practices
 
-### 10.1 Vercel Configuration
+### 10.1 Deployment Configuration
 
 ```json
-// vercel.json
+// deployment env names
 {
   "framework": "tanstack-start",
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
   "env": {
-    "SUPABASE_URL": "@supabase-url",
-    "SUPABASE_ANON_KEY": "@supabase-anon-key"
+    "DATABASE_URL": "@database-url",
+    "APP_URL": "@app-url"
   }
 }
 ```
 
-### 10.2 Environment Variables di Vercel
+### 10.2 Environment Variables
 
-Set environment variables di Vercel Dashboard:
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (jika needed, set sebagai secret)
+Set environment variables sesuai target deployment lokal/LAN:
+- `DATABASE_URL`
+- `APP_URL`
+- `SESSION_SECRET`
+- file-token/storage-root settings
+- `HOST`
+- `PORT`
 
 ---
 

@@ -1,7 +1,9 @@
-# Drizzle ORM + Zod + TanStack Start + Supabase SSR Best Practices
+# Drizzle ORM + Zod + TanStack Start Best Practices
 
 > Research compiled using Context7 MCP (Upstash) — April 2026. Libraries researched:
 > `drizzle-team/drizzle-orm`, `colinhacks/zod`, `websites/tanstack_start`, `supabase/ssr`.
+>
+> Current-runtime note, 2026-05-19: Supabase SSR examples in this document are legacy/pre-migration reference material. The active DMS migration runtime uses local PostgreSQL through Drizzle, local `dms_session` auth, local filesystem storage, and local env variables rather than `@supabase/ssr`.
 
 ---
 
@@ -11,8 +13,8 @@
 2. [Schema Design (Drizzle)](#2-schema-design-drizzle)
 3. [Migrations](#3-migrations)
 4. [Zod Schemas (with Drizzle)](#4-zod-schemas-with-drizzle)
-5. [Supabase SSR Auth Integration](#5-supabase-ssr-auth-integration)
-6. [Drizzle + Supabase Patterns](#6-drizzle--supabase-patterns)
+5. [Legacy Supabase SSR Auth Integration](#5-legacy-supabase-ssr-auth-integration)
+6. [Drizzle + Legacy Supabase Patterns](#6-drizzle--legacy-supabase-patterns)
 7. [Type Safety](#7-type-safety)
 8. [Common Patterns & Anti-Patterns](#8-common-patterns--anti-patterns)
 
@@ -26,15 +28,15 @@
 |---|---|
 | Full-stack framework | TanStack Start (React or Solid) |
 | ORM | Drizzle ORM |
-| Database | Supabase (PostgreSQL) |
+| Database | Local PostgreSQL |
 | Validation | Zod |
-| Auth | Supabase Auth + `@supabase/ssr` |
+| Auth | Local `dms_session` cookie auth |
 
 ### Key Architectural Principles
 
 - **Server Functions over API Routes**: TanStack Start `createServerFn` keeps sensitive logic on the server. Use loaders for data fetching, server functions for mutations.
 - **Type-safe boundaries**: Zod schemas at API boundaries, Drizzle types for DB operations. Never let raw JSON flow unchecked through the stack.
-- **RLS as the security perimeter**: Supabase Row Level Security policies handle access control at the DB level. Drizzle talks to the same Postgres instance.
+- **Server/API authorization as the security perimeter**: local `dms_session` checks and role validation are authoritative; PostgreSQL RLS is not the current runtime boundary.
 - **Co-locate schema files**: Keep Drizzle schema in `src/db/schema.ts` alongside the DB client.
 
 ### Directory Structure (Recommended)
@@ -45,8 +47,8 @@ src/
     schema.ts        # Drizzle table definitions
     index.ts         # Drizzle client instance
   lib/
-    supabase.ts      # Supabase server client factory
-    supabase-client.ts # Supabase browser client singleton
+    auth/            # local session helpers
+    storage/         # local filesystem storage helpers
   routes/
     $.tsx             # File-based TanStack Start routes
   server/
@@ -295,7 +297,9 @@ const trusted = SomeSchema.parse(internalData)
 
 ---
 
-## 5. Supabase SSR Auth Integration
+## 5. Legacy Supabase SSR Auth Integration
+
+This section is preserved for historical migration context only. Do not use it as current DMS setup guidance.
 
 ### Core Concept
 
@@ -436,7 +440,9 @@ export const getCurrentUserFn = createServerFn({ method: 'GET' }).handler(async 
 
 ---
 
-## 6. Drizzle + Supabase Patterns
+## 6. Drizzle + Legacy Supabase Patterns
+
+The current DMS runtime connects Drizzle to local PostgreSQL through `DATABASE_URL`. Supabase-specific connection examples below are historical/reference patterns.
 
 ### Connecting Drizzle to Supabase Postgres
 
@@ -780,16 +786,16 @@ const result = await db.execute(sql`SELECT * FROM users WHERE id = ${sql.placeho
 
 | Concern | Solution |
 |---|---|
-| Auth state in SSR | `@supabase/ssr` + middleware + `getUser()` |
+| Auth state in runtime | Local `dms_session` cookie checked by server/API helpers |
 | DB schema as code | Drizzle `pgTable` + `drizzle-kit generate` |
 | API input validation | `drizzle-zod` + `z.infer` |
 | Server-only secrets | `createServerFn`, never in loader |
 | Type from DB to client | `$inferSelect` / `$inferInsert` + Zod `z.infer` |
 | Migrations | `drizzle-kit generate` + review SQL + `drizzle-kit migrate` |
-| Session management | `@supabase/ssr` cookies, never localStorage for SSR |
+| Session management | Opaque local cookie sessions; never localStorage for session credentials |
 | Data access in routes | Relational API `db.query.X.findMany({ with: ... })` |
 | Optimistic UI | TanStack Query `useMutation` with `onMutate` |
-| RLS enforcement | Supabase `auth.uid()` in PostgreSQL policies |
+| Authorization enforcement | Server/API role checks against local session and local PostgreSQL |
 
 ---
 
