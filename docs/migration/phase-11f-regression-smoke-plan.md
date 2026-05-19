@@ -351,6 +351,34 @@ Phase 11F.1b follow-up:
 - Added focused route-handler coverage that verifies a valid UUID reaches the document lookup and an invalid UUID is rejected before lookup.
 - No nominal business rules, Non-Material nominal rules, RBAC predicates, response shapes, transactions, or audit logging were changed.
 
+## Phase 11F.2 Regression Follow-up
+
+Date: 2026-05-19.
+
+Human retest after Phase 11F.1/11F.1b:
+
+- Pegawai activity log is safe after the UUID guard fix.
+- PPK validation, approve, reject, validated-list, preview, and download flows passed manual retest.
+- Bendahara approval and rejection passed manual retest.
+- Laporan Saya and Laporan Kegiatan passed manual retest.
+- Arsiparis/archive/destruction and storage/file-access smoke remain unverified.
+
+Follow-up fixes:
+
+- Pegawai Revisi Dokumen list now includes the same status/current-step display pattern used by Dokumen Diajukan for revision-status documents.
+- Pegawai revisi detail `Batal` now returns to `/pegawai/revisi` instead of `/pegawai/dokumen`.
+- Activity log display now maps persisted `PPK_APPROVE` and `PPK_REJECT` audit actions to friendly labels without changing stored audit action names.
+- Phase 11F.2b tightened the Revisi Dokumen list parity further: the row/action table now follows Dokumen Diajukan's revision-row rendering pattern, and `/pegawai/revisi` disables intent preloading to avoid the TanStack Router `_nonReactive` preload race observed during manual smoke.
+
+Manual retest required:
+
+1. Open Pegawai Revisi Dokumen.
+2. Confirm the `_nonReactive` console error is gone.
+3. Confirm revision documents show status/current-step display consistently with Dokumen Diajukan.
+4. Open a revision document and click `Batal`; confirm it returns to the revisi context.
+5. Confirm PPK approve/reject logs show friendly labels.
+6. Continue Arsiparis/archive/destruction and storage/file-access smoke.
+
 ## Phase 11G Handoff
 
 Recommended next phase:
