@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. `POST /api/dokumen/submit` is locally backed for the clean local target, while remaining browser helper/UI retirement, global Supabase cleanup, release hardening, and full regression stay in Phase 11.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. `POST /api/dokumen/submit` is locally backed for the clean local target, while global Supabase helper/package/env cleanup, release hardening, and full regression stay in Phase 11.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -2911,13 +2911,73 @@ Submit/revisi/resubmit payload compatibility:
 
 Deferred browser Supabase callers after 11C.6:
 
-- Browser session/role checks outside the scoped pages, including `src/routes/admin.index.tsx` and `src/routes/pegawai/dokumen/index.tsx`.
+- Browser session/role checks outside the scoped pages, including `src/routes/admin.index.tsx` and `src/routes/pegawai/dokumen/index.tsx`. These are resolved by 11C.7 below.
 - Pegawai edit page remains out of scope for 11C.6 because it uses the already-migrated `AttachmentEditor` path and does not need additional page-level browser-read retirement in this slice.
 - `src/lib/master-data/*` Supabase-client-shaped helper deletion remains deferred cleanup, not 11C.6 runtime scope.
 - `src/lib/supabase-browser.ts` and `src/lib/supabase.ts` remain deferred helper cleanup surfaces.
 - Supabase package/env cleanup and global Supabase helper cleanup.
 
 11C.6 does not claim global browser Supabase retirement, Supabase package/env/helper cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, route generation, route tree changes, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, Playwright/E2E validation, package install/remove/update, dependency cleanup, or full regression.
+
+#### Phase 11C.7 Remaining Browser Session/Admin/Pegawai List Supabase Retirement
+
+Status: scoped runtime/docs migration complete as of 2026-05-19 for `src/routes/admin.index.tsx` and `src/routes/pegawai/dokumen/index.tsx`.
+
+Changed runtime/docs surface:
+
+- `src/routes/admin.index.tsx` no longer imports `getBrowserClient()` and no longer calls browser `supabase.auth.getSession()` or reads `user_roles` through `supabase.from(...)`.
+- `src/routes/pegawai/dokumen/index.tsx` no longer imports `getBrowserClient()` and no longer calls browser `supabase.auth.getSession()` before loading the existing document list API.
+- No API route, route tree, package/env, database migration/seed/script, helper deletion, workflow/FSM, archive lifecycle, storage movement/delete, submit/revisi/resubmit, admin/master-data, role dashboard/list, `AttachmentEditor`, `KelengkapanChecklist`, `HierarchicalFilter`, or file upload/preview/download behavior changed in 11C.7.
+
+Local APIs used:
+
+- Admin dashboard auth check now uses existing `GET /api/auth/session` through `apiFetch`.
+- Pegawai dokumen list session precheck now uses existing `GET /api/auth/session` through `apiFetch`.
+- Pegawai dokumen list data continues to use existing `GET /api/dokumen` through `apiFetch`.
+
+Current behavior inventory:
+
+- Admin dashboard previously used browser Supabase for session lookup and `user_roles` role lookup only. It rendered the existing static/dashboard content immediately while the client-side check ran, redirected missing session to `/login`, and redirected missing `ADMIN` assigned role to `/forbidden`.
+- Pegawai dokumen list previously used browser Supabase only as a session existence precheck. List data already came from `GET /api/dokumen`.
+- Pegawai dokumen list loading/error/empty behavior remains page-local: spinner while loading, error panel with retry on failure, and empty-state copy that distinguishes no documents from filtered results.
+- Pegawai dokumen rows/cards remain table rows with `judul`, `fungsi_nama`, `kegiatan_nama`, `tahun`, status badge, current-step badge, formatted `tanggal`, and an action icon.
+- Pegawai dokumen list keeps search across `judul`, `fungsi_nama`, and `kegiatan_nama`; status filtering; URL `status` query sync; page size `10`; client-side pagination; and existing create/detail/revisi links.
+
+Admin dashboard auth/redirect compatibility:
+
+- Missing local session from `GET /api/auth/session` still redirects to `/login`.
+- Any session fetch failure redirects to `/login`, matching the conservative legacy failure direction.
+- Missing assigned `ADMIN` role redirects to `/forbidden`.
+- The check uses assigned roles from the server session response and does not trust `dms_active_role` as authorization proof.
+- Dashboard UI remains `DashboardShell role="ADMIN"` plus `StatsBento role="ADMIN"`; no aggregation or new admin data read was added.
+
+Pegawai dokumen list response mapping and compatibility:
+
+- The list still expects the existing `{ dokumen }` wrapper from `GET /api/dokumen`.
+- The current page uses `id`, `judul`, `fungsi_nama`, `kegiatan_nama`, `tahun`, `status`, `current_step`, `revision_target`, and `tanggal`.
+- The existing local API response also includes document metadata such as `fungsi_id`, `kegiatan_jenis_id`, `is_ketua_tim`, `revision_notes`, `lampiran_urls`, `created_by`, `nominal_realisasi`, `is_non_material`, `jenis_dokumen_id`, `keterangan_detail`, `created_at`, `updated_at`, and optional name fields where selected by the route/parser. No new server response contract was added.
+- Sorting remains the existing server order from `GET /api/dokumen`: owner-scoped rows ordered by `created_at` descending. Client-side filtering and pagination preserve that order.
+- Status labels remain page-local for `DRAFT`, `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, `NEED_REVISION`, `COMPLETED`, and `ARCHIVED`; unknown statuses fall back to the raw status string. The page did not previously include a special `TERSIMPAN` label in this filter/badge table, so 11C.7 does not add one.
+- The revision action condition remains `status === 'NEED_REVISION' && revision_target === 'USER'`; other rows link to detail.
+
+Auth/RBAC/server-authority review:
+
+- Admin dashboard's client check is presentational; server/API boundaries remain the authority.
+- Pegawai document ownership and role scope remain enforced by `GET /api/dokumen`, which uses local `dms_session`, requires assigned `PEGAWAI`, and filters by `created_by=session.user.id`.
+- `dms_active_role` remains UX state only and is not used as authorization proof in either migrated page.
+
+Workflow/FSM/archive/storage preservation:
+
+- No document status transition, FSM action, archive lifecycle, document delete, submit/revisi/resubmit, nominal, storage movement/delete, preview/download, or old Supabase file/data migration behavior changed.
+- No Supabase fallback was added.
+
+Remaining browser Supabase/helper matches after 11C.7:
+
+- `src/lib/supabase-browser.ts` and `src/lib/supabase.ts` remain helper/export surfaces for 11D/11E cleanup and were not modified.
+- `src/lib/auth.ts`, `src/lib/dokumen/queries.ts`, `src/lib/dokumen/mutations.ts`, `src/lib/dokumen/storage.ts`, `src/lib/user-helpers.ts`, and selected server routes may still contain Supabase server/helper usage already classified for 11D or later server/helper retirement. These are not active browser UI imports in the 11C scoped pages.
+- Phase 11C runtime retirement here means active browser runtime callers only. It does not claim Supabase package/env/helper cleanup or old Supabase Auth/Storage data/file recovery.
+
+11C.7 does not claim Supabase package/env/helper cleanup, old Supabase Auth or Storage data/file migration/copy/download/backfill/sync/recovery, route generation, route tree changes, DB migration/seed/script changes, broad tests, build/typecheck, dev server validation, Playwright/E2E validation, package install/remove/update, dependency cleanup, or full regression.
 
 Runtime/docs scope:
 
