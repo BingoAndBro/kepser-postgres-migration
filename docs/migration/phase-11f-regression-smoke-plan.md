@@ -464,6 +464,90 @@ Phase 11F.4a should:
 - Preserve package/env/routeTree/DB guardrails unless the human explicitly approves a scoped package or build-config fix.
 - After preview works, rerun production-like smoke and then reassess the long-session performance concern.
 
+## Phase 11F.4a Production Preview Runtime Blocker: pg-native Optional Dependency Resolution
+
+Date: 2026-05-19.
+
+Status: targeted `pg-native` blocker fix implemented. Full production-preview UI validation is not complete because a separate page-render blocker is now visible.
+
+Original blocker:
+
+- `pnpm build` passed, but `pnpm preview` failed at runtime with `Error: Could not resolve "pg-native" imported by "pg". Is it installed?`
+- The failure came from `.output/server/_libs/pg.mjs` before the app could be meaningfully exercised in production-like preview.
+
+Root cause:
+
+- The app uses `src/db/client.ts` with `Pool` from `pg` and Drizzle's `drizzle-orm/node-postgres` adapter.
+- Upstream `pg` declares `pg-native` as an optional peer dependency and normally loads it only through the native branch (`pg.native` or `NODE_PG_FORCE_NATIVE`).
+- Nitro/Rollup bundled `pg` into `.output/server/_libs/pg.mjs`; Vite converted the unresolved optional peer into an eager generated throw. That made a lazy optional dependency path fail during server module evaluation.
+
+Fix:
+
+- Updated `vite.config.ts` to externalize only `pg-native` in Nitro's server Rollup config.
+- This preserves the normal JavaScript `pg` client path and leaves the optional native require inside `pg`'s native branch instead of installing or bundling `pg-native`.
+- No DB connection semantics, Drizzle schema, queries, migrations, seeds, scripts, package files, env files, route generation, or Supabase fallback behavior were changed.
+
+Validation:
+
+- `pnpm build`: PASS.
+- Built output inspection: PASS. `.output/server/_libs/pg.mjs` no longer contains Vite's generated `Could not resolve "pg-native"` throw; the optional native branch remains as `require("pg-native")`.
+- `pnpm preview`: PASS for the original blocker. Preview started without the `pg-native` crash. Port `3000` was already in use, so preview selected `http://localhost:3001/`.
+- DB-backed route sanity: PASS. `GET /api/master-fungsi` returned `200` from preview and exercised the local PostgreSQL/Drizzle path.
+- Root page probe: FAIL with a separate runtime error, `jsxDevRuntimeExports.jsxDEV is not a function`, from the built `RootDocument`. This is not the `pg-native` optional dependency failure and should be handled as a separate production-preview UI blocker before claiming full preview smoke or performance audit completion.
+
+Current verdict:
+
+- `11F3-001` is fixed for the `pg-native` optional dependency resolution blocker.
+- Production-like preview is still not fully usable for UI smoke because of the separate JSX dev-runtime page-render failure.
+- Long-session performance audit remains blocked until the new preview UI blocker is resolved and UI routes can be exercised in preview.
+
+Recommended next phase:
+
+```text
+Phase 11F.4b  Production Preview UI Runtime Blocker: JSX Dev Runtime In SSR Output
+```
+
+## Phase 11F.4b Production Preview Runtime Blocker: jsxDEV RootDocument Failure
+
+Date: 2026-05-19.
+
+Status: targeted preview UI runtime fix implemented. Long-session performance audit is still not complete; preview is now unblocked for the next validation slice.
+
+Blocker:
+
+- After Phase 11F.4a fixed the `pg-native` crash, `pnpm preview` could start but `GET /` returned `500`.
+- Runtime error: `jsxDevRuntimeExports.jsxDEV is not a function`.
+- The failure surfaced from built `RootDocument` in the server SSR output.
+
+Root cause:
+
+- The production SSR build emitted JSX as `jsxDEV(...)` calls while the bundled production React dev-runtime exposed `jsxDEV` as `undefined`.
+- The error was not caused by the `pg-native` externalization. The `pg-native` fix remained necessary and the built output still only leaves `require("pg-native")` in `pg`'s optional native branch.
+- Devtools code was removed by `@tanstack/devtools-vite` during build, so the runtime failure was a JSX transform mismatch rather than active TanStack Devtools UI remaining in `RootDocument`.
+
+Fix:
+
+- Added explicit Vite `esbuild.jsxDev: false` so production client/SSR builds emit `jsx/jsxs` from `react/jsx-runtime` instead of `jsxDEV`.
+- Kept the Phase 11F.4a Nitro externalization for `pg-native`.
+- No app routes, DB connection semantics, Drizzle schema, queries, migrations, seeds, scripts, package files, env files, route generation, or Supabase fallback behavior were changed.
+
+Validation:
+
+- `pnpm build`: PASS.
+- Built output inspection: PASS. Server SSR chunks now import `jsxRuntimeExports` and use `jsx/jsxs`; no `jsxDEV` references remain in server SSR chunks.
+- `pnpm preview`: PASS on fixed port `http://localhost:3017/` for validation.
+- `GET /`: PASS, returned `200`.
+- `GET /api/master-fungsi`: PASS, returned `200` and confirmed local PostgreSQL/Drizzle still works in preview.
+- `pg-native` crash did not reappear.
+- `jsxDEV` crash did not reappear.
+
+Current verdict:
+
+- The Phase 11F.4a `pg-native` runtime blocker remains fixed.
+- The Phase 11F.4b `jsxDEV` RootDocument blocker is fixed.
+- Production-like preview can now be used for follow-up smoke and long-session performance validation.
+- Do not claim long-session performance audit is complete until that follow-up validation is actually executed.
+
 ## Phase 11G Handoff
 
 Deferred next phase after 11F blockers are resolved:

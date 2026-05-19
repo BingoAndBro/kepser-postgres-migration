@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence, but Phase 11F is not complete because `pnpm preview` fails at runtime on unresolved `pg-native` imported by `pg`. Next target is Phase 11F.4a before Phase 11G.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F still needs follow-up production-like smoke and long-session performance validation before Phase 11G.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -3888,7 +3888,7 @@ Known expected limitations:
 Release-hardening handoff:
 
 - Earlier Phase 11F planning expected `Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening` after regression execution.
-- Phase 11F.3 found a production preview runtime blocker, so Phase 11G is deferred until Phase 11F.4a resolves preview and follow-up validation confirms production-like runtime behavior.
+- Phase 11F.3 found a production preview runtime blocker. Phase 11F.4a resolved the `pg-native` optional dependency crash and Phase 11F.4b resolved the separate preview UI JSX runtime blocker, but Phase 11G remains deferred until follow-up production-like smoke and long-session performance validation is recorded.
 - Final readiness gate remains `Phase 11H  Final Release Decision Or Production Readiness Gate`, controlled by the human after regression, backup/restore, LAN, and security-hardening evidence exists.
 
 11F lightweight audit result:
@@ -3961,6 +3961,59 @@ Remaining backlog:
 - P2: guard dev log mentioning ARSIPARIS for PEGAWAI+PPK user.
 - P2: `aria-hidden` accessibility warning in Admin Master User.
 - P3: `/pegawai/dokumen` versus `/pegawai/inbox` route naming cleanup.
+
+### Phase 11F.4a: Production Preview Runtime Blocker - pg-native Optional Dependency Resolution
+
+Date: 2026-05-19.
+
+Status: targeted runtime fix complete for the original `pg-native` blocker. Phase 11F remains open because preview UI rendering now fails on a separate JSX dev-runtime issue.
+
+Fix summary:
+
+- Externalized only `pg-native` in the Nitro server Rollup config.
+- Preserved local PostgreSQL/Drizzle runtime through `pg`'s normal JavaScript client path.
+- Did not install `pg-native`, change packages, change env files, change DB schema/migrations/seeds/scripts, reintroduce Supabase, regenerate routes, or change DB query semantics.
+
+Validation evidence:
+
+- `pnpm build` passed.
+- Built server output no longer contains Vite's generated `Could not resolve "pg-native"` throw.
+- `pnpm preview` started without the `pg-native` crash. Port `3000` was occupied, so preview selected `http://localhost:3001/`.
+- `GET /api/master-fungsi` returned `200` in preview and exercised the local PostgreSQL/Drizzle path.
+- `GET /` returned `500` with `jsxDevRuntimeExports.jsxDEV is not a function` from built `RootDocument`; this is tracked as the next production-preview blocker.
+
+Next phase:
+
+```text
+Phase 11F.4b  Production Preview UI Runtime Blocker: JSX Dev Runtime In SSR Output
+```
+
+### Phase 11F.4b: Production Preview UI Runtime Blocker - JSX Dev Runtime In SSR Output
+
+Date: 2026-05-19.
+
+Status: targeted runtime fix complete for the `jsxDEV` RootDocument blocker. Phase 11F remains open for follow-up production-like smoke and long-session performance validation.
+
+Fix summary:
+
+- Forced the Vite esbuild JSX transform to emit production JSX runtime calls with `esbuild.jsxDev: false`.
+- Kept the Phase 11F.4a `pg-native` Nitro externalization unchanged.
+- Did not install packages, change DB connection semantics, change route registration, modify `src/routeTree.gen.ts`, edit env files, or reintroduce Supabase runtime behavior.
+
+Validation evidence:
+
+- `pnpm build` passed.
+- Built SSR chunks no longer contain `jsxDEV`, `jsxDevRuntimeExports`, or `react/jsx-dev-runtime` references.
+- `pnpm preview` started on fixed validation port `http://localhost:3017/`.
+- `GET /` returned `200`.
+- `GET /api/master-fungsi` returned `200`, confirming local PostgreSQL/Drizzle still works in preview.
+- The prior `pg-native` crash did not return.
+
+Next phase:
+
+```text
+Phase 11F.4c  Production Preview Follow-up Smoke And Long-Session Performance Validation
+```
 
 ### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening
 
