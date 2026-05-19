@@ -3705,6 +3705,108 @@ Remaining Supabase references by category:
 - Protected diffs confirmed no changes to `.env`, `.env.migration`, `package.json`, `pnpm-lock.yaml`, `src/routeTree.gen.ts`, `db`, `drizzle`, or `supabase`.
 - No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
 
+#### Phase 11E.4: Final Package/Env/Global Audit And Regression Handoff
+
+Date: 2026-05-19.
+
+Status: final audit and regression handoff complete. Phase 11E is complete for verified active source/runtime/package/env-constant Supabase retirement only. This does not mean every historical Supabase mention was removed.
+
+Scope:
+
+- Ran lightweight git/grep audits only.
+- Updated this phase plan and the migration roadmap handoff status.
+- Did not modify runtime source, tests, package files, lockfile, env files, route tree, DB files, Drizzle files, Supabase folder, migrations, seeds, scripts, or old Supabase data/files.
+- Did not run heavy validation, package commands, DB scripts, migrations, seeds, route generation, dev server, full typecheck, Playwright/E2E, build, broad tests, dependency cleanup, or commit.
+
+Final audit result:
+
+- `git status --short --branch` showed branch `migration/postgres-local` with no tracked changes before the docs update. Git also emitted warnings about inability to access the user-level ignore file at `C:\Users\BingoAndBro/.config/git/ignore`; this did not block the audit.
+- `git diff --check` passed before the docs update.
+- `git diff --name-only` returned no files before the docs update.
+- Source/package Supabase package grep over `src`, `tests`, `package.json`, and `pnpm-lock.yaml` returned no matches for `@supabase/ssr`, `@supabase/supabase-js`, or `@supabase`.
+- Source/test Supabase runtime grep returned no matches for the audited client/helper/runtime patterns: `createServerSupabaseClient`, `createAdminClient`, `getBrowserClient`, `createBrowserClient`, `supabase.auth`, `auth.admin`, `supabase.from`, `supabase.storage`, `storage.from`, and `SupabaseClient`.
+- Source/test legacy import grep returned no matches for the audited old Supabase helper import paths, `#/lib/auth`, `@/lib/auth`, `#/lib/user-helpers`, or `@/lib/user-helpers`.
+- Source/test Supabase env constant/name grep returned no matches for `ENV_KEYS.SUPABASE*`, `ENV_KEYS.VITE_SUPABASE*`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, or `VITE_SUPABASE_ANON_KEY`.
+- `pnpm-lock.yaml` inspection found no Supabase package match.
+- Absence of grep/runtime matches is strong evidence for the audited patterns, not absolute proof against indirect runtime/config-driven loading patterns.
+
+Remaining Supabase references by category:
+
+| Category | Evidence | Classification / handling |
+|---|---|---|
+| Active source/runtime blocker | Required source/runtime greps over `src` and `tests` returned no matches. | No blocker found. |
+| Package/lockfile blocker | Required package grep over `package.json` and `pnpm-lock.yaml` returned no matches; lockfile inspection found no Supabase package match. | No blocker found. |
+| Source env constant blocker | Required env-key grep over `src` and `tests` returned no matches; `src/lib/constants/env.ts` now contains only `NODE_ENV`. | No blocker found. |
+| Env file variable names requiring human cleanup only | Variable-name-only inspection found `.env` still contains `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY`. Values were not printed. | Human-controlled cleanup only; do not delete `.env` and do not overwrite it from `.env.migration`. |
+| Docs current-runtime wording blocker | Required docs grep still finds Supabase env names in current best-practice docs, but those sections are explicitly marked legacy/pre-migration reference after 11E.3. `README.md` and `SETUP.md` did not appear in the Supabase env-name grep output. | No current-runtime wording blocker found by this audit. |
+| Docs historical/migration reference to preserve | `docs/migration/*`, `docs/specs/*`, `docs/migration/supabase-audit.md`, older phase notes, and legacy examples retain Supabase references. | Preserve as migration history/reference unless a future docs-hygiene phase explicitly scopes removal. |
+| No match | Active source/runtime package imports, runtime client calls, Supabase source env constants, and package/lockfile dependencies. | Cleanup complete for Phase 11E's active package/env/source target. |
+| Blocker/unclear | None found by the required lightweight audit. | No narrow 11E.x follow-up is recommended before regression. |
+
+Local runtime/env preservation audit:
+
+- Local runtime env names remain present in source/docs where expected: `DATABASE_URL`, `NODE_ENV`, `DMS_FILE_TOKEN_SECRET`, `DMS_LOCAL_STORAGE_ROOT`, `DMS_DEV_SEED_PASSWORD`, and `DMS_DEV_SEED_PASSWORD_HASH`.
+- Variable-name-only inspection found `.env.migration` contains local runtime/reference names: `APP_URL`, `DATABASE_URL`, `DMS_DEV_SEED_PASSWORD_HASH`, `FILE_SIGNING_SECRET`, `HOST`, `PORT`, `SESSION_SECRET`, `STORAGE_ROOT`, `USE_LOCAL_AUTH`, `USE_LOCAL_STORAGE`, and `USE_POSTGRES`.
+- `.env` and `.env.migration` were not modified and remain human-controlled.
+- No env values, secrets, tokens, database URLs, storage roots, hashes, cookie/session secrets, service keys, or real credentials were printed.
+
+Critical runtime surface audit:
+
+- Auth/user-management surfaces are registered in source and remain local-session oriented by the audited references: `/api/auth/login`, `/api/auth/logout`, `/api/auth/session`, `/api/auth/role-switch`, `/api/users/me`, `/api/users/$id/reset-password`, and `/api/users/me/change-password`.
+- Storage/document surfaces are registered in source and should be included in regression: `/api/dokumen/submit`, `/api/dokumen/rename-pending`, `/api/dokumen/$id/nominal`, `/api/files/access`, `/api/upload`, `/api/dokumen/preview-url`, and `/api/dokumen/download-url`.
+- `getLocalServerSession`, `hasLocalRole`, `dms_session`, and `dms_active_role` appear broadly across API routes and migration docs, consistent with the local runtime target.
+- This audit does not prove behavior correctness because manual smoke, unit tests, build, typecheck, and E2E were intentionally not run.
+
+Phase 11E completion verdict:
+
+- Complete for active source/runtime/package/env-constant Supabase cleanup verified by the required lightweight audits.
+- Not a claim that all historical Supabase mentions were removed.
+- Not a claim that `.env` human-local Supabase variable names have been cleaned.
+- Not a regression pass.
+- Not old Supabase data/file migration, copy, download, backfill, sync, or recovery.
+
+Recommended next phase:
+
+```text
+Phase 11F  Full Regression, Smoke Validation, And Release Hardening Planning
+```
+
+If regression execution and release-hardening planning diverge materially in operational risk, split Phase 11F into a regression/smoke execution slice first and keep backup/restore/LAN/security hardening in Phase 11G.
+
+Manual validation checklist for Phase 11F/human review:
+
+- `pnpm test`
+- optional `pnpm build`
+- login/logout/session reload
+- role switch
+- admin user list/create/edit/status/password reset
+- self change password
+- Pegawai submit Material and Non-Material
+- Pegawai edit/revisi
+- PPK approve/reject/kembalikan/resubmit
+- Bendahara approve/reject
+- Arsiparis archive/destruction
+- preview/download/file access
+- `DIMUSNAHKAN` stale-token block
+- upload/rename-pending/cancel cleanup
+- storage diagnostics/orphan cleanup if still available
+
+Manual audit commands for human after review:
+
+```powershell
+pnpm test
+pnpm build
+git grep -n "@supabase\|createServerSupabaseClient\|createAdminClient\|getBrowserClient\|createBrowserClient\|supabase\.auth\|auth.admin\|supabase\.from\|supabase\.storage\|storage\.from\|SupabaseClient" -- src tests package.json pnpm-lock.yaml
+git grep -n "ENV_KEYS\.SUPABASE\|ENV_KEYS\.VITE_SUPABASE\|SUPABASE_URL\|SUPABASE_ANON_KEY\|SUPABASE_SERVICE_ROLE_KEY\|VITE_SUPABASE_URL\|VITE_SUPABASE_ANON_KEY" -- src tests
+```
+
+11E.4 validation notes:
+
+- Lightweight validation only was used.
+- Protected pre-edit diffs confirmed no changes under `src`, `tests`, `package.json`, `pnpm-lock.yaml`, `src/routeTree.gen.ts`, `db`, `drizzle`, or `supabase`.
+- `.env`/`.env.migration` diff was checked without printing content; no diff was present.
+- No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
+
 ### Phase 11F: Full Regression And Manual Smoke Validation
 
 Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.

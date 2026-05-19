@@ -473,7 +473,8 @@ Goal: Confirm compatibility and prepare the local/LAN release.
 
 Current status:
 
-- Phase 11D.4 completed the post-retirement audit on 2026-05-19. Phase 11E.1 completed package/env cleanup planning, Phase 11E.2 removed `@supabase/ssr` and `@supabase/supabase-js` from package files, and Phase 11E.3 removed unused Supabase env constants from source plus narrowed current-runtime docs wording toward local PostgreSQL, local `dms_session` auth, and local filesystem storage. `.env`/`.env.migration` remain human-controlled and old Supabase data/file migration remains out of scope. Final audit/regression remains deferred to Phase 11E.4/11F.
+- Phase 11D.4 completed the post-retirement audit on 2026-05-19. Phase 11E.1 completed package/env cleanup planning, Phase 11E.2 removed `@supabase/ssr` and `@supabase/supabase-js` from package files, Phase 11E.3 removed unused Supabase env constants from source plus narrowed current-runtime docs wording toward local PostgreSQL, local `dms_session` auth, and local filesystem storage, and Phase 11E.4 completed the final lightweight package/env/global audit and regression handoff. Phase 11E is complete for verified active source/runtime/package/env-constant Supabase retirement only. `.env`/`.env.migration` remain human-controlled, historical Supabase docs/spec references are preserved, and old Supabase data/file migration remains out of scope.
+- Next target: Phase 11F Full Regression, Smoke Validation, And Release Hardening Planning. If regression execution and release-hardening planning diverge materially in operational scope/risk, split regression/smoke validation before backup/restore/LAN/security hardening.
 
 Allowed scope:
 
