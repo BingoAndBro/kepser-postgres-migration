@@ -3607,6 +3607,57 @@ Recommended 11E sequence:
 - Protected diffs for `src`, `tests`, `src/routeTree.gen.ts`, `package.json`, `pnpm-lock.yaml`, `.env`, `.env.migration`, `db`, `drizzle`, and `supabase` showed no changes at audit time. The env diff check was guarded to avoid printing sensitive values.
 - No tests, build, full typecheck, dev server, DB scripts, migrations, seeds, route generation, package install/remove/update, dependency cleanup, Playwright/E2E, or commit was run.
 
+#### Phase 11E.2: Remove Supabase Package Dependencies
+
+Date: 2026-05-19.
+
+Status: package dependency cleanup complete for the approved package slice only. Phase 11E is not complete.
+
+Scope:
+
+- Removed only `@supabase/ssr` and `@supabase/supabase-js` from package dependencies.
+- Updated `pnpm-lock.yaml` through `pnpm remove` so the removed package subtree and now-unused transitive blocks were pruned.
+- Updated this phase-plan status note.
+- No source runtime, test, route tree, env, DB, drizzle, migration, seed, script, supabase-folder, old Supabase data/file migration, copy, download, backfill, sync, recovery, broad dependency upgrade, broad validation, or commit was performed.
+
+Fresh pre-removal audit result:
+
+- `git grep -n "@supabase/ssr\|@supabase/supabase-js" -- src tests package.json pnpm-lock.yaml` found matches only in `package.json` and `pnpm-lock.yaml`.
+- `git grep -n "createServerSupabaseClient\|createAdminClient\|getBrowserClient\|createBrowserClient\|supabase\.auth\|auth.admin\|supabase\.from\|supabase\.storage\|storage\.from\|SupabaseClient" -- src tests` returned no matches.
+- `git grep -n "from '#/lib/supabase'\|from '@/lib/supabase'\|from '#/lib/supabase-browser'\|from '@/lib/supabase-browser'\|from '#/lib/supabase-server'\|from '@/lib/supabase-server'\|from '#/lib/supabase-admin'\|from '@/lib/supabase-admin'\|from '#/lib/auth'\|from '@/lib/auth'\|from '#/lib/user-helpers'\|from '@/lib/user-helpers'" -- src tests` returned no matches.
+- `git grep -n "@supabase" -- package.json pnpm-lock.yaml` showed only the direct package entries plus lockfile Supabase package/transitive blocks before removal.
+- No active `src` or `tests` dependency blocker was found before package removal.
+
+Package command:
+
+- Initial `pnpm remove @supabase/ssr @supabase/supabase-js` failed before changing tracked files because pnpm detected an existing `node_modules` store at `D:\.pnpm-store\v10` while current config wanted a workspace-local store.
+- Successful command used: `pnpm remove @supabase/ssr @supabase/supabase-js --store-dir D:\.pnpm-store`.
+- The successful command reported zero downloads and removed the two direct dependencies from the dependency manifest.
+
+Package and lockfile diff scope:
+
+- `package.json` removed only the two dependency entries: `@supabase/ssr` and `@supabase/supabase-js`.
+- `pnpm-lock.yaml` removed only the root importer entries for those two packages and pruned the now-unused Supabase package subtree: `@supabase/auth-js`, `@supabase/functions-js`, `@supabase/phoenix`, `@supabase/postgrest-js`, `@supabase/realtime-js`, `@supabase/storage-js`, `@supabase/ssr`, and `@supabase/supabase-js`.
+- `pnpm-lock.yaml` also pruned now-unused transitive blocks tied to that subtree: `cookie`, `iceberg-js`, and `@types/ws`.
+- No package scripts changed and no unrelated dependency upgrade was made.
+
+Deferred cleanup:
+
+- Supabase env cleanup remains deferred to Phase 11E.3.
+- `.env` and `.env.migration` were not modified and must remain human-controlled.
+- `src/lib/constants/env.ts` still contains Supabase env constants and remains deferred to Phase 11E.3.
+- Remaining Supabase env/constants/docs references after 11E.2 are expected only as deferred cleanup or historical/status documentation; they are not treated as proof of an active package dependency by this slice.
+
+11E.2 validation notes:
+
+- Lightweight validation only was used.
+- Post-removal `git grep -n "@supabase/ssr\|@supabase/supabase-js" -- src tests package.json pnpm-lock.yaml` returned no matches.
+- Post-removal source/test runtime grep returned no matches.
+- Post-removal env/docs grep still found `SUPABASE_*`, `VITE_SUPABASE_*`, and `SUPABASE` references in `src/lib/constants/env.ts` and migration phase-plan text; these are deferred to 11E.3 or retained as migration history/status notes.
+- `git diff --check` passed.
+- Protected diffs confirmed no changes under `src`, `tests`, `src/routeTree.gen.ts`, `.env`, `.env.migration`, `db`, `drizzle`, or `supabase`.
+- No `pnpm build`, broad `pnpm test`, full typecheck, dev server, DB scripts, migrations, seeds, route generation, dependency upgrades, `pnpm update`, Playwright/E2E, or commit was run.
+
 ### Phase 11F: Full Regression And Manual Smoke Validation
 
 Goal: validate the local PostgreSQL/auth/storage app end to end before release hardening.
