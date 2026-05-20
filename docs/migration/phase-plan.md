@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag. Phase 11F.5 now plans the remaining post-smoke stabilization backlog before 11G, with 11F.5a as the recommended next phase unless the human explicitly accepts the remaining backlog and proceeds to 11G.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -4042,6 +4042,299 @@ Audit classification:
 - Phase 11G is allowed after this bounded audit if the human accepts the pending manual browser checks.
 - Phase 11G must stop and open `Phase 11F.4d Targeted Preview Performance Fix` if later authenticated preview smoke shows API calls continuing while idle, unbounded heap/listener/DOM growth, or severe preview navigation lag.
 - Final go-live remains human-controlled after 11G/11H evidence.
+
+### Phase 11F.5: Post-Smoke Stabilization Planning
+
+Date: 2026-05-20.
+
+Status: planning/docs-only phase. No runtime bugs are fixed by this section, and Phase 11G is not complete.
+
+Goal: split the remaining human-smoke and Lighthouse findings into safe stabilization subphases before LAN/operations hardening, while keeping final LAN deployment and release authority human-controlled.
+
+Severity classification:
+
+- P1 before LAN if the human wants fewer visible bugs: logout UI stuck loading after logout returns 200; password-change success should auto logout while preserving session invalidation integrity; Master Klasifikasi second-child save loading; Master Kelengkapan duplicate validation for ketua-tim kelengkapan in the same leaf node; Ajukan/Revisi additional kelengkapan duplicate validation; Admin `/pegawai/dokumen` page-level 403 UX if the human wants consistent forbidden navigation before LAN.
+- P2 polish before final release: Kategori Permintaan filter layout parity with Master Kegiatan; Kategori add-form parent prefill from active filter; Detail Permintaan matching filter/prefill consistency; guard dev log mentioning ARSIPARIS for a PEGAWAI+PPK user; narrow accessibility fixes; Admin Lighthouse TBT around 430ms unless severe preview lag is reproduced.
+- P3 future cleanup: route naming/redesign for `/pegawai/dokumen` versus `/pegawai/inbox`.
+
+Global guardrails:
+
+- Do not add new product features before 11H, or at least before a human 11G/11H decision explicitly accepts new feature scope.
+- Do not rename or redesign `/pegawai/dokumen` into `/pegawai/inbox` in this stabilization sequence.
+- Do not broaden RBAC visibility merely to avoid visible 403 fetch behavior; the server remains the authority.
+- Do not weaken password-change or logout session invalidation guarantees.
+- Prefer narrow semantic, ARIA, contrast, heading, label, and focus fixes for accessibility; do not use Lighthouse findings as a reason for broad UI redesign.
+- Prefer narrow duplicate-validation parity with existing business rules; do not introduce a generalized validation-framework expansion.
+- Treat preview performance as not currently blocking 11G based on 11F.4c. Admin TBT and duplicate fetches remain optimization backlog unless authenticated preview smoke proves severe lag, idle API loops, or unbounded heap/listener/DOM growth.
+- `.env` and `.env.migration` remain human-controlled and must not be modified, printed, or committed.
+
+#### Phase 11F.5a: Logout UI Loading And Password Change Auto Logout
+
+Goal: fix auth UX after logout and successful self password change while preserving local `dms_session` invalidation integrity.
+
+Allowed scope:
+
+- Inspect and update only the logout UI state transition, auth-state cleanup, login/profile/change-password client handling, and existing auth API response handling if required.
+- Keep existing endpoint paths, request shapes, response shapes, and local session semantics.
+
+Non-goals:
+
+- No auth model redesign, remember-me redesign, password policy feature work, rate-limit work, package/env changes, DB schema changes, or route generation.
+
+Primary files to inspect:
+
+- `src/components/layout/AppLayout.tsx`
+- `src/lib/auth-state.ts`
+- profile/change-password UI route or component
+- `src/routes/api/auth/logout.ts`
+- current self-service change-password route/API files
+
+Validation gates:
+
+- Logout returns the user to unauthenticated UI and does not leave a persistent loading state after the network request returns 200.
+- Successful self password change revokes the current session and forces reauthentication or a clean login redirect.
+- A request requiring auth fails after successful password change until the user logs in again.
+- Failed password change does not log the user out.
+
+Manual smoke checklist:
+
+- Login as a normal local user, logout, and confirm the UI leaves loading state.
+- Login again, change password successfully, and confirm the user is forced out of the authenticated session.
+- Try browser reload and an authenticated API/page after password change; confirm reauth is required.
+- Verify invalid change-password input keeps the session and shows a safe error.
+
+What must not be changed:
+
+- DB schema, migrations, seeds, packages, env files, route tree, Supabase folders, unrelated auth flows, role model, or session-token storage guarantees.
+
+#### Phase 11F.5b: Master Klasifikasi Save Loading Fix
+
+Goal: fix the Master Klasifikasi path where adding another child can leave the `Simpan` button loading forever.
+
+Allowed scope:
+
+- Narrow Arsiparis classification UI save-state handling and existing classification API error/success handling.
+- Add focused validation only if needed to preserve current tree/classification behavior.
+
+Non-goals:
+
+- No archive lifecycle redesign, tree schema rewrite, route rename, storage behavior, or lifecycle status changes.
+
+Primary files to inspect:
+
+- Arsiparis klasifikasi UI route/component files.
+- `/api/arsiparis/klasifikasi/*` route files.
+- Shared form/button components only if the loading state is delegated there.
+
+Validation gates:
+
+- Adding the first child succeeds.
+- Adding a second child or sibling succeeds or fails with visible feedback, but the `Simpan` button always exits loading.
+- Duplicate/error paths clear loading state without corrupting the tree.
+
+Manual smoke checklist:
+
+- Add a root/child classification.
+- Add another child under the same parent.
+- Try a duplicate or otherwise invalid classification if the UI permits it.
+- Reload the page and confirm the tree remains consistent.
+
+What must not be changed:
+
+- Archive document lifecycle, `arsip` transaction behavior, DB migrations/seeds, storage/file access, package/env files, route tree, or Supabase folders.
+
+#### Phase 11F.5c: Kelengkapan Duplicate Validation
+
+Goal: add duplicate prevention for Master Kelengkapan and Ajukan/Revisi additional kelengkapan where duplicates violate existing business expectations.
+
+Allowed scope:
+
+- Narrow UI and server/API validation for duplicate kelengkapan ketua tim in the same leaf node.
+- Narrow UI and server/API validation for duplicate additional kelengkapan in Ajukan/Revisi when feasible without changing the document payload contract.
+- Use existing Zod/boundary patterns where the affected route already validates input.
+
+Non-goals:
+
+- No generalized validation framework, DB unique-index migration, broad form rewrite, request/response shape redesign, or workflow behavior change.
+
+Primary files to inspect:
+
+- Admin Master Kelengkapan page and `/api/master-kelengkapan*`.
+- Pegawai Ajukan/Revisi document form components.
+- Submit/revisi API validation schemas and helpers.
+
+Validation gates:
+
+- Duplicate ketua-tim kelengkapan in the same leaf is rejected with a clear error.
+- Valid same-name or similar kelengkapan in a different allowed scope remains accepted if current business rules allow it.
+- Duplicate additional kelengkapan in Ajukan/Revisi is prevented before or at submit.
+- Existing valid submit/revisi flows remain compatible.
+
+Manual smoke checklist:
+
+- Attempt duplicate Master Kelengkapan in the same leaf.
+- Attempt valid non-duplicate Master Kelengkapan.
+- Attempt duplicate additional kelengkapan in Ajukan and Revisi.
+- Submit a valid material document after validation changes.
+
+What must not be changed:
+
+- DB schema/migrations, global validation architecture, route names, workflow statuses, audit-log behavior, package/env files, route tree, or Supabase folders.
+
+#### Phase 11F.5d: Kategori/Detail Master Data Consistency
+
+Goal: make Kategori Permintaan and Detail Permintaan filter layout and add-form parent prefill consistent with Master Kegiatan.
+
+Allowed scope:
+
+- UI-only layout and form-state consistency for Kategori and Detail master-data pages.
+- Prefill parent fields from the active filter where that mirrors Master Kegiatan behavior.
+
+Non-goals:
+
+- No API rewrite, DB schema changes, master-data hierarchy redesign, route rename, or broad admin UI redesign.
+
+Primary files to inspect:
+
+- `src/routes/admin.master-data.kegiatan.tsx`
+- `src/routes/admin.master-data.kategori.tsx`
+- `src/routes/admin.master-data.detail.tsx`
+- Shared admin master-data UI components if these pages use them.
+
+Validation gates:
+
+- Kategori filter layout matches the Master Kegiatan pattern.
+- Detail filter layout follows the same consistency decision.
+- Add form preselects the parent from the active filter for Kategori and Detail.
+- Clear/reset/edit behavior remains compatible.
+
+Manual smoke checklist:
+
+- Filter Kategori by Jenis and add a new Kategori.
+- Filter Detail by Jenis/Kategori and add a new Detail.
+- Clear filters and confirm default form state is sensible.
+- Edit and deactivate/delete where currently supported.
+
+What must not be changed:
+
+- API paths, DB schema/migrations, route tree, package/env files, unrelated admin pages, or Supabase folders.
+
+#### Phase 11F.5e: Accessibility And Lighthouse Polish
+
+Goal: reduce Lighthouse/accessibility findings through narrow semantic and focus fixes, not visual redesign.
+
+Allowed scope:
+
+- Buttons without accessible names.
+- Contrast fixes within the existing visual system.
+- Heading order corrections.
+- Identical link purpose clarification.
+- Manual keyboard focus, tab order, focus trapping, landmark, offscreen content, and ARIA checks.
+- Admin Lighthouse TBT investigation only as a bounded optimization audit unless severe preview lag is reproduced.
+
+Non-goals:
+
+- No broad UI redesign, route rename, product feature work, CSS framework migration, or performance architecture rewrite.
+
+Primary files to inspect:
+
+- Pages flagged by Lighthouse, especially Admin pages.
+- Shared button/link/dialog/layout components.
+- Any page-specific heading/link markup responsible for the findings.
+
+Validation gates:
+
+- Lighthouse accessibility findings are reduced or each remaining item is documented with rationale.
+- Keyboard-only navigation remains usable on affected pages.
+- Dialog/modal focus behavior remains safe.
+- TBT around 430ms is classified as P1/P2 optimization unless authenticated preview smoke proves severe lag.
+
+Manual smoke checklist:
+
+- Run Lighthouse on the target Admin page after fixes.
+- Keyboard-tab through login, Admin, master-data, and common modal flows.
+- Check focus trap and focus return behavior for dialogs.
+- Verify contrast changes do not break existing visual hierarchy.
+
+What must not be changed:
+
+- Workflow behavior, RBAC visibility, API contracts, route names, DB schema, package/env files, route tree, or Supabase folders.
+
+#### Phase 11F.5f: Forbidden UX And Guard Dev Log Cleanup
+
+Goal: make unauthorized route UX and guard logging clearer without weakening server authorization.
+
+Allowed scope:
+
+- Client/page handling so Admin access to `/pegawai/dokumen` has a clean forbidden UX consistent with `/ppk/inbox`, `/bendahara/inbox`, and `/arsiparis/inbox`.
+- Guard/dev log cleanup if it incorrectly mentions ARSIPARIS for a user with only PEGAWAI+PPK roles.
+
+Non-goals:
+
+- No RBAC broadening, no ADMIN submit compatibility, no hiding real server 403 by granting data, no route rename.
+
+Primary files to inspect:
+
+- `src/components/layout/AppLayout.tsx`
+- route guard helpers and navigation config
+- `/pegawai/dokumen` page route
+- `/api/dokumen` role handling only for verification
+
+Validation gates:
+
+- Admin receives `/forbidden` or an equivalent clean forbidden UX for Pegawai-only pages.
+- Server/API authorization still returns 403 where the role is not allowed.
+- Dev log no longer reports roles the user does not have.
+
+Manual smoke checklist:
+
+- Login as Admin and open `/pegawai/dokumen`.
+- Login as PEGAWAI+PPK and switch roles; inspect guard logs for actual role names only.
+- Confirm PPK/Bendahara/Arsiparis forbidden behavior remains clean.
+- Confirm direct unauthorized API calls remain rejected.
+
+What must not be changed:
+
+- Server-side RBAC rules except confirmed bug fixes, role model, route names, DB schema, package/env files, route tree, or Supabase folders.
+
+#### Phase 11F.6: Final Post-Stabilization Regression Recap
+
+Goal: record the final post-stabilization state before 11G.
+
+Allowed scope:
+
+- Docs/report update only plus lightweight validation evidence.
+- Record which 11F.5 subphases were implemented, skipped, or deferred.
+
+Non-goals:
+
+- No production certification, no LAN deployment, no backup/restore completion claim, no final release/go-live claim.
+
+Validation gates:
+
+- `pnpm test` and `pnpm build` pass if any runtime implementation subphase ran.
+- Preview root/API probes remain stable if build/runtime files changed.
+- Protected-file audit confirms no unapproved env/package/routeTree/DB/test changes.
+- Remaining P1/P2/P3 items are explicitly classified.
+
+Manual smoke checklist:
+
+- Auth/session/logout/password-change.
+- Admin/master-data classification and kelengkapan validation.
+- Pegawai Ajukan/Revisi validation.
+- Kategori/Detail admin consistency.
+- Forbidden UX and role-switch guard logging.
+- Accessibility pages touched by 11F.5e.
+
+What must not be changed:
+
+- Do not convert the recap into 11G evidence. Backup/restore, LAN deployment, CSRF/rate-limit review, and final release authority remain Phase 11G/11H and human-controlled.
+
+Next recommended phase:
+
+```text
+Phase 11F.5a  Logout UI Loading And Password Change Auto Logout
+```
 
 ### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening
 

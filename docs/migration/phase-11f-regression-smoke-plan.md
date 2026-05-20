@@ -631,19 +631,75 @@ Performance classification:
 Go/no-go rule for 11G:
 
 - Phase 11G is not blocked by the Phase 11F.4c bounded audit because no preview blocker was found.
-- Phase 11G may proceed with a documented non-blocking P1 follow-up for duplicate-fetch/session-fetch optimization if the human accepts that browser DevTools long-session checks remain pending.
+- Phase 11G may proceed with documented non-blocking performance follow-up if the human accepts that browser DevTools long-session checks remain pending, but Phase 11F.5 is the recommended post-smoke stabilization slice first if the human wants fewer visible bugs before LAN hardening.
 - If a manual authenticated preview session later shows API calls continuing while idle, unbounded heap/listener/DOM growth, or severe preview navigation lag, stop Phase 11G and open `Phase 11F.4d Targeted Preview Performance Fix`.
 - This does not claim final release readiness or final scalability/performance certification; final 11G/11H approval remains human-controlled.
 
+## Phase 11F.5 Post-Smoke Stabilization Planning
+
+Date: 2026-05-20.
+
+Status: docs-only planning section. No runtime bugs are fixed here, and 11G is not complete.
+
+Purpose:
+
+- Split the remaining human-smoke and Lighthouse findings into safe, bounded stabilization subphases before LAN/operations hardening.
+- Keep severity based on operational impact and internal DMS tolerance, not Lighthouse/UI perfection alone.
+- Preserve the rule that `.env` and `.env.migration` are human-controlled and must not be printed, modified, or committed.
+- Avoid new product features before 11H, or at least before a human 11G/11H decision explicitly accepts them.
+- Do not rename or redesign `/pegawai/dokumen` versus `/pegawai/inbox` in this stabilization pass.
+
+Severity classification:
+
+| ID | Severity | Domain | Summary | Recommended subphase |
+|---|---|---|---|---|
+| 11F5-001 | P1 before LAN if fewer bugs are desired | Auth/UI | Logout network returns 200 but UI keeps loading. | 11F.5a |
+| 11F5-002 | P1 before LAN if fewer bugs are desired | Auth/session UX | Password change succeeds, but successful self password change should auto logout while preserving session invalidation integrity. | 11F.5a |
+| 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Master Klasifikasi adding another child can leave `Simpan` loading forever. | 11F.5b |
+| 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Master Kelengkapan lacks duplicate validation for ketua-tim kelengkapan in the same leaf node. | 11F.5c |
+| 11F5-005 | P1 before LAN if feasible | Document form validation | Ajukan/Revisi additional kelengkapan can be duplicated. | 11F.5c |
+| 11F5-006 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5f |
+| 11F5-007 | P2 polish before final release | Master data UI | Kategori Permintaan filter layout should match Master Kegiatan. | 11F.5d |
+| 11F5-008 | P2 polish before final release | Master data UI | Kategori add form should prefill jenis permintaan from active filter. | 11F.5d |
+| 11F5-009 | P2 polish before final release | Master data UI | Detail Permintaan has the same filter/prefill consistency issue as Kategori. | 11F.5d |
+| 11F5-010 | P2 audit/polish | Guard logging | Guard dev log mentions ARSIPARIS for a PEGAWAI+PPK user. | 11F.5f |
+| 11F5-011 | P2 polish before final release | Accessibility | Missing accessible names, contrast, heading order, duplicate link purpose, and manual focus/landmark checks. | 11F.5e |
+| 11F5-012 | P2 optimization unless severe preview lag is reproduced | Performance | Admin Lighthouse TBT around 430ms. | 11F.5e or later optimization |
+| 11F5-013 | P3 future cleanup | Route naming/design | `/pegawai/dokumen` versus `/pegawai/inbox` naming cleanup. | Defer |
+
+Subphase plan:
+
+| Phase | Goal | Allowed scope | Non-goals | Primary files to inspect | Validation gates | Manual smoke checklist | Must not change |
+|---|---|---|---|---|---|---|---|
+| 11F.5a Logout UI Loading And Password Change Auto Logout | Fix logout loading and force reauth after successful self password change. | Auth UI state, auth-state cleanup, logout/change-password client handling, existing auth API response handling if needed. | No auth model redesign, no session weakening, no password-policy feature work, no DB/package/env/routeTree changes. | `AppLayout`, `auth-state`, login/profile/change-password UI, `/api/auth/logout`, change-password API. | Logout clears loading; successful password change revokes current session; failed password change keeps session. | Login/logout/reload; change password; confirm authenticated request fails until login. | DB, migrations, seeds, packages, env, route tree, Supabase, unrelated auth flows. |
+| 11F.5b Master Klasifikasi Save Loading Fix | Ensure classification save exits loading for second-child/error paths. | Narrow Arsiparis classification UI and existing classification API handling. | No archive lifecycle redesign or tree schema rewrite. | Arsiparis klasifikasi UI and `/api/arsiparis/klasifikasi/*`. | First child and second child save paths finish; error path clears loading. | Add child, add sibling/second child, attempt invalid duplicate/error path, reload tree. | Archive lifecycle, storage, DB migrations/seeds, packages, env, route tree. |
+| 11F.5c Kelengkapan Duplicate Validation | Prevent duplicates according to current business expectations. | Narrow UI/server validation for Master Kelengkapan and Ajukan/Revisi additional kelengkapan. | No generalized validation framework or DB unique-index migration. | Admin Master Kelengkapan UI/API, Pegawai Ajukan/Revisi forms, submit/revisi validation schemas. | Duplicate same-leaf ketua-tim kelengkapan rejected; duplicate additional kelengkapan rejected; valid flows still work. | Try duplicate/non-duplicate master entries; try duplicate additional kelengkapan in Ajukan/Revisi; submit valid document. | DB schema, global validation architecture, route names, workflow statuses, audit behavior. |
+| 11F.5d Kategori/Detail Master Data Consistency | Align Kategori/Detail filters and add-form prefill with Master Kegiatan. | UI-only layout and form-state consistency. | No API rewrite, hierarchy redesign, route rename, or broad admin redesign. | Admin Master Kegiatan, Kategori, Detail pages and shared admin UI components. | Active parent filter preselects add form; reset/edit behavior remains compatible. | Filter Kategori and add; filter Detail and add; clear filters; edit/deactivate where supported. | API paths, DB schema, route tree, package/env, unrelated pages. |
+| 11F.5e Accessibility And Lighthouse Polish | Reduce accessibility findings with narrow semantic/focus fixes. | Button/link labels, contrast, heading order, identical link purpose, focus/landmark checks; bounded Admin TBT classification. | No broad UI redesign or performance architecture rewrite. | Lighthouse-flagged pages, shared button/link/dialog/layout components. | Accessibility findings reduced or documented; keyboard and focus behavior safe; TBT remains classified unless severe lag appears. | Lighthouse target Admin page; keyboard-tab login/Admin/master-data; modal focus trap/return. | Workflow behavior, RBAC visibility, API contracts, route names, DB/package/env/routeTree. |
+| 11F.5f Forbidden UX And Guard Dev Log Cleanup | Clean unauthorized route UX and misleading guard logs without weakening RBAC. | Client/page forbidden handling and guard/dev log cleanup. | No RBAC broadening, no ADMIN submit compatibility, no hiding 403 by granting data, no route rename. | `AppLayout`, guards, navigation config, `/pegawai/dokumen` page, `/api/dokumen` only for verification. | Admin gets clean forbidden UX; server still rejects unauthorized API; logs show actual roles only. | Admin opens `/pegawai/dokumen`; PEGAWAI+PPK role switch logs; direct unauthorized API check. | Server RBAC except confirmed bug fix, role model, route names, DB/package/env/routeTree. |
+| 11F.6 Final Post-Stabilization Regression Recap | Record post-stabilization state before 11G. | Docs/report plus lightweight validation evidence. | No production certification, no LAN deployment claim, no backup/restore completion claim. | Migration docs and validation outputs. | `pnpm test`/`pnpm build` if runtime phases ran; preview probes if build/runtime changed; protected-file audit clean. | Auth, admin, Pegawai, PPK, Bendahara, Arsiparis, storage/file access, forbidden UX, accessibility touched pages. | Do not convert recap into 11G evidence or final release authority. |
+
+Performance and accessibility guardrails:
+
+- Preview performance is not currently a blocker based on 11F.4c.
+- Duplicate fetches and Admin TBT are optimization candidates unless authenticated preview smoke proves severe user-visible lag.
+- Accessibility stabilization should prefer narrow semantic, ARIA, focus, contrast, heading, and label fixes over broad UI redesign.
+
+Recommended next phase:
+
+```text
+Phase 11F.5a  Logout UI Loading And Password Change Auto Logout
+```
+
 ## Phase 11G Handoff
 
-Deferred next phase after 11F blockers are resolved:
+Deferred hardening phase after accepted 11F.5 stabilization state:
 
 ```text
 Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening
 ```
 
-Phase 11G is not ready until Phase 11F.4a resolves the preview runtime blocker and follow-up validation confirms production-like runtime behavior.
+Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 backlog, but the recommended next phase is 11F.5a. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
 
 Phase 11G should cover:
 

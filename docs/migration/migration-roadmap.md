@@ -476,11 +476,13 @@ Current status:
 - Phase 11D.4 completed the post-retirement audit on 2026-05-19. Phase 11E.1 completed package/env cleanup planning, Phase 11E.2 removed `@supabase/ssr` and `@supabase/supabase-js` from package files, Phase 11E.3 removed unused Supabase env constants from source plus narrowed current-runtime docs wording toward local PostgreSQL, local `dms_session` auth, and local filesystem storage, and Phase 11E.4 completed the final lightweight package/env/global audit and regression handoff. Phase 11E is complete for verified active source/runtime/package/env-constant Supabase retirement only. `.env`/`.env.migration` remain human-controlled, historical Supabase docs/spec references are preserved, and old Supabase data/file migration remains out of scope.
 - Phase 11F planning/report preparation completed on 2026-05-19 in `docs/migration/phase-11f-regression-smoke-plan.md`. It produced the human-run regression command plan, domain smoke checklist, report template, stop/go criteria, Supabase cleanup audit command plan, and Phase 11G/11H hardening handoff. Later Phase 11F regression execution recorded `pnpm test` PASS, `pnpm build` PASS, active Supabase runtime/package/env-constant grep PASS, and mostly passing core manual smoke for Admin, Pegawai, PPK, and Bendahara workflows.
 - Phase 11F.4a fixed the `pg-native` optional dependency preview crash, Phase 11F.4b fixed the production preview JSX dev-runtime `RootDocument` failure, and Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20. Preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`; direct `/__tsd/console-pipe` returned `404`; built output had no devtools/console-pipe/JSX-dev-runtime matches. No preview request loop or source-level memory/listener leak was proven. Authenticated browser DevTools long-session measurements remain pending and are not final performance certification.
-- Next target: Phase 11G Backup/Restore, LAN Deployment, And Operations Hardening is allowed after the bounded Phase 11F.4c audit if the human accepts the pending manual browser checks. If later authenticated preview smoke shows idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag, stop and open Phase 11F.4d Targeted Preview Performance Fix. Final go-live remains human-controlled after regression/smoke evidence and hardening evidence are reviewed.
+- Phase 11F.5 is the post-smoke stabilization planning slice before 11G. It classifies remaining human-smoke and Lighthouse findings into P1/P2/P3, keeps preview performance non-blocking based on current evidence, and splits work into narrow subphases for logout/password-change UX, Master Klasifikasi save loading, kelengkapan duplicate validation, Kategori/Detail consistency, accessibility/Lighthouse polish, and forbidden UX/guard log cleanup.
+- Next target: Phase 11F.5a Logout UI Loading And Password Change Auto Logout, unless the human explicitly chooses to skip stabilization and proceed to 11G with the remaining P1/P2/P3 backlog accepted. Phase 11G Backup/Restore, LAN Deployment, And Operations Hardening remains human-controlled and must not be claimed complete until backup/restore, LAN, and security-hardening evidence exists. If later authenticated preview smoke shows idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag, stop and open Phase 11F.4d Targeted Preview Performance Fix.
 
 Allowed scope:
 
 - End-to-end regression and smoke checks.
+- Narrow post-smoke stabilization subphases from Phase 11F.5.
 - Docker/PostgreSQL persistence and LAN runbook finalization.
 - PostgreSQL plus `storage/` backup/restore scripts and drills.
 - Final dependency/env cleanup after verified parity.
@@ -491,10 +493,13 @@ Non-goals:
 - No broad feature changes.
 - No late architecture rewrite.
 - No Supabase cleanup before replacement gaps are closed.
+- No new product features before 11H or before an explicit human 11G/11H decision.
+- No `/pegawai/dokumen` to `/pegawai/inbox` route rename during 11F.5.
 
 Expected outputs:
 
 - Regression report.
+- Phase 11F.5 stabilization plan and any later stabilization recap.
 - Deployment and backup/restore docs.
 - Known risk list.
 - Final cleanup diff if parity permits.
