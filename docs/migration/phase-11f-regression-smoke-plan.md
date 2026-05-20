@@ -1144,6 +1144,60 @@ Validation note:
 
 - No focused automated test was added because this pass changed client route composition/default redirects and no low-risk route-render test harness exists in the current inventory. Manual browser retest is required.
 
+## Phase 11F.6 Final Post-Stabilization Regression Recap
+
+Date: 2026-05-20.
+
+Status: post-stabilization recap complete for documentation purposes only. This is not Phase 11G, not final production certification, not LAN deployment approval, not backup/restore completion, and not final go-live readiness.
+
+Validation scope:
+
+- Codex ran only lightweight git/doc audits for this recap.
+- `pnpm test`, `pnpm build`, preview/dev server, DB scripts, migrations, seeds, route generation, package commands, and E2E were not run by Codex in this phase.
+- Earlier `pnpm test` PASS, `pnpm build` PASS, preview root/API probes, and active Supabase runtime/package/env-constant grep PASS remain recorded as prior human-run or prior phase evidence, not new 11F.6 agent-run validation.
+- Human should run `pnpm test` after runtime changes and should run `pnpm build` before 11G. Preview root/API probes should remain stable before 11G if the human runs them.
+
+11F.5 subphase outcomes:
+
+| Subphase | Outcome |
+|---|---|
+| 11F.5a Logout UI Loading And Password Change Auto Logout | Implemented, human retested, and committed. |
+| 11F.5b Master Klasifikasi Save Loading Fix | Implemented, human retested, and committed. |
+| 11F.5c Kelengkapan Duplicate Validation | Implemented, tested/manual smoke accepted, and committed. |
+| 11F.5d Attachment Replacement Old File Cleanup | Implemented, storage retested, and committed. |
+| 11F.5d.1 Superseded Pending Replacement Cleanup | Implemented, storage retested, and committed; commit history groups this with the 11F.5d attachment cleanup commit. |
+| 11F.5d.2 Admin Storage Orphan Cleanup Diagnostics Hardening | Implemented, dry-run/destructive cleanup retested, and committed; commit subject appears as admin storage orphan cleanup hardening. |
+| 11F.5d.2b Pending-only dry-run response/message consistency | Human-reported implemented, retested, and committed as part of the admin storage cleanup hardening follow-up. |
+| 11F.5e Kategori/Detail Master Data Consistency | Implemented, human retested, and committed. |
+| 11F.5f Accessibility And Lighthouse Polish | Implemented, human retested, and committed. |
+| 11F.5g Forbidden UX And Guard Dev Log Cleanup | Implemented, human retested, and committed. |
+| 11F.5g.1 Pegawai Guard Redirect React Warning Cleanup | Implemented, human retested, and committed. |
+| 11F.5h Pegawai Canonical Route Alignment | Implemented, human retested, and committed. |
+
+Remaining classification:
+
+| Priority | Scope | Status |
+|---|---|---|
+| P1 / 11G required | Backup/restore plan and test; LAN deployment runbook; operational env sanity without printing secrets; local storage backup/restore; local DB backup/restore; firewall/host/port/LAN access; CSRF/rate-limit/security review if planned; release rollback checklist. | Deferred to Phase 11G. |
+| P1 / 11H required | Final release readiness gate; final Supabase retirement decision/handoff; production/go-live decision. | Deferred to Phase 11H and human-controlled. |
+| P2/P3 deferred | Admin TBT optimization unless severe preview lag reproduces; broader app-wide accessibility polish beyond fixed Lighthouse findings; route naming cleanup beyond `/pegawai` canonical alignment if any remains; missing referenced file diagnostics refinement for `DIMUSNAHKAN` archive snapshots if still relevant. | Deferred; do not overclaim perfect accessibility, impossible bugs, or complete performance certification. |
+
+Protected-file audit:
+
+- `.env` and `.env.migration` are human-controlled and were not inspected, printed, edited, staged, or committed by this docs phase.
+- `src/routeTree.gen.ts` must remain unchanged.
+- Package files, DB/drizzle/supabase folders, source runtime files, tests, migrations, seeds, and scripts must remain unchanged for 11F.6.
+- Historical Supabase references in docs remain migration history. Active source/runtime/package Supabase fallback/package/helper reintroduction remains forbidden.
+- No old Supabase data/file migration, copy, download, backfill, sync, or recovery happened in this phase.
+
+Next recommended phase:
+
+```text
+Phase 11G — Backup/Restore, LAN Deployment, And Operations Hardening
+```
+
+Phase 11G is not complete. Backup/restore, LAN deployment, CSRF/rate-limit review, operational hardening, and final release authority remain human-controlled. Do not start new product features before 11G/11H unless the human explicitly reprioritizes.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
