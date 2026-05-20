@@ -4150,6 +4150,13 @@ What must not be changed:
 
 - Archive document lifecycle, `arsip` transaction behavior, DB migrations/seeds, storage/file access, package/env files, route tree, or Supabase folders.
 
+Implementation update on 2026-05-20:
+
+- Targeted fix implemented; pending human browser retest.
+- Master Klasifikasi add/edit/delete modal loading state now clears in `finally`, including success, duplicate/validation failure, thrown exception, failed request, and refresh-failure paths.
+- Reopening the same add-child modal now resets stale modal loading/error state instead of reusing a preserved `loading=true` hook state.
+- Classification API database validation/write failures now return controlled JSON without changing endpoint paths, request payloads, success shapes, or ADMIN/ARSIPARIS authorization behavior.
+
 #### Phase 11F.5c: Kelengkapan Duplicate Validation
 
 Goal: add duplicate prevention for Master Kelengkapan and Ajukan/Revisi additional kelengkapan where duplicates violate existing business expectations.

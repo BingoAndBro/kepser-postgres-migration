@@ -427,7 +427,7 @@ Environment:
 | 11F3-002 | P1 | no, blocked by P0 | Performance | Long `pnpm dev` session accumulated thousands of requests and became slow. Observed `/__tsd/console-pipe/sse` and `/__tsd/console-pipe`; these are diagnostic clues, not confirmed root cause. | After Phase 11F.4a |
 | 11F3-003 | P1 | no | Auth/UI | Logout network returns 200 but UI keeps loading. | Backlog |
 | 11F3-004 | P1 | no | RBAC/UX | Admin access to `/pegawai/dokumen` shows page-level 403 instead of consistent forbidden redirect. | Backlog |
-| 11F3-005 | P1 | no | Arsiparis master data | Master Klasifikasi second child save button loading. | Backlog |
+| 11F3-005 | P1 | no | Arsiparis master data | Fixed pending human retest: Master Klasifikasi second child save button loading. | Phase 11F.5b |
 | 11F3-006 | P2 | no | Auth/UX | Password change should auto logout after success. | Backlog |
 | 11F3-007 | P2 | no | Master data validation | Master Kelengkapan duplicate validation. | Backlog |
 | 11F3-008 | P2 | no | Document form validation | Ajukan/revisi kelengkapan tambahan duplicate validation. | Backlog |
@@ -655,7 +655,7 @@ Severity classification:
 |---|---|---|---|---|
 | 11F5-001 | P1 before LAN if fewer bugs are desired | Auth/UI | Fixed pending human retest: logout success now clears authenticated UI/loading state and redirects to login after the logout API returns. | 11F.5a |
 | 11F5-002 | P1 before LAN if fewer bugs are desired | Auth/session UX | Fixed pending human retest: successful self password change revokes all current-user sessions, clears auth cookies/client state, and redirects to login. | 11F.5a |
-| 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Master Klasifikasi adding another child can leave `Simpan` loading forever. | 11F.5b |
+| 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Fixed pending human retest: Master Klasifikasi add/edit/delete modal save state now clears after success, validation/API errors, thrown exceptions, and refresh failures. | 11F.5b |
 | 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Master Kelengkapan lacks duplicate validation for ketua-tim kelengkapan in the same leaf node. | 11F.5c |
 | 11F5-005 | P1 before LAN if feasible | Document form validation | Ajukan/Revisi additional kelengkapan can be duplicated. | 11F.5c |
 | 11F5-006 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5f |
@@ -726,6 +726,45 @@ Manual retest checklist:
 Known follow-up note:
 
 - Already-open tabs may still show stale client-rendered UI until reload or their next authenticated request, but the server-side session rows are revoked and protected APIs should require login after the successful password change.
+
+## Phase 11F.5b Master Klasifikasi Save Loading Fix
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- The Master Klasifikasi add/edit/delete modals stay mounted even when closed because they return `null` while preserving React hook state.
+- The successful mutation paths called `onSuccess()` and closed the modal without clearing the modal-level `loading` flag.
+- Reopening the add-child modal for the same parent could reuse the preserved `loading=true` state, leaving `Simpan` permanently disabled/spinning before the next submit.
+
+Fix summary:
+
+- Add, edit, and delete modal mutation handlers now clear their modal loading state in `finally`.
+- Modal open state now resets stale error/loading state, so retries and same-parent second-child additions start from a clean form state.
+- Successful saves now await the tree refresh before closing the modal, and the refreshed tree is used when preserving the current selection.
+- Classification API database validation/write paths now return controlled JSON for duplicate, invalid parent, missing node, unauthorized, and server-error paths instead of allowing pre-write database errors to escape.
+- Endpoint paths, request payloads, normal success shapes, duplicate/validation error shapes, and ADMIN/ARSIPARIS authorization semantics are preserved.
+
+Manual retest checklist:
+
+1. Login as Arsiparis or another allowed user.
+2. Open `/arsiparis/klasifikasi`.
+3. Add a child classification.
+4. Confirm save completes and `Simpan` leaves loading state.
+5. Add another child under the same parent.
+6. Confirm save completes or fails with visible feedback and loading clears.
+7. Add a sibling if applicable.
+8. Try duplicate name or duplicate kode if the UI permits it.
+9. Confirm duplicate/error feedback appears and loading clears.
+10. Retry after a failed save and confirm the dialog remains usable.
+11. Reload the page and confirm the classification tree remains consistent.
+12. Confirm archive lifecycle pages are not affected.
+
+Validation note:
+
+- No focused automated UI test was added because this is a modal hook-state/browser interaction and the existing test harness does not expose a low-risk targeted classification UI test. Manual browser retest is required.
 
 ## Phase 11G Handoff
 
