@@ -3955,8 +3955,8 @@ Remaining backlog:
 - P1: admin `/pegawai/dokumen` page-level 403 versus consistent forbidden redirect.
 - P1: master klasifikasi second child save button loading.
 - P2: password change auto logout after success.
-- P2: master kelengkapan duplicate validation.
-- P2: ajukan/revisi kelengkapan tambahan duplicate validation.
+- P2: fixed pending human retest: master kelengkapan duplicate validation.
+- P2: fixed pending human retest: ajukan/revisi kelengkapan tambahan duplicate validation.
 - P2: kategori/detail filter and add-form prefill consistency.
 - P2: guard dev log mentioning ARSIPARIS for PEGAWAI+PPK user.
 - P2: `aria-hidden` accessibility warning in Admin Master User.
@@ -4053,7 +4053,7 @@ Goal: split the remaining human-smoke and Lighthouse findings into safe stabiliz
 
 Severity classification:
 
-- P1 before LAN if the human wants fewer visible bugs: logout UI stuck loading after logout returns 200; password-change success should auto logout while preserving session invalidation integrity; Master Klasifikasi second-child save loading; Master Kelengkapan duplicate validation for ketua-tim kelengkapan in the same leaf node; Ajukan/Revisi additional kelengkapan duplicate validation; Admin `/pegawai/dokumen` page-level 403 UX if the human wants consistent forbidden navigation before LAN.
+- P1 before LAN if the human wants fewer visible bugs: logout UI stuck loading after logout returns 200; password-change success should auto logout while preserving session invalidation integrity; Master Klasifikasi second-child save loading; fixed pending human retest for Master Kelengkapan duplicate validation and Ajukan/Revisi additional kelengkapan duplicate validation; Admin `/pegawai/dokumen` page-level 403 UX if the human wants consistent forbidden navigation before LAN.
 - P2 polish before final release: Kategori Permintaan filter layout parity with Master Kegiatan; Kategori add-form parent prefill from active filter; Detail Permintaan matching filter/prefill consistency; guard dev log mentioning ARSIPARIS for a PEGAWAI+PPK user; narrow accessibility fixes; Admin Lighthouse TBT around 430ms unless severe preview lag is reproduced.
 - P3 future cleanup: route naming/redesign for `/pegawai/dokumen` versus `/pegawai/inbox`.
 
@@ -4194,6 +4194,15 @@ Manual smoke checklist:
 What must not be changed:
 
 - DB schema/migrations, global validation architecture, route names, workflow statuses, audit-log behavior, package/env files, route tree, or Supabase folders.
+
+Implementation update on 2026-05-20:
+
+- Targeted fix implemented; pending human browser retest.
+- Master Kelengkapan create/update now rejects normalized duplicate names in the same kegiatan, ketua-tim flag, and exact request-chain scope.
+- Admin Master Kelengkapan now has a loaded-list duplicate pre-check for faster feedback, while `/api/master-kelengkapan*` remains the authoritative validation boundary.
+- Ajukan Dokumen, Pegawai Revisi, and PPK resubmit now prevent duplicate user-added kelengkapan names in the existing additional document UI surfaces.
+- Submit/revisi/resubmit request schemas now reject duplicate `user-custom-*` lampiran names without changing request payload fields, response shapes, storage paths, or workflow transitions.
+- Focused unit coverage added for normalization, duplicate detection, and submit/revisi/resubmit schema rejection.
 
 #### Phase 11F.5d: Kategori/Detail Master Data Consistency
 

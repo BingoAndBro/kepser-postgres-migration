@@ -429,8 +429,8 @@ Environment:
 | 11F3-004 | P1 | no | RBAC/UX | Admin access to `/pegawai/dokumen` shows page-level 403 instead of consistent forbidden redirect. | Backlog |
 | 11F3-005 | P1 | no | Arsiparis master data | Fixed pending human retest: Master Klasifikasi second child save button loading. | Phase 11F.5b |
 | 11F3-006 | P2 | no | Auth/UX | Password change should auto logout after success. | Backlog |
-| 11F3-007 | P2 | no | Master data validation | Master Kelengkapan duplicate validation. | Backlog |
-| 11F3-008 | P2 | no | Document form validation | Ajukan/revisi kelengkapan tambahan duplicate validation. | Backlog |
+| 11F3-007 | P2 | no | Master data validation | Fixed pending human retest: Master Kelengkapan duplicate validation. | Phase 11F.5c |
+| 11F3-008 | P2 | no | Document form validation | Fixed pending human retest: Ajukan/revisi kelengkapan tambahan duplicate validation. | Phase 11F.5c |
 | 11F3-009 | P2 | no | Master data UI | Kategori/Detail filter and add-form prefill consistency. | Backlog |
 | 11F3-010 | P2 | no | Dev logging | Guard dev log mentions ARSIPARIS for PEGAWAI+PPK user. | Backlog |
 | 11F3-011 | P2 | no | Accessibility | `aria-hidden` focus warning in Admin Master User. | Backlog |
@@ -656,8 +656,8 @@ Severity classification:
 | 11F5-001 | P1 before LAN if fewer bugs are desired | Auth/UI | Fixed pending human retest: logout success now clears authenticated UI/loading state and redirects to login after the logout API returns. | 11F.5a |
 | 11F5-002 | P1 before LAN if fewer bugs are desired | Auth/session UX | Fixed pending human retest: successful self password change revokes all current-user sessions, clears auth cookies/client state, and redirects to login. | 11F.5a |
 | 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Fixed pending human retest: Master Klasifikasi add/edit/delete modal save state now clears after success, validation/API errors, thrown exceptions, and refresh failures. | 11F.5b |
-| 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Master Kelengkapan lacks duplicate validation for ketua-tim kelengkapan in the same leaf node. | 11F.5c |
-| 11F5-005 | P1 before LAN if feasible | Document form validation | Ajukan/Revisi additional kelengkapan can be duplicated. | 11F.5c |
+| 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Fixed pending human retest: Master Kelengkapan rejects duplicate active rows in the same kegiatan, ketua-tim flag, and request-chain leaf/scope. | 11F.5c |
+| 11F5-005 | P1 before LAN if feasible | Document form validation | Fixed pending human retest: Ajukan/Revisi/PPK resubmit additional kelengkapan duplicate names are blocked with normalized comparison. | 11F.5c |
 | 11F5-006 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5f |
 | 11F5-007 | P2 polish before final release | Master data UI | Kategori Permintaan filter layout should match Master Kegiatan. | 11F.5d |
 | 11F5-008 | P2 polish before final release | Master data UI | Kategori add form should prefill jenis permintaan from active filter. | 11F.5d |
@@ -688,7 +688,7 @@ Performance and accessibility guardrails:
 Recommended next phase:
 
 ```text
-Phase 11F.5a  Logout UI Loading And Password Change Auto Logout
+Phase 11F.5d / 11F.5e / 11F.5f remaining stabilization, depending on human priority
 ```
 
 ## Phase 11F.5a Logout UI Loading And Password Change Auto Logout
@@ -765,6 +765,50 @@ Manual retest checklist:
 Validation note:
 
 - No focused automated UI test was added because this is a modal hook-state/browser interaction and the existing test harness does not expose a low-risk targeted classification UI test. Manual browser retest is required.
+
+## Phase 11F.5c Kelengkapan Duplicate Validation
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- Master Kelengkapan POST/PATCH validated required fields and request-chain consistency, but did not check existing rows for the same normalized name in the same kegiatan, ketua-tim flag, and chain scope.
+- Ajukan, Pegawai Revisi, and PPK resubmit allowed multiple user-created `user-custom-*` kelengkapan labels with equivalent names when whitespace/case differed.
+- Submit/revisi/resubmit request schemas validated individual lampiran rows but did not validate duplicate additional kelengkapan names across the submitted `lampiranUrls` array.
+
+Fix summary:
+
+- Added scoped name normalization for kelengkapan duplicate checks: trim, collapse repeated whitespace, and lowercase.
+- `POST /api/master-kelengkapan` and `PATCH /api/master-kelengkapan/$id` now reject duplicates in the same kegiatan, ketua-tim flag, and exact request-chain scope with `409 { error: 'Kelengkapan sudah ada untuk detail permintaan dan tipe ini' }`.
+- The Admin Master Kelengkapan modal performs a safe loaded-list duplicate pre-check for faster feedback, while server validation remains authoritative.
+- Ajukan Dokumen blocks duplicate user-added kelengkapan names in `KelengkapanChecklist`.
+- Pegawai Revisi and PPK resubmit block duplicate user-added kelengkapan names in `AttachmentEditor`.
+- Submit, update/revisi, and PPK resubmit request schemas now reject duplicate `user-custom-*` lampiran names without changing payload field names or response shapes.
+- Existing `lampiran_urls` parsing remains lenient for stored historical data; duplicate validation is applied at request boundaries, not response parsing.
+
+Focused automated validation:
+
+- `pnpm test tests/unit/kelengkapan-duplicate-validation.test.ts` passed.
+
+Manual retest checklist:
+
+1. Login as Admin.
+2. Open `/admin/master-data/kelengkapan`.
+3. Select fungsi, kegiatan, and a complete request-chain leaf.
+4. Add a Ketua Tim kelengkapan, then attempt the same name with different case or extra spaces in the same leaf/scope.
+5. Confirm duplicate is rejected with clear feedback and `Simpan` leaves loading state.
+6. Try the same normalized name under a different allowed scope, for example a different chain leaf or different ketua-tim flag, if current data allows it.
+7. Confirm valid non-duplicate Master Kelengkapan still saves.
+8. Login as Pegawai.
+9. Open Ajukan Dokumen and add duplicate additional kelengkapan names with case/space variations.
+10. Confirm duplicates are prevented before submit with clear feedback.
+11. Submit a valid Material document after validation changes.
+12. Open Pegawai Revisi and attempt duplicate additional kelengkapan names.
+13. Confirm duplicates are prevented and a valid revisi can still be submitted.
+14. If PPK resubmit is available, attempt duplicate additional kelengkapan names there too and confirm prevention.
+15. Confirm preview, download, upload, pending cleanup, and file movement behavior remain unchanged.
 
 ## Phase 11G Handoff
 
