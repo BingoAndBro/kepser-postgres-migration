@@ -426,7 +426,7 @@ Environment:
 | 11F3-001 | P0 | yes | Production preview/runtime | `pnpm preview` fails at runtime because `pg` imports unresolved optional `pg-native`. Blocks production-like performance testing. | Phase 11F.4a |
 | 11F3-002 | P1 | no, blocked by P0 | Performance | Long `pnpm dev` session accumulated thousands of requests and became slow. Observed `/__tsd/console-pipe/sse` and `/__tsd/console-pipe`; these are diagnostic clues, not confirmed root cause. | After Phase 11F.4a |
 | 11F3-003 | P1 | no | Auth/UI | Logout network returns 200 but UI keeps loading. | Backlog |
-| 11F3-004 | P1 | no | RBAC/UX | Admin access to `/pegawai/dokumen` shows page-level 403 instead of consistent forbidden redirect. | Backlog |
+| 11F3-004 | P1 | no | RBAC/UX | Fixed pending human retest: Admin access to `/pegawai/dokumen` should redirect to forbidden before the page fetches `/api/dokumen`. | Phase 11F.5g |
 | 11F3-005 | P1 | no | Arsiparis master data | Fixed pending human retest: Master Klasifikasi second child save button loading. | Phase 11F.5b |
 | 11F3-006 | P2 | no | Auth/UX | Password change should auto logout after success. | Backlog |
 | 11F3-007 | P2 | no | Master data validation | Fixed pending human retest: Master Kelengkapan duplicate validation. | Phase 11F.5c |
@@ -660,11 +660,11 @@ Severity classification:
 | 11F5-005 | P1 before LAN if feasible | Document form validation | Fixed pending human retest: Ajukan/Revisi/PPK resubmit additional kelengkapan duplicate names are blocked with normalized comparison. | 11F.5c |
 | 11F5-006 | P1 storage safety | Attachment replacement cleanup | Fixed pending human retest: old formal files are deleted only after successful edit/revisi/PPK resubmit persistence and only when no current document/archive reference protects them. | 11F.5d |
 | 11F5-006b | P1 storage safety | Superseded pending replacement cleanup | Fixed pending human retest: multiple replacement attempts in one edit session now track and clean superseded pending uploads without deleting old formal files before persistence. | 11F.5d.1 |
-| 11F5-007 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5g |
+| 11F5-007 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Fixed pending human retest: `/pegawai/dokumen` now has a blocking assigned-PEGAWAI route wrapper check before child document-list fetch. | 11F.5g |
 | 11F5-008 | P2 polish before final release | Master data UI | Kategori Permintaan filter layout should match Master Kegiatan. | 11F.5e |
 | 11F5-009 | P2 polish before final release | Master data UI | Kategori add form should prefill jenis permintaan from active filter. | 11F.5e |
 | 11F5-010 | P2 polish before final release | Master data UI | Detail Permintaan has the same filter/prefill consistency issue as Kategori. | 11F.5e |
-| 11F5-011 | P2 audit/polish | Guard logging | Guard dev log mentions ARSIPARIS for a PEGAWAI+PPK user. | 11F.5g |
+| 11F5-011 | P2 audit/polish | Guard logging | Fixed pending human retest: guard logs now label required route roles separately from actual user roles and active UX role. | 11F.5g |
 | 11F5-012 | P2 polish before final release | Accessibility | Missing accessible names, contrast, heading order, duplicate link purpose, and manual focus/landmark checks. | 11F.5f |
 | 11F5-013 | P2 optimization unless severe preview lag is reproduced | Performance | Admin Lighthouse TBT around 430ms. | 11F.5f or later optimization |
 | 11F5-014 | P3 future cleanup | Route naming/design | `/pegawai/dokumen` versus `/pegawai/inbox` naming cleanup. | Defer |
@@ -1041,6 +1041,59 @@ Known remaining non-blockers:
 - Custom non-library modals received labels and modal roles where touched, but full focus-trap/return behavior still requires human keyboard retest.
 - Broader app-wide heading normalization outside the targeted Admin/master-data and touched preview surfaces remains deferred unless Lighthouse identifies a concrete page/node.
 - Admin TBT was not rewritten in this phase; no architecture-level performance work was attempted.
+
+## Phase 11F.5g Forbidden UX And Guard Dev Log Cleanup
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser retest. Do not claim full Phase 11F complete.
+
+Root cause / findings addressed:
+
+- `/pegawai/dokumen` had only a layout wrapper, while PPK/Bendahara/Arsiparis role areas had parent route guards or client role checks.
+- The Pegawai document list fetched `/api/dokumen` directly after mount, so an Admin session could reach the page-level fetch path and render the API's correct `403` as a raw page error.
+- The server/API behavior was already correct: `GET /api/dokumen` uses local `dms_session`, requires assigned `PEGAWAI`, and filters rows by `created_by=session.user.id`.
+- Guard dev logs used ambiguous role labels, so a required route role such as `ARSIPARIS` could be misread as an actual user role.
+
+Fix summary:
+
+- Added a `/pegawai/dokumen` parent route guard using the existing `guardRole(PEGAWAI)` pattern.
+- Added a blocking client assigned-role check in the same Pegawai document wrapper before rendering child routes, preventing the document-list child from fetching `/api/dokumen` before the route eligibility check resolves.
+- Unauthorized users are redirected to `/forbidden`; missing sessions still redirect to `/login`.
+- Multi-role users with assigned `PEGAWAI` remain eligible for `/pegawai/dokumen` even when their active UX role is another assigned role.
+- Guard logs now distinguish `userRoles`, `activeUxRole`, and `requiredRouteRole`; they do not label required route roles as actual user roles.
+- `GET /api/dokumen` was audited only and left unchanged, so direct unauthorized API calls still return `403`.
+
+Phase 11F.5g.1 follow-up:
+
+- Human retest confirmed Admin now sees the forbidden page for `/pegawai/dokumen` and guard logs label `requiredRouteRole`, `userRoles`, and `activeUxRole` clearly.
+- The same retest found a React warning about state updates before mount during the forbidden redirect transition.
+- Root cause was the 11F.5g Pegawai wrapper's async `/auth/session` fallback calling local `setIsCheckingRole(false)` after the route transition path could already be moving away from the component.
+- The wrapper now uses the already-bootstrapped client auth state synchronously and performs only redirect side effects from `useEffect`; it no longer fetches auth or updates local state.
+- Unauthorized and not-yet-authorized states render only the local loading indicator, so child document routes still do not fetch `/api/dokumen` while a redirect is pending.
+
+Manual retest checklist:
+
+1. Login as Admin.
+2. Open `/pegawai/dokumen`.
+3. Confirm clean forbidden UX, preferably redirect to `/forbidden`.
+4. Confirm the page no longer renders raw `/api/dokumen` fetch error.
+5. Directly call `/api/dokumen` as Admin and confirm server still rejects with `403`.
+6. Login as PEGAWAI and open `/pegawai/dokumen`.
+7. Confirm Pegawai page still works.
+8. Login as a PEGAWAI+PPK user if available.
+9. Switch roles between PEGAWAI and PPK.
+10. Inspect guard/dev logs.
+11. Confirm logs mention only actual roles under `userRoles`, active UX role under `activeUxRole`, and required route roles under `requiredRouteRole`.
+12. Confirm logs do not misleadingly say the user has ARSIPARIS.
+13. Open `/ppk/inbox`, `/bendahara/inbox`, and `/arsiparis/inbox` with unauthorized users where feasible.
+14. Confirm clean forbidden behavior remains.
+15. Confirm console no longer shows `Can't perform a React state update on a component that hasn't mounted yet`.
+16. Confirm no console errors/regressions.
+
+Validation note:
+
+- No focused automated test was added because the existing test inventory has auth helper and API/storage route tests but no low-risk React route wrapper harness for this client redirect race. Manual browser retest is required.
 
 ## Phase 11G Handoff
 
