@@ -8,7 +8,9 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag. Phase 11F.5 now plans the remaining post-smoke stabilization backlog before 11G, with 11F.5a as the recommended next phase unless the human explicitly accepts the remaining backlog and proceeds to 11G.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag. Phase 11F.5 now continues the post-smoke stabilization backlog before 11G: 11F.5a through 11F.5d are implemented pending human retest, and 11F.5e is the next planned stabilization subphase unless the human explicitly accepts the remaining backlog and proceeds to 11G.
+
+Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. It does not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and does not claim those later subphases are complete.
 
 ## Phase 0 To Phase 2: Planning And Audit
 
@@ -4204,7 +4206,68 @@ Implementation update on 2026-05-20:
 - Submit/revisi/resubmit request schemas now reject duplicate `user-custom-*` lampiran names without changing request payload fields, response shapes, storage paths, or workflow transitions.
 - Focused unit coverage added for normalization, duplicate detection, and submit/revisi/resubmit schema rejection.
 
-#### Phase 11F.5d: Kategori/Detail Master Data Consistency
+#### Phase 11F.5d: Attachment Replacement Old File Cleanup
+
+Goal: delete superseded local formal attachment files only after edit/revisi/save/resubmit persistence succeeds, while preserving old files on cancel, reset, validation failure, move failure, or DB failure.
+
+Allowed scope:
+
+- Attachment replacement lifecycle in `AttachmentEditor`, Pegawai edit/revisi, and PPK resubmit routes.
+- Server-side post-persistence cleanup for old formal files no longer referenced by current persisted metadata or archive snapshots.
+- Focused local storage helper tests and manual smoke checklist updates.
+
+Non-goals:
+
+- No broad storage redesign, global orphan cleanup redesign, archive lifecycle redesign, DB schema changes, route generation, package/env changes, Supabase fallback, or old Supabase file migration/copy/download/backfill/sync.
+
+Validation gates:
+
+- Existing formal file remains while editing and after cancel/reset before submit.
+- Pending replacement is formalized through the existing local move path before DB metadata points to it.
+- Old replaced formal file is deleted only after successful DB persistence and only when no current document/archive metadata reference protects it.
+- Submit/update/resubmit failure leaves old formal files intact.
+- Missing old local files and legacy/unsafe paths are skipped cleanly without physical path leakage.
+
+Manual smoke checklist:
+
+- Replace one attachment and cancel/reset before submit; confirm the old file remains previewable.
+- Replace one attachment and submit successfully; confirm metadata points to the new file and the old file is gone.
+- Trigger a validation/submit failure after selecting a replacement; confirm the old file remains.
+- Repeat through PPK resubmit if available.
+- Confirm archive/DIMUSNAHKAN preview/download behavior is unchanged.
+
+Implementation update on 2026-05-20:
+
+- Targeted fix implemented; pending human browser/storage retest.
+- `AttachmentEditor` continues to clean up only pending replacement uploads on reset/cancel and does not delete old formal files during selection.
+- Pegawai edit/revisi and PPK resubmit now run old-file cleanup only after successful DB update/transaction.
+- Cleanup compares old persisted paths with the newly persisted paths and a DB-loaded reference guard over current document attachment metadata plus retained archive snapshots.
+- Cleanup deletes only safe local formal paths, treats missing files as a no-op, skips pending/unsafe/legacy paths, and logs only safe counts/codes on cleanup failure.
+
+#### Phase 11F.5d.1: Superseded Pending Replacement Cleanup
+
+Goal: clean pending replacement uploads that are superseded inside the same edit/revisi/resubmit session before submit/cancel, without deleting old formal files before successful persistence.
+
+Allowed scope:
+
+- Session-scoped pending upload tracking in `AttachmentEditor`.
+- Existing `POST /api/upload?cleanup=pending` pending-only cleanup behavior.
+- Focused helper tests and manual smoke checklist updates.
+
+Non-goals:
+
+- No broad upload-session manager, global orphan cleanup framework, DB schema change, route generation, package/env change, Supabase fallback, or archive lifecycle redesign.
+
+Implementation update on 2026-05-20:
+
+- Targeted fix implemented; pending human browser/storage retest.
+- `AttachmentEditor` now tracks every pending upload URL created during the active editor session, not only the latest pending file per kelengkapan id.
+- Replacing the same attachment again cleans the previous pending URL when it is no longer referenced by current form state.
+- Reset and cancel cleanup now use the session-created pending URL set, so multiple replacement attempts in one edit session are cleaned without touching old formal files.
+- Submit attempts clean definitely unreferenced superseded pending uploads before persistence so immediate post-save navigation cannot strand them; success clears session tracking, and failed submit preserves the currently selected pending replacement for retry.
+- Cleanup remains routed through the existing pending-only API, which rejects formal, unsafe, owner-mismatched, and unsupported paths before filesystem mutation.
+
+#### Phase 11F.5e: Kategori/Detail Master Data Consistency
 
 Goal: make Kategori Permintaan and Detail Permintaan filter layout and add-form parent prefill consistent with Master Kegiatan.
 
@@ -4242,7 +4305,7 @@ What must not be changed:
 
 - API paths, DB schema/migrations, route tree, package/env files, unrelated admin pages, or Supabase folders.
 
-#### Phase 11F.5e: Accessibility And Lighthouse Polish
+#### Phase 11F.5f: Accessibility And Lighthouse Polish
 
 Goal: reduce Lighthouse/accessibility findings through narrow semantic and focus fixes, not visual redesign.
 
@@ -4283,7 +4346,7 @@ What must not be changed:
 
 - Workflow behavior, RBAC visibility, API contracts, route names, DB schema, package/env files, route tree, or Supabase folders.
 
-#### Phase 11F.5f: Forbidden UX And Guard Dev Log Cleanup
+#### Phase 11F.5g: Forbidden UX And Guard Dev Log Cleanup
 
 Goal: make unauthorized route UX and guard logging clearer without weakening server authorization.
 
@@ -4345,9 +4408,10 @@ Manual smoke checklist:
 - Auth/session/logout/password-change.
 - Admin/master-data classification and kelengkapan validation.
 - Pegawai Ajukan/Revisi validation.
+- Attachment replacement old-file cleanup.
 - Kategori/Detail admin consistency.
+- Accessibility pages touched by 11F.5f.
 - Forbidden UX and role-switch guard logging.
-- Accessibility pages touched by 11F.5e.
 
 What must not be changed:
 
@@ -4356,7 +4420,7 @@ What must not be changed:
 Next recommended phase:
 
 ```text
-Phase 11F.5a  Logout UI Loading And Password Change Auto Logout
+Phase 11F.5e  Kategori/Detail Master Data Consistency
 ```
 
 ### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening

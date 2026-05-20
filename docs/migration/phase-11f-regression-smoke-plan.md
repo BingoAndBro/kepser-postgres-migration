@@ -658,14 +658,16 @@ Severity classification:
 | 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Fixed pending human retest: Master Klasifikasi add/edit/delete modal save state now clears after success, validation/API errors, thrown exceptions, and refresh failures. | 11F.5b |
 | 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Fixed pending human retest: Master Kelengkapan rejects duplicate active rows in the same kegiatan, ketua-tim flag, and request-chain leaf/scope. | 11F.5c |
 | 11F5-005 | P1 before LAN if feasible | Document form validation | Fixed pending human retest: Ajukan/Revisi/PPK resubmit additional kelengkapan duplicate names are blocked with normalized comparison. | 11F.5c |
-| 11F5-006 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5f |
-| 11F5-007 | P2 polish before final release | Master data UI | Kategori Permintaan filter layout should match Master Kegiatan. | 11F.5d |
-| 11F5-008 | P2 polish before final release | Master data UI | Kategori add form should prefill jenis permintaan from active filter. | 11F.5d |
-| 11F5-009 | P2 polish before final release | Master data UI | Detail Permintaan has the same filter/prefill consistency issue as Kategori. | 11F.5d |
-| 11F5-010 | P2 audit/polish | Guard logging | Guard dev log mentions ARSIPARIS for a PEGAWAI+PPK user. | 11F.5f |
-| 11F5-011 | P2 polish before final release | Accessibility | Missing accessible names, contrast, heading order, duplicate link purpose, and manual focus/landmark checks. | 11F.5e |
-| 11F5-012 | P2 optimization unless severe preview lag is reproduced | Performance | Admin Lighthouse TBT around 430ms. | 11F.5e or later optimization |
-| 11F5-013 | P3 future cleanup | Route naming/design | `/pegawai/dokumen` versus `/pegawai/inbox` naming cleanup. | Defer |
+| 11F5-006 | P1 storage safety | Attachment replacement cleanup | Fixed pending human retest: old formal files are deleted only after successful edit/revisi/PPK resubmit persistence and only when no current document/archive reference protects them. | 11F.5d |
+| 11F5-006b | P1 storage safety | Superseded pending replacement cleanup | Fixed pending human retest: multiple replacement attempts in one edit session now track and clean superseded pending uploads without deleting old formal files before persistence. | 11F.5d.1 |
+| 11F5-007 | P1/P2 depending on human tolerance | Forbidden UX/RBAC UX | Admin `/pegawai/dokumen` shows page-level 403 fetch error while other role inbox routes redirect cleanly. | 11F.5g |
+| 11F5-008 | P2 polish before final release | Master data UI | Kategori Permintaan filter layout should match Master Kegiatan. | 11F.5e |
+| 11F5-009 | P2 polish before final release | Master data UI | Kategori add form should prefill jenis permintaan from active filter. | 11F.5e |
+| 11F5-010 | P2 polish before final release | Master data UI | Detail Permintaan has the same filter/prefill consistency issue as Kategori. | 11F.5e |
+| 11F5-011 | P2 audit/polish | Guard logging | Guard dev log mentions ARSIPARIS for a PEGAWAI+PPK user. | 11F.5g |
+| 11F5-012 | P2 polish before final release | Accessibility | Missing accessible names, contrast, heading order, duplicate link purpose, and manual focus/landmark checks. | 11F.5f |
+| 11F5-013 | P2 optimization unless severe preview lag is reproduced | Performance | Admin Lighthouse TBT around 430ms. | 11F.5f or later optimization |
+| 11F5-014 | P3 future cleanup | Route naming/design | `/pegawai/dokumen` versus `/pegawai/inbox` naming cleanup. | Defer |
 
 Subphase plan:
 
@@ -674,9 +676,11 @@ Subphase plan:
 | 11F.5a Logout UI Loading And Password Change Auto Logout | Fix logout loading and force reauth after successful self password change. | Auth UI state, auth-state cleanup, logout/change-password client handling, existing auth API response handling if needed. | No auth model redesign, no session weakening, no password-policy feature work, no DB/package/env/routeTree changes. | `AppLayout`, `auth-state`, login/profile/change-password UI, `/api/auth/logout`, change-password API. | Logout clears loading; successful password change revokes current session; failed password change keeps session. | Login/logout/reload; change password; confirm authenticated request fails until login. | DB, migrations, seeds, packages, env, route tree, Supabase, unrelated auth flows. |
 | 11F.5b Master Klasifikasi Save Loading Fix | Ensure classification save exits loading for second-child/error paths. | Narrow Arsiparis classification UI and existing classification API handling. | No archive lifecycle redesign or tree schema rewrite. | Arsiparis klasifikasi UI and `/api/arsiparis/klasifikasi/*`. | First child and second child save paths finish; error path clears loading. | Add child, add sibling/second child, attempt invalid duplicate/error path, reload tree. | Archive lifecycle, storage, DB migrations/seeds, packages, env, route tree. |
 | 11F.5c Kelengkapan Duplicate Validation | Prevent duplicates according to current business expectations. | Narrow UI/server validation for Master Kelengkapan and Ajukan/Revisi additional kelengkapan. | No generalized validation framework or DB unique-index migration. | Admin Master Kelengkapan UI/API, Pegawai Ajukan/Revisi forms, submit/revisi validation schemas. | Duplicate same-leaf ketua-tim kelengkapan rejected; duplicate additional kelengkapan rejected; valid flows still work. | Try duplicate/non-duplicate master entries; try duplicate additional kelengkapan in Ajukan/Revisi; submit valid document. | DB schema, global validation architecture, route names, workflow statuses, audit behavior. |
-| 11F.5d Kategori/Detail Master Data Consistency | Align Kategori/Detail filters and add-form prefill with Master Kegiatan. | UI-only layout and form-state consistency. | No API rewrite, hierarchy redesign, route rename, or broad admin redesign. | Admin Master Kegiatan, Kategori, Detail pages and shared admin UI components. | Active parent filter preselects add form; reset/edit behavior remains compatible. | Filter Kategori and add; filter Detail and add; clear filters; edit/deactivate where supported. | API paths, DB schema, route tree, package/env, unrelated pages. |
-| 11F.5e Accessibility And Lighthouse Polish | Reduce accessibility findings with narrow semantic/focus fixes. | Button/link labels, contrast, heading order, identical link purpose, focus/landmark checks; bounded Admin TBT classification. | No broad UI redesign or performance architecture rewrite. | Lighthouse-flagged pages, shared button/link/dialog/layout components. | Accessibility findings reduced or documented; keyboard and focus behavior safe; TBT remains classified unless severe lag appears. | Lighthouse target Admin page; keyboard-tab login/Admin/master-data; modal focus trap/return. | Workflow behavior, RBAC visibility, API contracts, route names, DB/package/env/routeTree. |
-| 11F.5f Forbidden UX And Guard Dev Log Cleanup | Clean unauthorized route UX and misleading guard logs without weakening RBAC. | Client/page forbidden handling and guard/dev log cleanup. | No RBAC broadening, no ADMIN submit compatibility, no hiding 403 by granting data, no route rename. | `AppLayout`, guards, navigation config, `/pegawai/dokumen` page, `/api/dokumen` only for verification. | Admin gets clean forbidden UX; server still rejects unauthorized API; logs show actual roles only. | Admin opens `/pegawai/dokumen`; PEGAWAI+PPK role switch logs; direct unauthorized API check. | Server RBAC except confirmed bug fix, role model, route names, DB/package/env/routeTree. |
+| 11F.5d Attachment Replacement Old File Cleanup | Delete superseded local formal files only after successful edit/revisi/save/resubmit persistence. | Attachment replacement lifecycle in `AttachmentEditor`, Pegawai edit/revisi, PPK resubmit routes, and tiny local cleanup helper/test coverage. | No broad storage redesign, global orphan cleanup redesign, archive lifecycle redesign, DB schema, route generation, package/env, or Supabase fallback. | `AttachmentEditor`, `/api/dokumen/$id`, `/api/ppk/resubmit/$id`, local storage helpers. | Old file remains before submit and on failure; old replaced formal file is removed only after DB success; protected current/archive references are not deleted. | Replace and cancel; replace and submit; force validation failure; repeat PPK resubmit if available; confirm archive behavior unchanged. | Env, packages, route tree, DB/migrations/seeds, Supabase folders, archive destruction semantics. |
+| 11F.5d.1 Superseded Pending Replacement Cleanup | Clean pending replacement files superseded before submit/cancel. | Session-scoped pending upload tracking in `AttachmentEditor`, existing pending cleanup API, and focused helper tests. | No broad upload-session manager, global orphan cleanup framework, DB schema, route generation, package/env, Supabase fallback, or archive lifecycle redesign. | `AttachmentEditor`, pending cleanup helper/tests, existing `/api/upload?cleanup=pending`. | Replacing A then B cleans A or keeps it tracked for cancel/submit cleanup; cancel/reset removes all session pending uploads; failed submit preserves the current pending replacement and old formal file. | Replace with A, replace with B, cancel; repeat and submit; force failed submit; repeat PPK resubmit if available. | Env, packages, route tree, DB/migrations/seeds, Supabase folders, old formal pre-persistence deletion. |
+| 11F.5e Kategori/Detail Master Data Consistency | Align Kategori/Detail filters and add-form prefill with Master Kegiatan. | UI-only layout and form-state consistency. | No API rewrite, hierarchy redesign, route rename, or broad admin redesign. | Admin Master Kegiatan, Kategori, Detail pages and shared admin UI components. | Active parent filter preselects add form; reset/edit behavior remains compatible. | Filter Kategori and add; filter Detail and add; clear filters; edit/deactivate where supported. | API paths, DB schema, route tree, package/env, unrelated pages. |
+| 11F.5f Accessibility And Lighthouse Polish | Reduce accessibility findings with narrow semantic/focus fixes. | Button/link labels, contrast, heading order, identical link purpose, focus/landmark checks; bounded Admin TBT classification. | No broad UI redesign or performance architecture rewrite. | Lighthouse-flagged pages, shared button/link/dialog/layout components. | Accessibility findings reduced or documented; keyboard and focus behavior safe; TBT remains classified unless severe lag appears. | Lighthouse target Admin page; keyboard-tab login/Admin/master-data; modal focus trap/return. | Workflow behavior, RBAC visibility, API contracts, route names, DB/package/env/routeTree. |
+| 11F.5g Forbidden UX And Guard Dev Log Cleanup | Clean unauthorized route UX and misleading guard logs without weakening RBAC. | Client/page forbidden handling and guard/dev log cleanup. | No RBAC broadening, no ADMIN submit compatibility, no hiding 403 by granting data, no route rename. | `AppLayout`, guards, navigation config, `/pegawai/dokumen` page, `/api/dokumen` only for verification. | Admin gets clean forbidden UX; server still rejects unauthorized API; logs show actual roles only. | Admin opens `/pegawai/dokumen`; PEGAWAI+PPK role switch logs; direct unauthorized API check. | Server RBAC except confirmed bug fix, role model, route names, DB/package/env/routeTree. |
 | 11F.6 Final Post-Stabilization Regression Recap | Record post-stabilization state before 11G. | Docs/report plus lightweight validation evidence. | No production certification, no LAN deployment claim, no backup/restore completion claim. | Migration docs and validation outputs. | `pnpm test`/`pnpm build` if runtime phases ran; preview probes if build/runtime changed; protected-file audit clean. | Auth, admin, Pegawai, PPK, Bendahara, Arsiparis, storage/file access, forbidden UX, accessibility touched pages. | Do not convert recap into 11G evidence or final release authority. |
 
 Performance and accessibility guardrails:
@@ -688,7 +692,7 @@ Performance and accessibility guardrails:
 Recommended next phase:
 
 ```text
-Phase 11F.5d / 11F.5e / 11F.5f remaining stabilization, depending on human priority
+Phase 11F.5e / 11F.5f / 11F.5g remaining stabilization, depending on human priority
 ```
 
 ## Phase 11F.5a Logout UI Loading And Password Change Auto Logout
@@ -810,6 +814,94 @@ Manual retest checklist:
 14. If PPK resubmit is available, attempt duplicate additional kelengkapan names there too and confirm prevention.
 15. Confirm preview, download, upload, pending cleanup, and file movement behavior remain unchanged.
 
+## Phase 11F.5d Attachment Replacement Old File Cleanup
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser/storage retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- `AttachmentEditor` correctly uploaded a replacement to a pending local path and kept the old formal file during editing.
+- Server update/resubmit routes formalized pending replacements and persisted new `lampiran_urls`, but did not clean up the old formal path that was no longer referenced after successful persistence.
+- Existing cancel/reset cleanup was pending-only, so it did not cause the data-loss risk; the gap was missing post-success cleanup.
+
+Fix summary:
+
+- Added a local replaced-attachment cleanup helper that compares old persisted attachment paths with newly persisted paths.
+- Cleanup runs only after successful Pegawai edit/revisi DB update or PPK save/resubmit transaction.
+- Cleanup deletes only safe local `formal` paths that are no longer referenced.
+- Cleanup loads a DB reference guard from current `dokumen_transaksi.lampiran_urls` and retained `arsip.lampiran_snapshot` before deleting, so current document metadata and archive snapshots protect files.
+- Missing old local files are treated as a no-op, and unsafe, pending, or legacy/protocol-like paths are skipped without Supabase fallback.
+- Cleanup warnings include only safe counts/codes and document id/context, not physical paths or storage roots.
+
+Focused automated validation:
+
+- `pnpm test tests/unit/storage/local-attachment-replacement-cleanup.test.ts` passed.
+
+Manual retest checklist:
+
+1. Count current files for a test document/storage scope.
+2. Login as Pegawai.
+3. Open edit/revisi for a document with one existing file.
+4. Replace that file with a new file.
+5. Do not submit; cancel/reset if available.
+6. Confirm the old file still exists and remains previewable.
+7. Repeat replacement and submit successfully.
+8. Confirm the document now points to the new file.
+9. Confirm the old replaced file is removed from local storage or cleanup evidence shows it is gone.
+10. Confirm total file count does not increase when replacing one file without adding kelengkapan.
+11. Confirm preview/download for the new file works.
+12. Confirm a missing old local file does not break submit.
+13. Confirm failed validation/submit does not delete the old file.
+14. If PPK resubmit can replace files, repeat replacement there.
+15. Confirm archive and `DIMUSNAHKAN` behavior is unaffected.
+
+## Phase 11F.5d.1 Superseded Pending Replacement Cleanup
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser/storage retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- `AttachmentEditor` tracked pending replacements in `pendingFiles: Map<docId, PendingFile>`, so selecting replacement B for the same attachment overwrote replacement A.
+- Cancel/reset cleanup only iterated the latest `pendingFiles` values, and the submit payload includes only the current `lampiranUrls` state, so superseded pending uploads were no longer visible to cleanup.
+- This was a pending-upload lifecycle gap; old formal file cleanup from 11F.5d remained correctly post-persistence only.
+
+Fix summary:
+
+- Added session-scoped pending upload URL tracking for every upload response created during one editor session.
+- Replacing the same attachment again now cleans the previous pending URL when it is no longer referenced by current form state.
+- Reset and cancel cleanup now operate on all session-created pending URLs, not only the latest `pendingFiles` map entries.
+- Submit attempts clean definitely unreferenced superseded pending URLs before persistence so immediate post-save navigation cannot strand them.
+- Submit success clears session tracking; submit failure preserves the old formal file and the currently selected pending replacement for retry.
+- Pending deletion still goes through `POST /api/upload?cleanup=pending`, which rejects formal, unsafe, owner-mismatched, and unsupported paths before filesystem mutation.
+
+Focused automated validation:
+
+- `pnpm test tests/unit/storage/pending-upload-session.test.ts tests/unit/storage/local-attachment-replacement-cleanup.test.ts` passed.
+
+Manual retest checklist:
+
+1. Start with a document that has one existing formal file.
+2. Open edit/revisi.
+3. Replace file with file A.
+4. Without submit/reset, replace again with file B.
+5. Confirm storage does not retain file A after cleanup point, or confirm cancel/submit cleanup removes A.
+6. Cancel/reset.
+7. Confirm old formal file remains previewable.
+8. Confirm both pending file A and pending file B are removed.
+9. Repeat: replace with A, replace with B, then submit successfully.
+10. Confirm document points to B/new persisted file.
+11. Confirm old formal file is removed after success.
+12. Confirm superseded pending A is removed.
+13. Confirm no extra pending files remain.
+14. Confirm preview/download for new file works.
+15. Try failed validation/submit after multiple replacements.
+16. Confirm old formal file remains and current pending behavior remains retry-safe.
+17. If PPK resubmit supports file replacement, repeat the multiple-replacement flow there.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
@@ -818,7 +910,7 @@ Deferred hardening phase after accepted 11F.5 stabilization state:
 Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening
 ```
 
-Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 backlog, but the recommended next phase is 11F.5a. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
+Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 backlog, but the recommended next phase is now 11F.5e unless the human accepts the remaining 11F.5e/11F.5f/11F.5g backlog. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
 
 Phase 11G should cover:
 
