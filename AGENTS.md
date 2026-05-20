@@ -637,3 +637,15 @@ Jika tidak sempat menjalankan test, nyatakan secara eksplisit.
 - App mode: Active development
 - Architecture mode: TanStack Start SPA-heavy with Supabase-backed server routes
 - Constitution accuracy target: synced to current repo structure and implemented features
+
+## graphify
+
+This project may have a Graphify knowledge graph at `graphify-out/`.
+
+Rules:
+- If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture/codebase exploration.
+- If `graphify-out/wiki/index.md` exists, use it as the first navigation map before reading many raw source files.
+- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` when `graphify-out/graph.json` exists.
+- If Graphify output does not exist or is stale, fall back to targeted `git grep`, direct file reads, and the project roadmap/constitution.
+- Do not treat Graphify as the sole authority for security-sensitive work. Verify auth, RBAC, storage, workflow, and file-access behavior directly in source files before making changes.
+- After modifying code files in a Graphify-enabled session, run `graphify update .` when practical to keep the graph current.
