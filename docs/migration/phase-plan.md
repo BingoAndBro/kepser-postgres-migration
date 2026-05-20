@@ -4329,6 +4329,14 @@ What must not be changed:
 
 - API paths, DB schema/migrations, route tree, package/env files, unrelated admin pages, or Supabase folders.
 
+Implementation update on 2026-05-20:
+
+- Targeted UI-only fix implemented; pending human admin browser retest.
+- Kategori and Detail filter rows now follow the Master Kegiatan parent-dropdown-first pattern.
+- Kategori add mode now preselects the active Jenis filter when present and otherwise falls back to the existing default.
+- Detail add mode now preselects the active Kategori/Jenis filter context, derives Jenis from Kategori when applicable, and falls back to a sensible first available parent chain when filters are cleared.
+- Edit mode remains row-sourced for parent fields, and API request/response contracts remain unchanged.
+
 #### Phase 11F.5f: Accessibility And Lighthouse Polish
 
 Goal: reduce Lighthouse/accessibility findings through narrow semantic and focus fixes, not visual redesign.
@@ -4444,7 +4452,7 @@ What must not be changed:
 Next recommended phase:
 
 ```text
-Phase 11F.5e  Kategori/Detail Master Data Consistency
+Phase 11F.5f  Accessibility And Lighthouse Polish
 ```
 
 ### Phase 11G: Backup/Restore, Operational, LAN, And Release Hardening

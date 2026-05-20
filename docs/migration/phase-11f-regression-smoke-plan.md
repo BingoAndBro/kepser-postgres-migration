@@ -950,6 +950,49 @@ Manual retest checklist:
 13. Confirm `deleted_count` matches actual deleted local files.
 14. Confirm no physical paths, storage roots, env values, secrets, tokens, hashes, DB URLs, or file contents appear in responses or logs.
 
+## Phase 11F.5e Kategori/Detail Master Data Consistency
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human admin UI retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- Master Kegiatan already prefilled its parent field from the active filter when opening the add dialog.
+- Kategori Permintaan always defaulted the add dialog to the first Jenis Permintaan instead of the active Jenis filter.
+- Detail Permintaan kept filter controls visually different from the Master Kegiatan pattern and could clear the loaded kategori list when no Jenis filter was active, which made add defaults and edit parent resolution depend on stale/incomplete UI state.
+
+Fix summary:
+
+- Kategori Permintaan filter controls now follow the Master Kegiatan filter row pattern, with the parent dropdown first and search second.
+- Kategori add mode now preselects the active Jenis filter when present, otherwise it falls back to the existing first-Jenis default.
+- Detail Permintaan filter controls now follow the same parent-dropdown-first pattern for Jenis, Kategori, then search.
+- Detail add mode now preselects the active Kategori filter when present, derives the matching Jenis from that kategori, or uses the active Jenis filter with the first matching kategori.
+- Detail keeps the full kategori list available for add/edit parent resolution, while the filter UI still clears invalid kategori filters when the Jenis filter changes.
+- Edit mode remains row-sourced: Kategori edit uses the row's `jenis_permintaan_id`, and Detail edit uses the row's `kategori_permintaan_id` plus the kategori's actual Jenis.
+- No API routes, request payload fields, response shapes, DB schema, storage, auth, route generation, package files, or env files were changed.
+
+Manual retest checklist:
+
+1. Login as Admin.
+2. Open Master Kegiatan and observe the parent-filter-first layout pattern.
+3. Open Kategori Permintaan.
+4. Filter Kategori by one Jenis Permintaan.
+5. Click Tambah.
+6. Confirm Jenis Permintaan is preselected from the active filter.
+7. Submit a valid Kategori or cancel safely.
+8. Clear the Jenis filter.
+9. Click Tambah again and confirm the default Jenis state is sensible.
+10. Edit an existing Kategori and confirm its parent Jenis matches the row, not a stale active filter.
+11. Delete/deactivate Kategori if currently supported and confirm behavior is unchanged.
+12. Open Detail Permintaan.
+13. Filter by Jenis, then optionally by Kategori.
+14. Click Tambah.
+15. Confirm parent fields are preselected consistently from the active filter context.
+16. Clear filters and confirm add form default state is sensible.
+17. Edit an existing Detail and confirm parent fields match the row, not stale filter state.
+18. Delete/deactivate Detail if currently supported and confirm behavior is unchanged.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
