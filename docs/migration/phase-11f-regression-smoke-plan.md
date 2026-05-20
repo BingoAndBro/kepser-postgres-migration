@@ -668,6 +668,7 @@ Severity classification:
 | 11F5-012 | P2 polish before final release | Accessibility | Missing accessible names, contrast, heading order, duplicate link purpose, and manual focus/landmark checks. | 11F.5f |
 | 11F5-013 | P2 optimization unless severe preview lag is reproduced | Performance | Admin Lighthouse TBT around 430ms. | 11F.5f or later optimization |
 | 11F5-014 | P3 future cleanup | Route naming/design | `/pegawai/dokumen` versus `/pegawai/inbox` naming cleanup. | Defer |
+| 11F5-015 | P1 route/default UX | Pegawai canonical dashboard route | Fixed pending human retest: `/pegawai` now renders the Pegawai dashboard, and `/` remains a role-default compatibility redirect. | 11F.5h |
 
 Subphase plan:
 
@@ -681,6 +682,7 @@ Subphase plan:
 | 11F.5e Kategori/Detail Master Data Consistency | Align Kategori/Detail filters and add-form prefill with Master Kegiatan. | UI-only layout and form-state consistency. | No API rewrite, hierarchy redesign, route rename, or broad admin redesign. | Admin Master Kegiatan, Kategori, Detail pages and shared admin UI components. | Active parent filter preselects add form; reset/edit behavior remains compatible. | Filter Kategori and add; filter Detail and add; clear filters; edit/deactivate where supported. | API paths, DB schema, route tree, package/env, unrelated pages. |
 | 11F.5f Accessibility And Lighthouse Polish | Reduce accessibility findings with narrow semantic/focus fixes. | Button/link labels, contrast, heading order, identical link purpose, focus/landmark checks; bounded Admin TBT classification. | No broad UI redesign or performance architecture rewrite. | Lighthouse-flagged pages, shared button/link/dialog/layout components. | Accessibility findings reduced or documented; keyboard and focus behavior safe; TBT remains classified unless severe lag appears. | Lighthouse target Admin page; keyboard-tab login/Admin/master-data; modal focus trap/return. | Workflow behavior, RBAC visibility, API contracts, route names, DB/package/env/routeTree. |
 | 11F.5g Forbidden UX And Guard Dev Log Cleanup | Clean unauthorized route UX and misleading guard logs without weakening RBAC. | Client/page forbidden handling and guard/dev log cleanup. | No RBAC broadening, no ADMIN submit compatibility, no hiding 403 by granting data, no route rename. | `AppLayout`, guards, navigation config, `/pegawai/dokumen` page, `/api/dokumen` only for verification. | Admin gets clean forbidden UX; server still rejects unauthorized API; logs show actual roles only. | Admin opens `/pegawai/dokumen`; PEGAWAI+PPK role switch logs; direct unauthorized API check. | Server RBAC except confirmed bug fix, role model, route names, DB/package/env/routeTree. |
+| 11F.5h Pegawai Canonical Route Alignment | Make `/pegawai` the canonical Pegawai dashboard/default route. | Existing Pegawai dashboard route ownership, default-route constants, login/role-switch redirects, and root compatibility redirect. | No `/pegawai/dokumen` rename, no RBAC broadening, no route generation, no API/DB/storage/package/env changes. | Root route, existing `/pegawai` parent route, navigation/default-route config, login redirect. | `/pegawai` renders Pegawai dashboard for assigned PEGAWAI; `/` redirects by active/assigned role; Admin/non-Pegawai get forbidden; unauthenticated users go to login. | Login as PEGAWAI/Admin/PPK/Bendahara/Arsiparis; open `/pegawai` and `/`; switch PEGAWAI/PPK active role; confirm no blank page or loop. | API routes, server RBAC, route tree, DB/migrations/seeds/scripts, package/env files, Supabase fallback. |
 | 11F.6 Final Post-Stabilization Regression Recap | Record post-stabilization state before 11G. | Docs/report plus lightweight validation evidence. | No production certification, no LAN deployment claim, no backup/restore completion claim. | Migration docs and validation outputs. | `pnpm test`/`pnpm build` if runtime phases ran; preview probes if build/runtime changed; protected-file audit clean. | Auth, admin, Pegawai, PPK, Bendahara, Arsiparis, storage/file access, forbidden UX, accessibility touched pages. | Do not convert recap into 11G evidence or final release authority. |
 
 Performance and accessibility guardrails:
@@ -692,7 +694,7 @@ Performance and accessibility guardrails:
 Recommended next phase:
 
 ```text
-Phase 11F.5e / 11F.5f / 11F.5g remaining stabilization, depending on human priority
+Phase 11F.6 Final Post-Stabilization Regression Recap after human retest acceptance
 ```
 
 ## Phase 11F.5a Logout UI Loading And Password Change Auto Logout
@@ -1095,6 +1097,53 @@ Validation note:
 
 - No focused automated test was added because the existing test inventory has auth helper and API/storage route tests but no low-risk React route wrapper harness for this client redirect race. Manual browser retest is required.
 
+## Phase 11F.5h Pegawai Canonical Route Alignment
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human route/browser retest. Do not claim full Phase 11F complete.
+
+Root cause:
+
+- `/` rendered the Pegawai dashboard directly and was still configured as the `PEGAWAI` default route.
+- `/pegawai` existed only as a parent `Outlet` route, so opening it directly had no index content and appeared blank.
+- Login success still sent all non-Admin users to `/`, so Pegawai never used the explicit role-dashboard path as the canonical route.
+
+Fix summary:
+
+- `ROLE_DEFAULT_ROUTE.PEGAWAI` now points to `/pegawai`.
+- The existing `/pegawai` parent route now guards assigned `PEGAWAI`, renders the same `DashboardShell`/`StatsBento` dashboard at exact `/pegawai`, and preserves `Outlet` behavior for `/pegawai/*`.
+- `/` now acts as a compatibility redirect that prefers a valid active UX role and otherwise falls back to the stable assigned-role order.
+- Login success and role-switch defaults now use the default-route mapping so PEGAWAI lands on `/pegawai`, while PPK, Bendahara, Arsiparis, and Admin keep their explicit dashboard roots.
+- `/pegawai/dokumen` route names and API/server RBAC were not changed.
+- `src/routeTree.gen.ts` was not regenerated or modified.
+
+Manual retest checklist:
+
+1. Login as PEGAWAI.
+2. Open `/pegawai`.
+3. Confirm Pegawai dashboard displays and is not blank.
+4. Open `/`.
+5. Confirm it redirects to `/pegawai` or otherwise lands on the proper PEGAWAI default without blank page.
+6. Login as Admin.
+7. Open `/pegawai`.
+8. Confirm clean `/forbidden` UX.
+9. Open `/pegawai/dokumen`.
+10. Confirm clean `/forbidden` UX and no raw `/api/dokumen` fetch error.
+11. Directly call `/api/dokumen` as Admin and confirm 403.
+12. Login as PPK, Bendahara, and Arsiparis where feasible.
+13. Open `/` and confirm default redirects remain `/ppk`, `/bendahara`, `/arsiparis` respectively.
+14. Login as PEGAWAI+PPK if available.
+15. Switch active role and confirm role switch redirects use `/pegawai` for PEGAWAI and `/ppk` for PPK.
+16. Confirm no redirect loop.
+17. Confirm browser refresh on `/pegawai` works.
+18. Confirm sidebar/navigation active state remains sensible.
+19. Confirm no React warning or console errors.
+
+Validation note:
+
+- No focused automated test was added because this pass changed client route composition/default redirects and no low-risk route-render test harness exists in the current inventory. Manual browser retest is required.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
@@ -1103,7 +1152,7 @@ Deferred hardening phase after accepted 11F.5 stabilization state:
 Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening
 ```
 
-Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 backlog, but the recommended next phase is now 11F.5e unless the human accepts the remaining 11F.5e/11F.5f/11F.5g backlog. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
+Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 retest state, but the recommended next phase is now 11F.6 recap after human retest acceptance. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
 
 Phase 11G should cover:
 
