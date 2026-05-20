@@ -902,6 +902,54 @@ Manual retest checklist:
 16. Confirm old formal file remains and current pending behavior remains retry-safe.
 17. If PPK resubmit supports file replacement, repeat the multiple-replacement flow there.
 
+## Phase 11F.5d.2 Admin Storage Orphan Cleanup Diagnostics Hardening
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human admin/storage retest. Do not claim full Phase 11F.5 complete.
+
+Root cause:
+
+- The admin cleanup route reported pending local files but intentionally excluded them from cleanup candidates through `pending_only=true`, leaving old pending leftovers from earlier tests as report-only even when clearly unreferenced.
+- The diagnostics helper classified pending files but did not expose age/eligibility information, so the route could not distinguish old orphan pending leftovers from files that may still belong to an active edit/revisi/resubmit session.
+
+Fix summary:
+
+- Storage analysis still compares local logical filesystem paths against current `dokumen_transaksi.lampiran_urls` and retained `arsip.lampiran_snapshot` references before classifying anything as orphan.
+- Analyze responses remain logical-path-only and now include pending path age details, default pending eligibility counts, `eligible_pending_paths`, and `recent_pending_paths`.
+- Cleanup keeps `dry_run=true` by default.
+- Non-pending formal orphan cleanup remains available with `dry_run=false`.
+- Pending cleanup is opt-in only and requires `dry_run=false`, `include_pending=true`, `confirm=true`, and `min_age_minutes` eligibility. The default minimum age is 1440 minutes.
+- `pending_only=true` scopes cleanup/reporting to pending candidates; without the explicit pending deletion flags it remains report-only.
+- Missing files are no-op, unsafe/unsupported paths are skipped safely, and failures report safe logical paths/codes only.
+
+Safe usage examples:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/analyze-storage" -WebSession $session
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/cleanup-orphan-files?dry_run=true" -WebSession $session
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/cleanup-orphan-files?pending_only=true&dry_run=true" -WebSession $session
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/cleanup-orphan-files?dry_run=false" -WebSession $session
+Invoke-RestMethod -Uri "http://localhost:3000/api/admin/cleanup-orphan-files?pending_only=true&include_pending=true&min_age_minutes=1440&dry_run=false&confirm=true" -WebSession $session
+```
+
+Manual retest checklist:
+
+1. Login as Admin.
+2. Call `/api/admin/analyze-storage`.
+3. Confirm the response shows logical paths only.
+4. Call `/api/admin/cleanup-orphan-files?dry_run=true`.
+5. Confirm no files are deleted.
+6. Call `/api/admin/cleanup-orphan-files?pending_only=true&dry_run=true`.
+7. Confirm recent pending files are reported/skipped and not deleted by default.
+8. Create or identify an old orphan test file only if it is safe and unreferenced.
+9. Run destructive formal cleanup only with `dry_run=false`.
+10. Run destructive pending cleanup only with `pending_only=true&include_pending=true&min_age_minutes=1440&dry_run=false&confirm=true`.
+11. Confirm referenced document files remain.
+12. Confirm archive snapshot referenced files remain, including retained `DIMUSNAHKAN` snapshots.
+13. Confirm `deleted_count` matches actual deleted local files.
+14. Confirm no physical paths, storage roots, env values, secrets, tokens, hashes, DB URLs, or file contents appear in responses or logs.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
