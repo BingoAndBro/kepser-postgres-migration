@@ -1,0 +1,16 @@
+node_modules/
+.git/
+.env
+.env.*
+dist/
+dist-ssr/
+build/
+.tanstack/
+.wrangler/
+.output/
+.vinxi/
+playwright-report/
+test-results/
+storage/
+supabase/.temp/
+*.log
