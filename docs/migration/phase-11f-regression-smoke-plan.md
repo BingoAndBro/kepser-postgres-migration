@@ -993,6 +993,55 @@ Manual retest checklist:
 17. Edit an existing Detail and confirm parent fields match the row, not stale filter state.
 18. Delete/deactivate Detail if currently supported and confirm behavior is unchanged.
 
+## Phase 11F.5f Accessibility And Lighthouse Polish
+
+Date: 2026-05-20.
+
+Status: targeted accessibility polish implemented; pending human Lighthouse and keyboard retest. Do not claim full accessibility compliance until browser evidence is recorded.
+
+Root cause / findings addressed:
+
+- Several icon-only controls in shared layout, admin master-data tables, role document lists, attachment previews, and custom archive/classification dialogs had either no accessible name or a generic repeated name.
+- Admin table row actions were hidden with opacity until mouse hover, which made keyboard focus less discoverable even when the controls were technically tabbable.
+- Layout branding/navigation labels used heading tags, which could pollute document heading order before the page title.
+- Admin master-data page titles were visually top-level headings but used `h2`.
+- Some repeated "Lihat detail" / "Lihat" links had identical accessible purpose without row context.
+- A few obvious status/success text classes used low-contrast gray/green combinations.
+- Admin Lighthouse TBT around 430ms remains classified as P2 optimization unless severe authenticated preview lag is reproduced.
+
+Fix summary:
+
+- Added row-specific `aria-label` values to admin master-data edit/delete/reset/status action buttons.
+- Added row-specific labels to repeated document/archive detail and report links.
+- Added accessible labels to shared header notification/settings/search, user menu, role switcher, pagination icon buttons, and attachment/preview close controls.
+- Made admin table hover-only action groups visible on keyboard focus with `focus-within:opacity-100`.
+- Converted decorative layout headings in the header/sidebar to non-heading elements and promoted admin master-data page titles to `h1`.
+- Added `role="menu"`/`role="menuitem"` semantics to simple user/role dropdowns and `role="dialog" aria-modal="true"` to touched custom preview/classification modals.
+- Improved obvious low-contrast success/status text from pale green/gray to darker existing utility colors.
+- No API routes, DB schema, storage, auth, package files, env files, route generation, or workflow behavior changed.
+
+Manual retest checklist:
+
+1. Login as Admin in preview.
+2. Run Lighthouse on the Admin page that previously scored low.
+3. Confirm "buttons do not have an accessible name" findings are reduced on Admin/master-data pages.
+4. Confirm contrast findings are reduced for success/status text touched by this phase.
+5. Inspect heading order on Admin/master-data pages; page title should be the top-level heading.
+6. Tab through header search, notification/settings buttons, role switcher, user menu, Admin dashboard, and Admin master-data tables.
+7. Confirm row action buttons become visible when keyboard focus reaches them.
+8. Open add/edit/delete/reset dialogs and confirm close/cancel/save buttons are keyboard reachable.
+9. Open archive/document preview dialogs touched by this phase and confirm the close button has a meaningful accessible label.
+10. Confirm repeated "Lihat" / "Lihat detail" actions announce row-specific document/archive context.
+11. Confirm visual hierarchy remains recognizable and no layout redesign occurred.
+12. Record post-fix Accessibility and Performance scores.
+13. If Admin TBT remains around 430ms but no severe lag exists, keep it as a P2 optimization backlog item.
+
+Known remaining non-blockers:
+
+- Custom non-library modals received labels and modal roles where touched, but full focus-trap/return behavior still requires human keyboard retest.
+- Broader app-wide heading normalization outside the targeted Admin/master-data and touched preview surfaces remains deferred unless Lighthouse identifies a concrete page/node.
+- Admin TBT was not rewritten in this phase; no architecture-level performance work was attempted.
+
 ## Phase 11G Handoff
 
 Deferred hardening phase after accepted 11F.5 stabilization state:
