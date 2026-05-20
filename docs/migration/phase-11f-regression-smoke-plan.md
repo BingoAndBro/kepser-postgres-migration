@@ -653,8 +653,8 @@ Severity classification:
 
 | ID | Severity | Domain | Summary | Recommended subphase |
 |---|---|---|---|---|
-| 11F5-001 | P1 before LAN if fewer bugs are desired | Auth/UI | Logout network returns 200 but UI keeps loading. | 11F.5a |
-| 11F5-002 | P1 before LAN if fewer bugs are desired | Auth/session UX | Password change succeeds, but successful self password change should auto logout while preserving session invalidation integrity. | 11F.5a |
+| 11F5-001 | P1 before LAN if fewer bugs are desired | Auth/UI | Fixed pending human retest: logout success now clears authenticated UI/loading state and redirects to login after the logout API returns. | 11F.5a |
+| 11F5-002 | P1 before LAN if fewer bugs are desired | Auth/session UX | Fixed pending human retest: successful self password change revokes all current-user sessions, clears auth cookies/client state, and redirects to login. | 11F.5a |
 | 11F5-003 | P1 before LAN if fewer bugs are desired | Arsiparis master data | Master Klasifikasi adding another child can leave `Simpan` loading forever. | 11F.5b |
 | 11F5-004 | P1 before LAN if fewer bugs are desired | Master data validation | Master Kelengkapan lacks duplicate validation for ketua-tim kelengkapan in the same leaf node. | 11F.5c |
 | 11F5-005 | P1 before LAN if feasible | Document form validation | Ajukan/Revisi additional kelengkapan can be duplicated. | 11F.5c |
@@ -690,6 +690,42 @@ Recommended next phase:
 ```text
 Phase 11F.5a  Logout UI Loading And Password Change Auto Logout
 ```
+
+## Phase 11F.5a Logout UI Loading And Password Change Auto Logout
+
+Date: 2026-05-20.
+
+Status: targeted fix implemented; pending human browser retest. Do not claim full Phase 11F.5 complete.
+
+Fix summary:
+
+- Logout now clears the loading state after the confirmed logout API response, clears client authenticated state, clears the readable active-role UX cookie, and redirects to `/login`.
+- Logout no longer clears authenticated client state when the logout API call fails; the user remains in the existing authenticated UI instead of creating a fake client-only logout.
+- Successful self-service password change now keeps the existing response body shape, but also returns `Set-Cookie` headers that clear `dms_session` and `dms_active_role`.
+- The self-service password policy remains all-session revocation through `revokeAllUserSessions(userId)` after a successful hash update.
+- The profile page clears per-tab client auth state only after a successful password-change response and redirects to `/login?password_changed=1`.
+- Failed password-change validation/API responses keep the current session and show the existing safe error path.
+
+Manual retest checklist:
+
+1. Login as a normal local user.
+2. Click logout.
+3. Confirm network logout returns `200`.
+4. Confirm UI leaves the loading state.
+5. Confirm the user reaches login/unauthenticated UI.
+6. Reload browser and confirm still unauthenticated.
+7. Login again.
+8. Change password with invalid current password or invalid input.
+9. Confirm a safe error is shown and the user remains authenticated.
+10. Change password successfully.
+11. Confirm the user is forced to login/reauthenticate.
+12. Reload browser and confirm auth is not silently preserved.
+13. Try an authenticated page/API after password change before login; confirm access requires login.
+14. Login with the new password and confirm access works.
+
+Known follow-up note:
+
+- Already-open tabs may still show stale client-rendered UI until reload or their next authenticated request, but the server-side session rows are revoked and protected APIs should require login after the successful password change.
 
 ## Phase 11G Handoff
 

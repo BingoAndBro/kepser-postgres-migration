@@ -4103,6 +4103,13 @@ Manual smoke checklist:
 - Try browser reload and an authenticated API/page after password change; confirm reauth is required.
 - Verify invalid change-password input keeps the session and shows a safe error.
 
+Implementation update on 2026-05-20:
+
+- Targeted fix implemented; pending human browser retest.
+- Logout now clears loading and authenticated client UI only after confirmed `/api/auth/logout` success, then redirects to `/login`.
+- Successful self-service password change preserves the JSON success shape, clears auth cookies in the API response, keeps the existing all-session revocation policy, clears per-tab client auth state, and redirects to login.
+- Failed password-change validation/API responses keep the session and show the safe error path.
+
 What must not be changed:
 
 - DB schema, migrations, seeds, packages, env files, route tree, Supabase folders, unrelated auth flows, role model, or session-token storage guarantees.
