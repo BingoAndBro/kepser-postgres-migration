@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit recorded in `docs/migration/phase-11h-final-supabase-audit.md` and the 11H.2 P1 security gate decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. The 11H.2 decisions are pending. This document does not make a final release decision, does not approve go-live, does not claim production readiness, does not claim LAN readiness, and does not implement runtime hardening.
+Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit recorded in `docs/migration/phase-11h-final-supabase-audit.md` and the 11H.2 P1 security gate decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2c and 11H.2d are implemented pending human retest; CSRF/origin and login rate-limit decisions remain pending. This document does not make a final release decision, does not approve go-live, does not claim production readiness, and does not claim LAN readiness.
 
 The local target remains:
 
@@ -151,10 +151,10 @@ This classification means only that gate planning is ready for human review and 
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2d - Raw Logical-Path File Access Hardening
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. 11H.2 then recorded the human-controlled P1 security decision framework. The human selected incremental implementation and 11H.2c has implemented destructive admin cleanup hardening pending human retest. The next recommended phase is 11H.2d unless a blocker remains in 11H.2c retest. This is not a release readiness claim.
+Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. 11H.2 then recorded the human-controlled P1 security decision framework. The human selected incremental implementation; 11H.2c has implemented destructive admin cleanup hardening pending human retest, and 11H.2d has implemented raw logical-path file-access hardening pending human retest. The next recommended phase is 11H.2b unless a blocker remains in 11H.2c or 11H.2d retest. This is not a release readiness claim.
 
 ## Phase 11H.1 Audit Result
 
@@ -177,7 +177,7 @@ P1 gates remain unresolved except for 11H.2c implementation pending human retest
 - CSRF/origin strategy;
 - login rate-limit/brute-force foundation;
 - destructive admin cleanup hardening implemented pending human retest;
-- raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
+- raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN` implemented pending human retest.
 
 ## Phase 11H.2 Decision Framework Result
 
@@ -190,7 +190,7 @@ Dedicated decision record:
 11H.2 classification:
 
 ```text
-decision framework recorded, 11H.2c implemented pending human retest, remaining P1 decisions pending
+decision framework recorded, 11H.2c and 11H.2d implemented pending human retest, CSRF/origin and login rate-limit decisions pending
 ```
 
 Current human decision status:
@@ -200,6 +200,6 @@ Current human decision status:
 | CSRF/origin strategy | decision pending | Final readiness remains unresolved while pending. |
 | Login rate-limit/brute-force foundation | decision pending | Final readiness remains unresolved while pending. |
 | Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
-| Raw logical-path file-access hardening | decision pending | Final readiness remains unresolved while pending. |
+| Raw logical-path file-access hardening | implementation selected and implemented pending human retest | Final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 
-11H.2c implemented runtime hardening only for destructive admin cleanup. 11H.2 did not accept bounded risk, did not downgrade P1 items, and did not make a final readiness decision. The preferred final posture remains HTTPS plus `Secure` `dms_session` cookies. Trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval.
+11H.2c implemented runtime hardening only for destructive admin cleanup, and 11H.2d implemented runtime hardening only for raw logical-path file access. 11H.2 did not accept bounded risk, did not downgrade P1 items, and did not make a final readiness decision. The preferred final posture remains HTTPS plus `Secure` `dms_session` cookies. Trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval.

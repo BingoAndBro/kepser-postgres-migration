@@ -132,7 +132,7 @@ Positive findings:
 Findings and caveats:
 
 - Phase 11H.2c converted destructive admin cleanup to POST-only semantics pending human retest. `GET /api/admin/cleanup-orphan-files` is now dry-run/report-only, including when destructive query flags are supplied.
-- Raw logical-path preview/download compatibility routes (`/api/dokumen/preview-url` and `/api/dokumen/download-url`) authorize owners and broad workflow roles by path knowledge, but do not perform document/archive status revalidation and do not independently block `DIMUSNAHKAN`. Document-specific file routes do block `DIMUSNAHKAN`; raw compatibility routes should be narrowed or status-aware before final/wider rollout.
+- Phase 11H.2d now hardens raw logical-path preview/download compatibility pending human retest. `/api/dokumen/preview-url`, `/api/dokumen/download-url`, and `/api/files/access` revalidate current document/archive references for raw logical paths, block `DIMUSNAHKAN` at token-use time, keep pending paths owner-scoped, and preserve `{ signedUrl }` compatibility.
 - No explicit origin/referer/CSRF token enforcement was found for state-changing routes.
 - No app-layer throttling/rate-limit mechanism was found.
 - Some high-impact reads and token issuance routes are GET by design; this is acceptable for read-only behavior only if they remain non-mutating and authorization is revalidated.
@@ -143,7 +143,7 @@ Findings and caveats:
 | Classification | Finding | Recommendation |
 |---|---|---|
 | P1 before 11H/wider rollout | Destructive admin cleanup could be triggered by GET query flags and has no explicit app-wide CSRF/origin protection. | Phase 11H.2c makes destructive cleanup POST-only pending human retest. Separate CSRF/origin strategy remains unresolved. |
-| P1 before 11H/wider rollout | Raw logical-path preview/download routes do not revalidate archive status and can bypass the stronger `DIMUSNAHKAN` block used by document-token routes if a valid role knows a path. | Narrow raw compatibility routes to owner-only or require document-token/status-aware access before final. |
+| P1 before 11H/wider rollout | Raw logical-path preview/download routes did not revalidate archive status and could bypass the stronger `DIMUSNAHKAN` block used by document-token routes if a valid role knew a path. | Phase 11H.2d implements status-aware raw-path revalidation pending human retest. |
 | P1 before 11H/wider rollout | No explicit CSRF/origin strategy for cookie-authenticated state-changing routes. | Add centralized same-origin validation and/or CSRF token strategy before broader browser-accessible deployment. |
 | P1 before 11H/wider rollout | No login brute-force throttling. | Add app-layer login rate-limit/backoff and audit logging; use reverse-proxy limits only as defense in depth. |
 | P2 before final release | Upload, file-token issuance, workflow, archive, and admin mutations have no app-layer throttling. | Add scoped per-user/session/IP limits and audit events by risk surface. |
@@ -164,20 +164,20 @@ Deferred before 11H/wider rollout:
 - CSRF/origin enforcement strategy.
 - Login and sensitive-route app-layer rate limits.
 - POST-only or strongly guarded destructive admin cleanup.
-- Raw logical-path preview/download narrowing or status-aware revalidation.
+- Raw logical-path preview/download narrowing or status-aware revalidation. Phase 11H.2d is implemented pending human retest.
 - Final HTTPS/`Secure` cookie deployment decision.
 
-Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2c implements destructive admin cleanup hardening pending human retest. The remaining 11G.5 P1 findings remain P1 and are not accepted or downgraded by that implementation.
+Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2c implements destructive admin cleanup hardening pending human retest, and Phase 11H.2d implements raw logical-path file-access hardening pending human retest. The remaining CSRF/origin and login rate-limit P1 findings remain P1 and are not accepted or downgraded by those implementations.
 
 ## Next Phase Recommendation
 
 If no new runtime blocker is reported by the human, the current recommended phase after the 11H.2 framework record is:
 
 ```text
-Phase 11H.2d - Raw Logical-Path File Access Hardening
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-unless a blocker remains in 11H.2c human retest.
+unless a blocker remains in 11H.2c or 11H.2d human retest.
 
 11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`, and 11H.0 records the final gate sequence in `docs/migration/phase-11h-final-readiness-plan.md`. Neither document approves production, release, operational certification, or go-live by itself. Later 11H phases remain human-controlled and must implement, explicitly accept, defer, or block on the remaining P1 findings before any honest final readiness claim.
 

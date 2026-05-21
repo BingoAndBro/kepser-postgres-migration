@@ -2,9 +2,9 @@
 
 Date prepared: 2026-05-21.
 
-Status: decision framework recorded; destructive admin cleanup hardening implemented pending human retest; remaining P1 decisions pending.
+Status: decision framework recorded; destructive admin cleanup hardening implemented pending human retest; raw logical-path file-access hardening implemented pending human retest; CSRF/origin and login rate-limit decisions pending.
 
-This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2c now implements the selected destructive admin cleanup hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
+This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2c now implements the selected destructive admin cleanup hardening, and Phase 11H.2d now implements the selected raw logical-path file-access hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
 
 The local target remains:
 
@@ -28,11 +28,11 @@ Not allowed in the original framework-only 11H.2 record:
 - no Origin or Referer middleware implementation;
 - no rate-limit implementation;
 - no additional destructive admin cleanup route implementation beyond the selected Phase 11H.2c hardening recorded below;
-- no raw logical-path file-access hardening implementation;
+- no raw logical-path file-access hardening implementation before the selected Phase 11H.2d follow-up recorded below;
 - no runtime source, test, package, env, DB, Drizzle, Supabase folder, route-generation, firewall/network, backup/restore, storage cleanup, or commit changes;
 - no final readiness, production readiness, LAN readiness, release readiness, operational certification, or go-live approval claim.
 
-Phase 11H.2c is the human-selected runtime follow-up exception for destructive admin cleanup hardening. It does not authorize unrelated runtime changes or any of the other P1 implementations.
+Phase 11H.2c and Phase 11H.2d are the human-selected runtime follow-up exceptions for destructive admin cleanup hardening and raw logical-path file-access hardening. They do not authorize unrelated runtime changes or the remaining CSRF/origin and login rate-limit P1 implementations.
 
 ## Decision Policy
 
@@ -40,21 +40,21 @@ Accepted bounded risk requires explicit human-reviewed operational risk acceptan
 
 If a P1 item is accepted as bounded risk, the exact deployment boundary must be stated. Trusted HTTP LAN means internal trusted clients only, no public internet exposure, no broader rollout approval, and no reuse as a public deployment posture. Preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
 
-Phase 11H.2 initially recorded no explicit human disposition for the four P1 items. On 2026-05-21, the human selected incremental P1 implementation and chose Phase 11H.2c Destructive Admin Cleanup Hardening as the first follow-up.
+Phase 11H.2 initially recorded no explicit human disposition for the four P1 items. On 2026-05-21, the human selected incremental P1 implementation and chose Phase 11H.2c Destructive Admin Cleanup Hardening as the first follow-up, then selected Phase 11H.2d Raw Logical-Path File Access Hardening.
 
-The remaining P1 items stay:
+The unresolved CSRF/origin and login rate-limit P1 items stay:
 
 ```text
 decision pending
 ```
 
-The destructive admin cleanup item is now:
+The destructive admin cleanup and raw logical-path file-access items are now:
 
 ```text
 implementation selected and implemented pending human retest
 ```
 
-Decision pending preserves release ambiguity for the remaining P1 items. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
+Decision pending preserves release ambiguity for the remaining CSRF/origin and login rate-limit P1 items. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
 
 ## P1 Decision Matrix
 
@@ -63,7 +63,7 @@ Decision pending preserves release ambiguity for the remaining P1 items. It is n
 | CSRF/origin strategy | decision pending | Phase 11H.2a - CSRF/Origin Protection Follow-up | Final readiness remains unresolved while pending. |
 | Login rate-limit/brute-force foundation | decision pending | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Final readiness remains unresolved while pending. |
 | Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Phase 11H.2c - Destructive Admin Cleanup Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
-| Raw logical-path file-access hardening | decision pending | Phase 11H.2d - Raw Logical-Path File Access Hardening | Final readiness remains unresolved while pending. |
+| Raw logical-path file-access hardening | implementation selected and implemented pending human retest | Phase 11H.2d - Raw Logical-Path File Access Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 
 ## 1. CSRF/Origin Strategy
 
@@ -229,10 +229,20 @@ Release classification impact:
 
 ## 4. Raw Logical-Path File-Access Hardening
 
-Current issue:
+Previous issue:
 
 - Raw logical-path preview/download compatibility routes do not independently revalidate archive status like document-token routes do.
 - Concern: `DIMUSNAHKAN` policy must not be bypassed by stale/raw access.
+
+11H.2d implementation status:
+
+- `GET /api/dokumen/preview-url?url=...` and `GET /api/dokumen/download-url?url=...` now call centralized raw logical-path authorization before issuing internal `{ signedUrl }` tokens.
+- `/api/files/access?token=...` now revalidates raw logical-path tokens at token-use time against current local PostgreSQL document/archive references.
+- Any current archive reference with `status_arsip='DIMUSNAHKAN'`, including archives associated with a referenced document or direct `arsip.lampiran_snapshot` references, returns `410` and blocks file streaming.
+- Stale raw tokens are not sufficient after archive state changes because the access route re-queries current authoritative state before reading the local file.
+- Pending-upload raw paths remain owner/session-scoped; workflow roles do not gain cross-user pending access by path knowledge.
+- Non-referenced raw paths are owner-scoped only. Workflow-role raw compatibility remains only for paths that are currently governed by readable document/archive metadata.
+- Token payload shape remains minimal and context-free for Phase 9B compatibility; no physical path, storage root, DB URL, env value, secret, cookie value, or token internals are added to the payload or response.
 
 Risk summary:
 
@@ -246,12 +256,14 @@ Affected surfaces:
 - Raw logical-path download URL compatibility route.
 - Internal file-access tokens issued from raw logical-path requests.
 
-Current mitigation:
+Current mitigation after 11H.2d:
 
 - Raw access still requires a local session.
 - Logical paths are validated.
 - Path traversal and root containment checks exist.
-- Existing raw owner/role compatibility checks apply.
+- Raw token use performs current document/archive status revalidation.
+- Existing role compatibility is narrowed to current readable governed document/archive references.
+- Pending and otherwise ungoverned paths are owner-scoped.
 - Document-specific file-access routes block `DIMUSNAHKAN`.
 
 Decision options:
@@ -264,10 +276,10 @@ Decision options:
 Current human decision:
 
 ```text
-decision pending
+implementation selected and implemented pending human retest
 ```
 
-Required next phase if implementation is selected:
+Implementation phase:
 
 ```text
 Phase 11H.2d - Raw Logical-Path File Access Hardening
@@ -275,16 +287,17 @@ Phase 11H.2d - Raw Logical-Path File Access Hardening
 
 Release classification impact:
 
-- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
-- If bounded risk is accepted later, the written constraints must state how raw compatibility routes are kept away from destroyed archive access and why that is acceptable only inside the stated deployment boundary.
+- This P1 item is no longer decision-pending, but it remains pending human retest.
+- 11H.3 should not proceed as a final release handoff classification while CSRF/origin and login rate-limit decisions remain pending or while 11H.2c/11H.2d retests remain unreviewed.
+- This implementation does not add app-wide CSRF/origin enforcement and does not add login brute-force protection.
 
 ## Current 11H.2 Classification
 
 ```text
-decision framework recorded, 11H.2c implemented pending human retest, remaining P1 decisions pending
+decision framework recorded, 11H.2c and 11H.2d implemented pending human retest, CSRF/origin and login rate-limit decisions pending
 ```
 
-Rationale: the P1 matrix is recorded, and the human selected implementation for destructive admin cleanup hardening first. The runtime change is implemented, but human retest is still pending. CSRF/origin, login rate-limit/brute-force, and raw logical-path file-access hardening remain unresolved.
+Rationale: the P1 matrix is recorded, and the human selected incremental implementation. The destructive admin cleanup and raw logical-path file-access runtime changes are implemented, but human retest is still pending. CSRF/origin and login rate-limit/brute-force remain unresolved.
 
 ## Release Classification Impact
 
@@ -293,7 +306,7 @@ No final readiness decision is made by this phase.
 Remaining P1 gates mean:
 
 - final release handoff classification remains unresolved;
-- 11H.3 should not be used as a final readiness approval step until remaining P1 decisions are explicitly resolved and 11H.2c retest is reviewed;
+- 11H.3 should not be used as a final readiness approval step until remaining P1 decisions are explicitly resolved and 11H.2c/11H.2d retests are reviewed;
 - trusted HTTP LAN evidence remains bounded smoke input only;
 - trusted HTTP LAN is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
@@ -301,10 +314,10 @@ Remaining P1 gates mean:
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2d - Raw Logical-Path File Access Hardening
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-unless a blocker remains in 11H.2c human retest.
+unless a blocker remains in 11H.2c or 11H.2d human retest. This follows the stated preference to proceed to login rate-limit after 11H.2d when no blocker remains.
 
 Other unresolved P1 follow-ups remain:
 
@@ -313,7 +326,7 @@ Phase 11H.2a - CSRF/Origin Protection Follow-up
 Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-If the human later explicitly accepts remaining P1 risks with written trusted-LAN-only constraints and reviews 11H.2c retest, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
+If the human later explicitly accepts remaining P1 risks with written trusted-LAN-only constraints and reviews 11H.2c/11H.2d retests, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
 
 If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or schedule targeted implementation.
 
@@ -328,4 +341,4 @@ If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or sche
 - Not operational certification.
 - Not go-live approval.
 - Not acceptance of bounded risk.
-- Not implementation of any P1 hardening.
+- Not final implementation of CSRF/origin or login rate-limit hardening.

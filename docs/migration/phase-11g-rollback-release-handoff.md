@@ -178,7 +178,7 @@ These are not implicitly accepted by 11G.6 documentation.
 - CSRF/origin strategy for cookie-authenticated state-changing routes.
 - Login rate-limit/brute-force foundation.
 - Destructive admin cleanup hardening. Phase 11H.2c is implemented pending human retest.
-- Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
+- Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`. Phase 11H.2d is implemented pending human retest.
 
 11H cannot honestly claim final readiness unless these P1 items are implemented, explicitly accepted with bounded deployment constraints, or deferred with written risk acceptance.
 
@@ -222,7 +222,7 @@ Carry-forward P1 items from 11G.5:
 | CSRF/origin strategy | Not implemented in 11G.5/11G.6 | Implement, explicitly accept trusted bounded constraints, or defer with written risk acceptance. |
 | Login rate-limit/brute-force foundation | Not implemented in 11G.5/11G.6 | Implement app-layer protection or document why constrained deployment accepts the risk. |
 | Destructive admin cleanup hardening | Phase 11H.2c implemented POST-only destructive cleanup pending human retest | Review human retest before final classification; do not treat this as app-wide CSRF/origin completion. |
-| Raw logical-path file-access narrowing/status revalidation | Current concern: raw compatibility path lacks independent archive status revalidation | Narrow or status-revalidate before final/wider rollout, or accept with written risk constraints. |
+| Raw logical-path file-access narrowing/status revalidation | Phase 11H.2d implemented status-aware raw logical-path access pending human retest | Review human retest before final classification; stale raw tokens must remain blocked after `DIMUSNAHKAN`. |
 
 P1 findings must not be downgraded to P2/P3 merely because rollback documentation is complete.
 
@@ -284,12 +284,12 @@ Classify as `partial` later if evidence is found incomplete or P1 decisions are 
 ## Next Phase
 
 ```text
-Phase 11H.2d - Raw Logical-Path File Access Hardening
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-unless a blocker remains in 11H.2c human retest.
+unless a blocker remains in 11H.2c or 11H.2d human retest.
 
-11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2/11H.2c is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as destructive cleanup implemented pending retest with remaining P1 decisions pending. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the remaining P1 security findings with bounded deployment constraints and written risk acceptance.
+11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2/11H.2c/11H.2d is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as destructive cleanup and raw logical-path file-access hardening implemented pending retest with CSRF/origin and login rate-limit decisions pending. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the remaining P1 security findings with bounded deployment constraints and written risk acceptance.
 
 ## Evidence Handling Rules
 
