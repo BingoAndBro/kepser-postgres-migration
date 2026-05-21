@@ -1,6 +1,6 @@
 # Panduan Backup, Restore, dan Pengujian DMS Lokal
 
-> Dokumen ini menjelaskan alur backup sampai restore untuk aplikasi DMS lokal berbasis PostgreSQL + filesystem storage.  
+> Dokumen ini menjelaskan alur backup sampai restore untuk aplikasi DMS lokal berbasis PostgreSQL + filesystem storage.
 > Tujuannya agar operator lain dapat melakukan backup/restore dengan aman tanpa membocorkan secret dan tanpa merusak environment aktif.
 
 ---
@@ -775,3 +775,12 @@ Gunakan `FAIL/BLOCKER` jika:
 [ ] destructive cleanup tidak dijalankan
 [ ] Evidence dikirim ke Codex
 ```
+note:
+Saat restore drill, terjadi accidental mutation ketika environment target belum dipastikan sepenuhnya.
+Dampaknya active DB/storage sempat mismatch.
+Mismatch diperbaiki dengan menyalin 2 file missing dari restore storage ke active storage.
+Setelah itu preview/download kembali aman.
+analyze-storage dan cleanup dry-run sudah direview.
+Tidak ada destructive cleanup.
+
+Restore drill tidak boleh dipakai untuk upload/ganti file kecuali DB dan storage target sudah diverifikasi berpasangan.
