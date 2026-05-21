@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: planning complete for 11H.0. This phase is documentation and gate planning only. It does not make a final release decision, does not approve go-live, does not claim production readiness, does not claim LAN readiness, and does not implement runtime hardening.
+Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit now recorded in `docs/migration/phase-11h-final-supabase-audit.md`. This document does not make a final release decision, does not approve go-live, does not claim production readiness, does not claim LAN readiness, and does not implement runtime hardening.
 
 The local target remains:
 
@@ -151,7 +151,30 @@ This classification means only that gate planning is ready for human review and 
 ## Next Recommended Phase
 
 ```text
-Phase 11H.1 - Final Supabase Runtime/Package/Env/Docs Audit
+Phase 11H.2 - P1 Security Gate Decision
 ```
 
-Rationale: 11H.0 has organized the gate sequence and decision matrix. The next safe step is a read-only final audit before any P1 security decision or final handoff classification.
+Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. The next gate is the human-controlled P1 security decision. This is not a release readiness claim.
+
+## Phase 11H.1 Audit Result
+
+Date: 2026-05-21.
+
+Dedicated audit doc:
+
+- `docs/migration/phase-11h-final-supabase-audit.md`
+
+11H.1 classification:
+
+```text
+Supabase is retired from active runtime/package dependency; historical docs and supabase/ artifacts remain for traceability unless human policy chooses cleanup.
+```
+
+Remaining cleanup backlog includes source comments/type-only residue, `.env.example` Supabase key names, stale historical docs/spec wording, stale E2E expectations, and the human retention policy for `supabase/` historical artifacts. These are not active runtime/package blockers.
+
+P1 gates remain unresolved and unchanged:
+
+- CSRF/origin strategy;
+- login rate-limit/brute-force foundation;
+- destructive admin cleanup hardening;
+- raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.

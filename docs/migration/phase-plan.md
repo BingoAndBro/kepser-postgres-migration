@@ -4971,6 +4971,51 @@ Next recommended phase:
 Phase 11H.1 - Final Supabase Runtime/Package/Env/Docs Audit
 ```
 
+#### Phase 11H.1: Final Supabase Runtime/Package/Env/Docs Audit
+
+Date: 2026-05-21.
+
+Status: audit complete in `docs/migration/phase-11h-final-supabase-audit.md`. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, Supabase folder change, or commit was changed or run by this phase.
+
+11H.1 classification:
+
+```text
+Supabase is retired from active runtime/package dependency; historical docs and supabase/ artifacts remain for traceability unless human policy chooses cleanup.
+```
+
+Audit summary:
+
+- active runtime-pattern grep found no Supabase client factory, `supabase.*`, storage, auth-admin, or `SupabaseClient` dependency in source/tests/package files;
+- package files contain no `@supabase`, `supabase-js`, or `supabase/ssr` dependency;
+- source broad matches are comments, type-only residue, a defensive denylist key, or outdated comments, not runtime dependency;
+- `.env` and `.env.migration` remain human-controlled and were not inspected or printed;
+- `.env.example` still has Supabase key names and is cleanup backlog;
+- docs/specs retain historical Supabase references for migration traceability, with older wording cleanup deferred to a separate policy phase;
+- tests have reference-only/no-fallback mentions plus stale E2E cleanup backlog, not runtime/package dependency;
+- `supabase/` remains historical traceability unless a human cleanup policy changes it;
+- `db`/`drizzle` folder grep found no Supabase-specific runtime assumption.
+
+Open cleanup backlog:
+
+- source comments/type-only Supabase residue;
+- `.env.example` Supabase key names;
+- stale E2E expectation tied to old Supabase URL behavior;
+- old docs/specs that still describe pre-migration Supabase patterns;
+- human retention/removal policy for `supabase/` historical artifacts and legacy CLI metadata.
+
+Unresolved P1 gates remain unchanged:
+
+- CSRF/origin strategy;
+- login rate-limit/brute-force foundation;
+- destructive admin cleanup hardening;
+- raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
+
+Next recommended phase:
+
+```text
+Phase 11H.2 - P1 Security Gate Decision
+```
+
 ## Validation Gates
 
 - After schema work: fresh DB can initialize and seed.

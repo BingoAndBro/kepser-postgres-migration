@@ -59,6 +59,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 11H.0 gate planning classification.
   Date: 2026-05-21.
   Rationale: `docs/migration/phase-11h-final-readiness-plan.md` classifies 11H.0 as planning complete only. It creates the 11H subphase sequence and decision matrix, carries forward 11G.5/11G.6 P1 security gates without downgrade, and selects 11H.1 as the next read-only audit. It does not make a final release decision, approve production readiness, approve LAN readiness, approve release readiness, approve operational certification, or approve go-live.
+- Phase 11H.1 Supabase retirement classification.
+  Date: 2026-05-21.
+  Rationale: `docs/migration/phase-11h-final-supabase-audit.md` records that Supabase is retired from active runtime/package dependency; historical docs and `supabase/` artifacts remain for traceability unless human policy chooses cleanup. Remaining source comments/type-only residue, `.env.example` Supabase key names, stale E2E expectations, historical docs/spec wording, and `supabase/` retention are cleanup or policy decisions, not active runtime/package blockers. This does not claim full Supabase removal from the repository and does not resolve the unresolved P1 security gates.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
@@ -369,8 +372,8 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Phase 11G.5 note: document-specific preview/download blocks `DIMUSNAHKAN`; raw logical-path compatibility does not independently revalidate archive status.
 - Final 11H P1 security decision.
   Phase 11H.0 note: 11H must decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing. 11G.6 and 11H.0 documentation do not implicitly accept these risks.
-- Final Supabase retirement classification.
-  Phase 11H.0 note: 11H.1 must classify active runtime retirement, package dependency retirement, human-controlled env references, historical docs references, and `supabase/` historical folder policy. Active runtime/package matches are blockers unless explicitly resolved; historical docs and `supabase/` folder references may remain only if classified as migration history.
+- Supabase cleanup policy after active runtime/package retirement.
+  Phase 11H.1 note: active runtime/package Supabase dependency is retired, but cleanup policy remains open for historical docs/spec wording, `.env.example` Supabase key names, stale test expectations, source comment/type residue, and the retained `supabase/` folder plus legacy CLI metadata. A separate human-approved cleanup phase is required before claiming full Supabase removal from the repository.
 - Final deployment posture decision.
   Phase 11H.0 note: preferred final posture remains HTTPS plus `Secure` `dms_session`. Temporary trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` can remain bounded/internal only and must not be treated as broader rollout approval.
 - Final rollback operating policy.
