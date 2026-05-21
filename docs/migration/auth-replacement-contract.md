@@ -85,6 +85,8 @@ Session cookie:
 - Must be `HttpOnly`.
 - Must use `SameSite=Lax` by default.
 - Must use `Secure` when HTTPS is active.
+- May omit `Secure` only in explicitly configured trusted HTTP LAN/local mode with `DMS_SESSION_COOKIE_SECURE=false`.
+- `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`; unset keeps the default production/HTTPS-compatible secure behavior.
 - Must not contain user ID, role, email, or expiry data.
 
 Active role cookie:

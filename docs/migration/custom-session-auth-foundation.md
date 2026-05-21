@@ -48,7 +48,9 @@ dms_active_role
 
 - Contains only an opaque raw session token.
 - `HttpOnly`.
-- `Secure` in production or whenever served over HTTPS.
+- `Secure` in production or whenever served over HTTPS by default.
+- `DMS_SESSION_COOKIE_SECURE=false` may omit `Secure` only for explicitly configured trusted HTTP LAN/local mode.
+- `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`.
 - `SameSite=Lax` by default.
 - `Path=/`.
 - No user id, email, role, expiry, or other readable claims.

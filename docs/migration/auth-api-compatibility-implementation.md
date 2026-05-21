@@ -105,7 +105,9 @@ The active-role cookie remains UX state only and is not trusted as authorization
 - `HttpOnly`
 - `SameSite=Lax`
 - `Path=/`
-- `Secure` in production or HTTPS
+- `Secure` in production or HTTPS by default
+- `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`
+- `DMS_SESSION_COOKIE_SECURE=false` intentionally omits `Secure` for trusted HTTP LAN/local mode only
 - contains only the opaque raw session token
 
 `dms_active_role`:

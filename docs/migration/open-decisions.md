@@ -50,6 +50,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Default session cookie policy: `HttpOnly`, `SameSite=Lax`, `Path=/`, and `Secure` when served over HTTPS.
   Date: 2026-05-13.
   Rationale: this matches the auth contract and keeps the session credential unavailable to client JavaScript while preserving LAN HTTP development compatibility.
+- Explicit session cookie secure override: `DMS_SESSION_COOKIE_SECURE`.
+  Date: 2026-05-21.
+  Rationale: Phase 11G.4a confirmed HTTP LAN login cannot persist `dms_session` when the cookie has `Secure`. The accepted compatibility gate is `DMS_SESSION_COOKIE_SECURE=false` for trusted HTTP LAN/local mode only, while unset/default behavior keeps secure-by-default production/HTTPS-compatible serving and `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.

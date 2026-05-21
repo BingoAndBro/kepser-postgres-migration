@@ -8,7 +8,7 @@ Phase 6F proved the required submit foundations, but it also became too granular
 
 The local target is intentionally clean: old Supabase production/current data is not migrated, old Supabase Storage files are not migrated or copied, local PostgreSQL uses seed/new local data, and local filesystem storage uses newly uploaded local files. Missing old Supabase-backed files are expected during the transition and must fail cleanly without Supabase fallback.
 
-Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag. Phase 11F.5a through 11F.5h were implemented, human retested or accepted where reported, and committed. Phase 11F.6 recorded the final post-stabilization recap on 2026-05-20 without runtime changes. Phase 11G.0 broke operational hardening into safe subphases before any backup/restore drill, LAN binding, firewall work, security implementation, or final 11H decision. Phase 11G.1 added the docs-only backup/restore runbook at `docs/migration/phase-11g-backup-restore-runbook.md`. Phase 11G.2 added the docs-only clean preview performance baseline and asset hygiene plan at `docs/migration/phase-11g-performance-baseline-plan.md`. Phase 11G.2a now records accepted clean human Lighthouse evidence: all provided pages scored 97 to 99 for Performance and 92 to 96 for Accessibility under clean preview testing conditions, with no severe clean-preview lag reported. Phase 11G.3 now records human-provided backup/restore drill evidence in `docs/migration/phase-11g-backup-restore-evidence.md`: paired PostgreSQL/storage backup passed, restore into a clean local target passed, app validation and diagnostics passed, destructive cleanup was avoided, no blocker was reported, and the bounded drill classification is `PASS`. Earlier 70s Lighthouse results are now treated as likely noisy or environment-dependent unless reproduced again under clean no-extension conditions. The next recommended phase is `Phase 11G.4 - LAN Binding And Client Smoke Evidence`.
+Current active area after Phase 10F is Phase 11 global cleanup, regression, and release readiness. Phase 7A inventory is recorded in `docs/migration/read-api-inventory-prioritization.md`; Phase 7B migrated the first master/current-user read API groups and Phase 7B.3 documented the remaining browser master-data helper read surfaces without runtime changes. Phase 7C migrated the scoped role inbox/list dokumen GET routes on 2026-05-17. Phase 7D migrated the scoped dokumen detail/log GET routes on 2026-05-17. Phase 7E migrated scoped laporan and archive metadata/search/classification GET routes on 2026-05-17, while dashboard audit found no dedicated dashboard read API route. Phase 7F closed the major read-domain migration with an audit on 2026-05-17 and found no true remaining Phase 7 read blocker. Phase 8A completed the write/mutation inventory, Phase 8B through 8F migrated the selected clean-local write domains, and Phase 8G closed the write-domain audit on 2026-05-18 with no true Phase 8 blocker found. Phase 9 completed the selected clean-local storage/file-access server surfaces on 2026-05-18. Phase 10B migrated only the admin user list/detail reads to local PostgreSQL/Drizzle, Phase 10C migrated admin user create/update/activate/deactivate plus role assignment to local PostgreSQL/Drizzle, Phase 10D migrated admin reset-password plus self-service change-password to local Argon2id password hash updates, Phase 10E completed the user delete/deactivate semantics audit with no hard-delete user behavior accepted by default, and Phase 10F closed user-management/auth runtime stabilization on 2026-05-18. Phase 11C.1 migrated `AttachmentEditor` pending upload/reset/cancel cleanup off browser Supabase Storage and onto existing local `/api/upload` behavior plus a pending-only cleanup branch. Phase 11C.2 migrated `KelengkapanChecklist` master kelengkapan reads off browser Supabase and onto local `/api/master-kelengkapan` reads with scoped client-side chain filtering parity. Phase 11C.3 migrated `HierarchicalFilter` report dropdown reads off browser Supabase and onto existing local master-data GET APIs while preserving report filter state/cascade behavior. Phase 11C.4 migrated the API-covered admin/master-data CRUD pages off browser Supabase and onto existing local master-data APIs, with `admin.master-data.jenis-dokumen.tsx` deferred because no `/api/master-jenis-dokumen` route was registered. Phase 11C.4b inventoried that deferred page and confirmed migration remained blocked under the no-route-generation/no-`routeTree.gen.ts`-edit guardrails. Phase 11C.4c added generated route registration for `/api/master-jenis-dokumen*`, added narrow local Drizzle-backed jenis-dokumen APIs, and migrated the admin jenis-dokumen page off browser Supabase. Phase 11C.5 retired browser Supabase reads from scoped PPK/Bendahara/Arsiparis role dashboard/list pages by using existing local auth, role list, archive list/search, and master dropdown APIs. Phase 11C.6 retired browser Supabase reads from the scoped Pegawai submit, Pegawai revisi, and PPK resubmit pages by using existing local master-data and kelengkapan APIs while preserving submit/revision/resubmit mutation contracts. Phase 11C.7 retired the remaining scoped active browser Supabase usage from the admin dashboard and Pegawai document list by using existing local session and document list APIs. Phase 11D.2a migrated `POST /api/dokumen`, Phase 11D.2b migrated `PATCH /api/dokumen/$id/nominal`, Phase 11D.2c migrated the `POST /api/dokumen/rename-pending` document ownership lookup to local Drizzle while preserving local storage movement, Phase 11D.3 removed audited-unused legacy Supabase helper files/exports while preserving active type/pure helper surfaces, and Phase 11D.4 verified no active source/runtime Supabase helper dependency remains by lightweight grep audit. Phase 11F regression execution now has mostly passing core workflow smoke evidence. Phase 11F.4a fixed the `pg-native` optional dependency preview crash and confirmed a DB-backed preview API route can query local PostgreSQL. Phase 11F.4b fixed the separate production preview `RootDocument` JSX dev-runtime failure and confirmed `/` plus `/api/master-fungsi` return `200` in preview. Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20: preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`, direct `/__tsd/console-pipe` returned `404`, built output had no devtools/console-pipe/JSX-dev-runtime matches, and no preview request-loop or memory/listener leak was proven. Browser DevTools authenticated long-session measurements remain pending, but Phase 11G is not blocked by 11F.4c unless later manual preview smoke proves idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag. Phase 11F.5a through 11F.5h were implemented, human retested or accepted where reported, and committed. Phase 11F.6 recorded the final post-stabilization recap on 2026-05-20 without runtime changes. Phase 11G.0 broke operational hardening into safe subphases before any backup/restore drill, LAN binding, firewall work, security implementation, or final 11H decision. Phase 11G.1 added the docs-only backup/restore runbook at `docs/migration/phase-11g-backup-restore-runbook.md`. Phase 11G.2 added the docs-only clean preview performance baseline and asset hygiene plan at `docs/migration/phase-11g-performance-baseline-plan.md`. Phase 11G.2a now records accepted clean human Lighthouse evidence: all provided pages scored 97 to 99 for Performance and 92 to 96 for Accessibility under clean preview testing conditions, with no severe clean-preview lag reported. Phase 11G.3 now records human-provided backup/restore drill evidence in `docs/migration/phase-11g-backup-restore-evidence.md`: paired PostgreSQL/storage backup passed, restore into a clean local target passed, app validation and diagnostics passed, destructive cleanup was avoided, no blocker was reported, and the bounded drill classification is `PASS`. Phase 11G.4 now has a dedicated LAN smoke evidence log at `docs/migration/phase-11g-lan-smoke-evidence.md`; a LAN HTTP cookie blocker was reported because `dms_session` had `Secure` over HTTP LAN and was not stored by the browser. Phase 11G.4a implements explicit trusted HTTP LAN cookie compatibility through `DMS_SESSION_COOKIE_SECURE=false` while preserving secure defaults for production/HTTPS-compatible serving. Human retest after 11G.4a reported login/session/logout and preview/download basics working, then Phase 11G.4b found a browser API blocker where Ajukan/Revisi additional kelengkapan used direct `crypto.randomUUID()` over HTTP LAN. Phase 11G.4b implements explicit non-security temporary client ID fallback through `createClientId(...)` for additional kelengkapan only. The next recommended phase is `11G.4 follow-up - retest LAN binding/client smoke after 11G.4b`. Earlier 70s Lighthouse results are now treated as likely noisy or environment-dependent unless reproduced again under clean no-extension conditions.
 
 Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. Phase 11F.5d.2 is inserted after 11F.5d.1 for admin storage orphan cleanup diagnostics hardening. These inserted storage items do not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and do not claim those later subphases are complete.
 
@@ -2305,7 +2305,7 @@ Files and active callers:
 | Reset pending replacement | `handleResetFile()` removes the pending file from browser storage when `pendingFiles` has a URL, then restores the original lampiran for that `docId` or removes the new lampiran if none existed originally. It clears the pending file and upload status for that `docId`. |
 | Cancel dirty edit | `handleCancel()` optionally runs `confirmIfDirty`, sets cancelling state, loops through all `pendingFiles` when `hasFileChanges`, removes each pending URL from browser storage, clears `pendingFiles`, then calls `onCancel()`. |
 | Cleanup failure shape | Current browser cleanup is not explicitly isolated from metadata reset/cancel state. A thrown `remove()` during cancel would jump to `finally` and may skip `setPendingFiles(new Map())` and `onCancel()`. 11C must not preserve this failure coupling if a safer best-effort route is introduced. |
-| Add custom user docs | `handleAddUserDoc()` creates `user-custom-{crypto.randomUUID()}` entries in `userDocs`; upload for the custom doc uses the same replacement flow and lampiran metadata. |
+| Add custom user docs | Historical 11C behavior created direct `user-custom-{crypto.randomUUID()}` entries in `userDocs`; 11G.4b supersedes this with `createClientId('user-custom')` for HTTP LAN browser compatibility. Upload for the custom doc uses the same replacement flow and lampiran metadata. |
 | Remove custom user docs | `handleRemoveUserDoc()` only removes a custom doc when it has no uploaded lampiran and no pending replacement. If a file exists, removal is blocked and the user must reset/remove through file behavior first. |
 | Preview | `handlePreview()` calls `getSignedUrl(lamp.url)`, which fetches `GET /api/dokumen/preview-url?url=...` and expects `{ signedUrl }`; the returned URL is loaded in an iframe. Filename is built client-side with `buildStorageFilename(dokumen, lamp)`. |
 | Download | `handleDownload()` also calls `getSignedUrl(lamp.url)`, then `downloadWithSignedUrl(signedUrl, filename)` to fetch the returned URL as a blob and force a browser download. It does not currently call `GET /api/dokumen/download-url`. |
@@ -2464,7 +2464,7 @@ Runtime behavior:
 - Cancel cleanup calls `POST /api/upload?cleanup=pending` for all pending URLs when cancelling dirty file edits, clears `pendingFiles`, and still calls `onCancel()` after the cleanup attempt.
 - Cleanup is best-effort. Request failure, server cleanup errors, or timeout logs a dev warning but does not block reset/cancel state restoration. This intentionally improves the old failure coupling where browser storage `.remove(...)` could prevent cancel from proceeding.
 - Dirty-state semantics remain `pendingFiles.size > 0 || hasNominalChanged || hasUserDocChanges`, and `onDirtyChange` remains driven by that value.
-- Custom user docs still use `user-custom-{crypto.randomUUID()}` ids. Removing a custom user doc remains blocked while it has an uploaded lampiran or pending replacement.
+- Custom user docs still use `user-custom-*` temporary client ids. 11G.4b now generates them through `createClientId('user-custom')` instead of direct browser `crypto.randomUUID()` for HTTP LAN compatibility. Removing a custom user doc remains blocked while it has an uploaded lampiran or pending replacement.
 - `handleSubmit()` still sends `{ lampiranUrls, nominalRealisasi }` to the parent page. Material nominal validation and Non-Material `nominalRealisasi: null` behavior are unchanged.
 
 Pending cleanup API behavior:
@@ -2526,7 +2526,7 @@ Runtime behavior:
 - The component maps the API rows back to its existing item shape: `id`, `nama_dokumen`, `is_ketua_tim`, and `required`.
 - Loading state remains `Memuat kelengkapan...`, fetch failures still show `Gagal mengambil daftar kelengkapan`, and the empty state remains `Tidak ada kelengkapan untuk kegiatan dan peran ini.`
 - Non-Material behavior remains unchanged: admin kelengkapan fetch is skipped, `items` is cleared, and the UI only exposes user-created supporting documents.
-- User-created optional document behavior remains unchanged, including `user-custom-{crypto.randomUUID()}` ids, add/remove title behavior, and removal from `lampiranUrls`.
+- User-created optional document behavior remains unchanged, including `user-custom-*` temporary client ids, add/remove title behavior, and removal from `lampiranUrls`. 11G.4b now generates those ids through `createClientId('user-custom')` instead of direct browser `crypto.randomUUID()` for HTTP LAN compatibility.
 - Parent `onComplete(lampiranUrls, missingRequired)` behavior remains unchanged. Missing required documents are still computed from `items.required` and matching `lampiranUrls[].kelengkapan_id`.
 
 Filtering behavior preserved:
@@ -4509,7 +4509,10 @@ Status:
 - Phase 11G.0 completed the docs-only operational-hardening breakdown.
 - Phase 11G.1 has added the docs-only backup/restore runbook at `docs/migration/phase-11g-backup-restore-runbook.md`.
 - Phase 11G.2 has added the docs-only performance baseline and asset hygiene plan at `docs/migration/phase-11g-performance-baseline-plan.md`.
-- No backup, restore, LAN binding, firewall work, security implementation, app containerization, performance implementation, Lighthouse run, build, preview, test, or go/no-go decision is performed by 11G.0, 11G.1, or 11G.2.
+- Phase 11G.3 has recorded human-provided backup/restore drill evidence as PASS for the bounded drill.
+- Phase 11G.4 has created the dedicated LAN/client smoke evidence template, Phase 11G.4a has implemented a narrow LAN HTTP session-cookie compatibility fix, and Phase 11G.4b has implemented a narrow LAN HTTP browser API compatibility fix for additional kelengkapan temporary client IDs.
+- Fixed behavior still requires human LAN retest evidence before 11G.4 can be classified PASS.
+- No backup, restore, LAN binding, firewall work, app containerization, performance implementation, Lighthouse run, build, preview, broad test, or go/no-go decision is performed by Codex in 11G.4b.
 - Detailed planning lives in `docs/migration/phase-11g-operations-plan.md`.
 
 Subphase sequence:
@@ -4522,6 +4525,8 @@ Subphase sequence:
 | 11G.2a | Human Clean Preview Performance Baseline Evidence | Human executes clean no-extension Lighthouse; docs record evidence only. | Baseline evidence, provenance, and next recommendation are recorded. |
 | 11G.3 | Human-Run Backup/Restore Drill Evidence | Human executes backup/restore into a clean local target; docs record evidence. | DB/storage restore evidence and validation results are recorded. |
 | 11G.4 | LAN Binding And Client Smoke Evidence | Human intentionally binds app to LAN and tests another LAN client. | Host/port/firewall/client smoke evidence is recorded. |
+| 11G.4a | LAN HTTP Session Cookie Compatibility Fix | Narrow auth-cookie helper fix for trusted HTTP LAN mode only. | `DMS_SESSION_COOKIE_SECURE=false` can omit `Secure` for HTTP LAN while HTTPS/production-like defaults remain secure. |
+| 11G.4b | LAN HTTP Browser API Compatibility Fix | Narrow non-security client temporary ID fallback for additional kelengkapan. | Ajukan/Revisi additional kelengkapan can be added in HTTP LAN browser contexts without direct `crypto.randomUUID()` dependency. |
 | 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review cookie-auth security posture first. | State-changing route, CSRF, brute-force, and rate-limit posture are documented. |
 | 11G.6 | Operations Rollback And Release Handoff | Consolidate rollback plan, operator checklist, known risks, and 11H handoff. | 11H has evidence, blockers, and accepted risks to review. |
 | 11H | Final Release Readiness Gate And Supabase Retirement Decision | Human go/no-go decision. | Human records final decision; no automatic certification. |
@@ -4741,6 +4746,85 @@ Phase 11G.4 - LAN Binding And Client Smoke Evidence
 ```
 
 This PASS is bounded to the recorded backup/restore drill. It is not LAN readiness, production readiness, release readiness, go-live approval, or exhaustive full-system certification.
+
+#### Phase 11G.4: LAN Binding And Client Smoke Evidence
+
+Date: 2026-05-21.
+
+Status: bounded LAN smoke evidence recorded as PASS after human retest. A dedicated evidence template was created, a LAN HTTP session-cookie compatibility blocker was reported and fixed in 11G.4a, and a LAN HTTP browser API compatibility blocker was reported and fixed in 11G.4b. Codex did not run LAN binding, firewall, network/interface discovery, app endpoint, package, build, preview, dev-server, broad test, Docker, database, backup/restore, route-generation, deployment, cleanup, migration, or seed commands.
+
+Output:
+
+- `docs/migration/phase-11g-lan-smoke-evidence.md` now records the 11G.4 evidence source, serving/binding summary, client smoke checklist, safety/security checklist, PASS/PARTIAL/FAIL/BLOCKER rules, and human-only evidence checklist.
+- `docs/migration/phase-11g-operations-plan.md` now links to the dedicated 11G.4 evidence log and records the bounded PASS plus the next move to 11G.5.
+
+Evidence classification:
+
+- LAN binding evidence: recorded as redacted human summary using `http://<SERVER_LAN_IP>:<APP_PORT>`.
+- Firewall scope: not separately recorded in docs.
+- PostgreSQL LAN exposure status: no broad PostgreSQL exposure reported.
+- Another-device client reachability: LAN app URL reportedly opened successfully.
+- LAN client login/session persistence: passed in human retest; `dms_session` and `dms_active_role` were stored, refresh preserved login, `/api/auth/session` authenticated, and logout cleared `dms_session`.
+- Role dashboard and document list loading: no blocker reported during authenticated LAN smoke.
+- Preview/download from LAN client: valid file preview/download reportedly worked in final retest.
+- Ajukan/Revisi additional kelengkapan: passed after 11G.4b; no `crypto.randomUUID is not a function` error remained and duplicate validation still worked.
+- Unauthorized/admin denial from LAN client: non-admin `/admin` denial reportedly worked.
+- Password-change clearing: not re-recorded in the final 11G.4 smoke summary.
+- Cookie/mixed-origin, console, and performance smoke: no functional blocker; insecure HTTP blob warning was observed for download and classified as expected trusted-HTTP limitation, with no idle request loop or unbounded growth observed.
+
+Decision:
+
+```text
+PASS for bounded LAN smoke after 11G.4a and 11G.4b human retest
+```
+
+Rationale: human evidence identified a real HTTP LAN cookie persistence blocker fixed in 11G.4a and a real HTTP LAN browser API blocker fixed in 11G.4b. Final human retest then confirmed the bounded LAN smoke checks were satisfied. This PASS is limited to trusted LAN smoke and does not imply production readiness, release readiness, operational certification, or go-live approval.
+
+11G.4a fix details:
+
+- `src/lib/auth/session-cookies.ts` centralizes session cookie options for create and clear.
+- `DMS_SESSION_COOKIE_SECURE=false` intentionally omits `Secure` for trusted HTTP LAN/local mode.
+- `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`.
+- Unset/default keeps `Secure` in production or HTTPS/proxy-HTTPS requests.
+- `HttpOnly`, `SameSite=Lax`, `Path=/`, session duration, endpoint paths, and response shapes are preserved.
+- Logout and password-change clearing use the same option source.
+- `dms_active_role` remains UX state only and not authorization proof.
+
+11G.4b fix details:
+
+- `src/lib/utils/client-id.ts` provides `createClientId(...)` for non-security temporary client-side identifiers only.
+- Ajukan/Revisi additional kelengkapan rows now use `createClientId('user-custom')` instead of direct browser `crypto.randomUUID()`.
+- The helper prefers `globalThis.crypto.randomUUID()`, falls back to `globalThis.crypto.getRandomValues(...)`, and only then uses timestamp plus `Math.random()` for non-security client row identity.
+- The fallback must not be used for authentication, authorization, CSRF, password reset, session, persisted entity, or file-access tokens.
+
+Manual retest required:
+
+1. Stop the current server.
+2. Open a fresh terminal.
+3. Confirm `DATABASE_URL` and `DMS_LOCAL_STORAGE_ROOT` restore overrides are not active without printing values.
+4. Set `$env:DMS_SESSION_COOKIE_SECURE="false"` for trusted HTTP LAN mode.
+5. Start the app for LAN HTTP using the existing serving mode and host binding.
+6. Open `http://<SERVER_LAN_IP>:<APP_PORT>/login`.
+7. Login with a valid user.
+8. Confirm `dms_session` is stored in Application Cookies without printing its value.
+9. Confirm `/api/auth/session` authenticates.
+10. Refresh or navigate and confirm the session persists.
+11. Logout and confirm `dms_session` is cleared.
+12. Change password and confirm the current session is revoked/cleared.
+13. Open Ajukan Dokumen, add additional kelengkapan, and confirm no `crypto.randomUUID is not a function` console error.
+14. Submit a valid document if safe, or stop before submit if only testing form behavior.
+15. Open Revisi flow if available, add additional kelengkapan, and confirm duplicate validation still works.
+16. Confirm preview/download remains working.
+17. Confirm non-admin admin access remains denied.
+18. Confirm PostgreSQL remains not exposed to LAN.
+
+Next recommended phase:
+
+```text
+11G.5 - Cookie Auth, CSRF, Rate-Limit Security Review
+```
+
+This PASS is bounded LAN smoke validation only. It must not imply LAN readiness, production readiness, release readiness, operational certification, or go-live approval.
 
 ### Phase 11H: Final Release Readiness Gate And Supabase Retirement Decision
 

@@ -139,6 +139,11 @@ Implications:
 
 - Without HTTPS, session cookie cannot use `Secure`.
 - With HTTPS, session cookie should use `Secure`.
+- `DMS_SESSION_COOKIE_SECURE` controls the explicit session-cookie `Secure` override for local deployment:
+  - unset: default app behavior, `Secure` in production or HTTPS/proxy-HTTPS requests;
+  - `true`: force `Secure`;
+  - `false`: allow trusted HTTP LAN/local mode to issue `dms_session` without `Secure`.
+- `DMS_SESSION_COOKIE_SECURE=false` is only for trusted HTTP LAN/local smoke or internal deployment. Final/best-practice deployment should prefer HTTPS plus `DMS_SESSION_COOKIE_SECURE=true` or the secure default.
 - If HTTPS is required, hostname/certificate strategy must be decided before rollout.
 
 ## What Not To Implement Yet
@@ -161,4 +166,3 @@ Implications:
 - Firewall allows app port only on trusted network.
 - PostgreSQL is not exposed beyond intended interface.
 - Environment variables are documented with placeholders.
-

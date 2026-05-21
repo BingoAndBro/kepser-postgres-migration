@@ -97,12 +97,21 @@ Use environment variables for:
 
 - `DATABASE_URL`
 - Session cookie secret/signing secret.
+- `DMS_SESSION_COOKIE_SECURE` for the explicit session-cookie `Secure` policy override.
 - Storage root path.
 - App base URL.
 - LAN host/port.
 - Backup path.
 
 Do not commit secrets. Provide examples only.
+
+`DMS_SESSION_COOKIE_SECURE` behavior:
+
+- unset: keep the default behavior, which uses `Secure` in production or when the request/proxy protocol is HTTPS;
+- `true`: force `Secure`;
+- `false`: trusted HTTP LAN/local mode only, allowing the browser to store `dms_session` over `http://<SERVER_LAN_IP>:<APP_PORT>`.
+
+Do not expose HTTP LAN mode to the public internet. Final/best-practice deployment should prefer HTTPS with the session cookie `Secure` flag enabled.
 
 ## What Not To Implement Yet
 
@@ -120,4 +129,3 @@ Do not commit secrets. Provide examples only.
 - PostgreSQL `pg_dump`: https://www.postgresql.org/docs/17/app-pgdump.html
 - PostgreSQL `pg_restore`: https://www.postgresql.org/docs/current/app-pgrestore.html
 - Vite LAN host option: https://vite.dev/config/server-options
-

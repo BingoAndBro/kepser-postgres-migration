@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.3 human backup/restore evidence recorded. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 now records human-provided backup/restore drill evidence as PASS for the bounded drill. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, cleanup, or release decision is performed by this document.
+Status: Phase 11G.4 evidence template prepared, Phase 11G.4a LAN HTTP session-cookie compatibility fix implemented, Phase 11G.4b LAN HTTP browser API compatibility fix implemented, and human LAN/client-smoke retest still pending. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 records human-provided backup/restore drill evidence as PASS for the bounded drill. No backup, restore, LAN binding, firewall change, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -16,6 +16,8 @@ This plan breaks Phase 11G into small reviewable subphases before any operationa
 | 11G.2a | Human Clean Preview Performance Baseline Evidence | Human runs clean no-extension Lighthouse; Codex records evidence only. | Official baseline evidence, provenance, and next recommendation are recorded. |
 | 11G.3 | Human-Run Backup/Restore Drill Evidence | Human executes backup/restore into a clean local target; Codex records evidence only. | Restore evidence, validation checks, and blockers are recorded. |
 | 11G.4 | LAN Binding And Client Smoke Evidence | Human intentionally binds app to LAN and tests from another trusted LAN client. | Host/port/firewall/client smoke evidence is recorded without broad PostgreSQL exposure. |
+| 11G.4a | LAN HTTP Session Cookie Compatibility Fix | Narrow auth-cookie helper fix for trusted HTTP LAN mode only. | `DMS_SESSION_COOKIE_SECURE=false` can omit `Secure` for HTTP LAN while HTTPS/production-like defaults remain secure. |
+| 11G.4b | LAN HTTP Browser API Compatibility Fix | Narrow client-side temporary ID fallback for additional kelengkapan over HTTP LAN. | Ajukan/Revisi additional kelengkapan no longer depends directly on `crypto.randomUUID()` in HTTP LAN browser contexts. |
 | 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review-only first pass over cookie-auth and state-changing routes. | CSRF/rate-limit posture and gaps are documented; implementation requires a later approved phase. |
 | 11G.6 | Operations Rollback And Release Handoff | Consolidate rollback plan, operator checklist, known accepted risks, and 11H inputs. | Phase 11H has evidence, open blockers, and accepted risks to review. |
 | 11H | Final Release Readiness Gate And Supabase Retirement Decision | Human go/no-go decision. | Human records the final decision; no automatic certification. |
@@ -141,6 +143,35 @@ Evidence template:
 
 The human intentionally binds the app to a LAN-reachable host/interface and tests from another trusted LAN client.
 
+Dedicated evidence log:
+
+- `docs/migration/phase-11g-lan-smoke-evidence.md`
+
+Current 11G.4 status:
+
+- Evidence source: final human LAN HTTP retest summary provided after 11G.4a and 11G.4b.
+- Serving/binding evidence: app was served on `http://<SERVER_LAN_IP>:<APP_PORT>` with LAN host binding and explicit trusted HTTP cookie mode.
+- Firewall evidence: not separately recorded in docs, but PostgreSQL remained not broadly exposed.
+- Another-device client smoke evidence: login/session/logout/preview-download basics worked; Ajukan/Revisi additional kelengkapan also worked after 11G.4b; duplicate validation still worked.
+- Security/safety evidence: non-admin `/admin` denial still worked, no destructive cleanup was run, and no idle request loop or unbounded resource growth was observed.
+- Decision classification: `PASS for bounded LAN smoke after 11G.4a and 11G.4b human retest`.
+- Next recommendation: `11G.5 - Cookie Auth, CSRF, Rate-Limit Security Review`.
+
+11G.4a root cause and fix:
+
+- Root cause: HTTP LAN login response set `dms_session` with `Secure`, so the browser did not store it for `http://<SERVER_LAN_IP>:<APP_PORT>`.
+- Compatibility fix: `src/lib/auth/session-cookies.ts` accepts explicit `DMS_SESSION_COOKIE_SECURE=false` to omit `Secure` for trusted HTTP LAN/local mode.
+- Secure default preserved: when unset, production or HTTPS/proxy-HTTPS requests still issue `dms_session` with `Secure`; `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`.
+- Clearing compatibility preserved: logout and password-change session clearing use the same option source.
+- Security boundary preserved: `dms_session` remains `HttpOnly`; `dms_active_role` remains UX state only and not authorization proof.
+
+11G.4b root cause and fix:
+
+- Root cause: Ajukan/Revisi additional kelengkapan used direct browser `crypto.randomUUID()` for temporary `user-custom-*` row IDs, which can be unavailable over HTTP LAN because it requires a secure browser context.
+- Compatibility fix: `src/lib/utils/client-id.ts` adds `createClientId(...)` for non-security ephemeral client IDs using `randomUUID`, then `getRandomValues`, then timestamp plus `Math.random` as a last resort.
+- Runtime scope: only `KelengkapanChecklist` and `AttachmentEditor` additional kelengkapan IDs were changed.
+- Security boundary preserved: the helper must not be used for sessions, file-access tokens, CSRF, password reset, authorization, or authoritative persisted entity IDs.
+
 Planning must include:
 
 - Host/port binding.
@@ -149,6 +180,10 @@ Planning must include:
 - No broad PostgreSQL exposure by default.
 - Client-device smoke from another LAN device.
 - Logs and screenshots that do not expose secrets, DB URLs, token values, password hashes, cookie values, file tokens, env values, or physical storage roots.
+- If serving over trusted HTTP LAN, set `DMS_SESSION_COOKIE_SECURE=false` explicitly and record only that the key was set, not unrelated env values.
+- Confirm `dms_session` is stored without printing its value, `/api/auth/session` authenticates, refresh/navigation preserves login, logout clears the session, password-change revokes/clears the current session, and non-admin admin denial still works.
+- Confirm adding additional kelengkapan in Ajukan/Revisi does not throw `crypto.randomUUID is not a function`, duplicate validation still works, and payload/response shapes remain compatible.
+- If download opens a `blob:http://...` warning over insecure HTTP, classify it as an expected limitation of trusted HTTP LAN mode rather than a functional blocker, and keep final deployment guidance on HTTPS plus secure cookies.
 
 Evidence template:
 
@@ -162,6 +197,8 @@ Evidence template:
 | Login from client device works | TODO | TODO |  |
 | Role dashboard opens from client device | TODO | TODO |  |
 | Preview/download from client device works | TODO | TODO |  |
+
+Same-machine-only validation cannot be classified as PASS for 11G.4. The current PASS is bounded to recorded LAN smoke validation only and does not imply production readiness, release readiness, operational certification, or go-live approval.
 
 ### 11G.5 Cookie Auth, CSRF, Rate-Limit Security Review
 
@@ -221,7 +258,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-Phase 11G.4 - LAN Binding And Client Smoke Evidence
+11G.5 - Cookie Auth, CSRF, Rate-Limit Security Review
 ```
 
-Rationale: the clean preview baseline is recorded and the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation. LAN binding and client smoke remain untested and must be handled as a separate human-controlled 11G.4 phase without broad PostgreSQL exposure by default.
+Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation, and final human LAN smoke after 11G.4a/11G.4b is now recorded as PASS for the bounded LAN smoke gate. The next unresolved 11G gate is the cookie-auth/CSRF/rate-limit review. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment.
