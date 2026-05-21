@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.1 docs/runbook update. Phase 11G.0 created the subphase breakdown. Phase 11G.1 adds the backup/restore runbook link and keeps execution deferred. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, or release decision is performed by this document.
+Status: Phase 11G.2 docs/planning update. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, and Phase 11G.2 adds the clean preview performance baseline and asset hygiene plan. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -65,26 +65,31 @@ The plan must cover:
 
 The recent Lighthouse results are environment-dependent evidence, not final deployment performance proof. The official baseline should be recorded from a clean browser profile with extensions disabled.
 
-Baseline table template:
+11G.2 plan:
 
-| Route | Browser profile | Performance | Accessibility | FCP | LCP | TBT | Notes |
-|---|---|---:|---:|---:|---:|---:|---|
-| `/pegawai` | Clean/no extensions | TODO | TODO | TODO | TODO | TODO |  |
-| `/ppk` | Clean/no extensions | TODO | TODO | TODO | TODO | TODO |  |
-| `/bendahara` | Clean/no extensions | TODO | TODO | TODO | TODO | TODO |  |
-| `/arsiparis` | Clean/no extensions | TODO | TODO | TODO | TODO | TODO |  |
-| `/admin` | Clean/no extensions | TODO | TODO | TODO | TODO | TODO |  |
+- `docs/migration/phase-11g-performance-baseline-plan.md`
+
+The plan defines clean-browser baseline conditions, human-only baseline command templates, an operationally manageable role/page matrix, metrics to record, evidence table, asset hygiene classification, cache/compression classification, TBT/main-thread classification, internal decision thresholds, and the handoff choice between a human-run 11G.2a baseline evidence phase and 11G.3 backup/restore drill evidence.
+
+Minimum role/page coverage:
+
+- one Pegawai page;
+- one Admin page;
+- one Arsiparis page;
+- one workflow inbox page.
 
 Classification rules:
 
 - Performance baseline is planned before final 11G/11H decision.
 - It does not block 11G.1 docs/runbook work.
-- It may justify a small later 11G.2 implementation slice for asset hygiene only if the baseline confirms easy wins.
+- It may justify a small later implementation slice for asset hygiene only if the baseline confirms easy wins.
 - Browser extensions must be excluded from the official baseline.
 - `pnpm preview` cache/compression findings are deployment-server concerns unless reproduced in the final serving setup.
 - Large `/bps-logo.png` is a likely real asset hygiene item.
-- Admin/role dashboard TBT and main-thread work remain P2 unless a clean preview baseline reproduces severe lag, idle request loops, or unbounded heap/listener/DOM growth.
-- No image optimization, caching/compression change, code splitting, or dashboard performance implementation belongs to 11G.0.
+- Admin/role dashboard TBT around 400-600 ms and main-thread work remain P2 unless a clean preview baseline repeatedly shows Performance below 60, TBT above 1000 ms, severe lag, idle request loops, or unbounded heap/listener/DOM growth.
+- Performance score at or above 75 on clean preview can be acceptable as internal LAN input if no severe lag, request loop, or unbounded growth is present.
+- Accessibility should ideally be at or above 90 on main target pages, or remaining issues should be documented.
+- No image optimization, caching/compression change, code splitting, or dashboard performance implementation belongs to 11G.2.
 
 ### 11G.3 Backup/Restore Drill Evidence
 
@@ -192,7 +197,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-Phase 11G.2 - Preview Performance Baseline And Asset Hygiene Planning
+Phase 11G.2a - Human Clean Preview Performance Baseline Evidence
 ```
 
-The established 11G sequence places the clean no-extension performance baseline before the human-run backup/restore drill. The first actual backup/restore execution should remain Phase 11G.3 after the runbook is reviewed and 11G.2 records the preview-performance baseline plan.
+Rationale: recent Lighthouse concern is active enough that human-run clean no-extension evidence should be recorded before backup/restore drill evidence is treated as the next operational input. If the human chooses to prioritize backup/restore first, the established alternative remains Phase 11G.3 Human-Run Backup/Restore Drill Evidence.

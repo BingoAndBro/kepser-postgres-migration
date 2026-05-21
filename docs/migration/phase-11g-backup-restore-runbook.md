@@ -325,14 +325,14 @@ Evidence rules:
 - Archive scheduler replacement remains a separate open migration decision.
 - App containerization remains deferred.
 
-## Handoff To 11G.2 And 11G.3
+## Handoff To 11G.2a And 11G.3
 
 Next recommended phase:
 
 ```text
-Phase 11G.2 - Preview Performance Baseline And Asset Hygiene Planning
+Phase 11G.2a - Human Clean Preview Performance Baseline Evidence
 ```
 
-Rationale: the existing 11G plan places the clean no-extension preview performance baseline before the human-run backup/restore drill. That keeps recent Lighthouse concerns classified before the restore drill is treated as final operational evidence.
+Rationale: Phase 11G.2 created `docs/migration/phase-11g-performance-baseline-plan.md` and places clean no-extension human evidence before the backup/restore drill when recent Lighthouse concern should be resolved first. That keeps performance evidence separate from restore evidence and avoids treating extension-noisy results as official.
 
-11G.3 should use this runbook after 11G.2 records the performance baseline plan. In 11G.3, the human executes the selected templates, then Codex records evidence from the human-provided results without running backup/restore commands itself.
+If the human chooses to prioritize backup/restore first, 11G.3 can use this runbook directly. In 11G.3, the human executes the selected templates, then Codex records evidence from the human-provided results without running backup/restore commands itself.
