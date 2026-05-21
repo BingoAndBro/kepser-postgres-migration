@@ -1203,29 +1203,25 @@ Phase 11G is not complete. Backup/restore, LAN deployment, CSRF/rate-limit revie
 Deferred hardening phase after accepted 11F.5 stabilization state:
 
 ```text
-Phase 11G  Backup/Restore, LAN Deployment, And Operations Hardening
+Phase 11G.0  Operational Hardening Breakdown Planning
 ```
 
-Phase 11G is allowed after the bounded 11F.4c preview audit if the human accepts the remaining 11F.5 retest state, but the recommended next phase is now 11F.6 recap after human retest acceptance. Phase 11G is not complete until backup/restore, LAN, and security-hardening evidence is recorded.
+Phase 11G.0 is a docs-only breakdown step after the accepted 11F.5 stabilization state and 11F.6 recap. It does not execute backup/restore, LAN binding, firewall work, security implementation, performance implementation, or deployment. Phase 11G is not complete until backup/restore, LAN, cookie-auth security review, rollback, performance baseline, and operational handoff evidence is recorded.
 
-Phase 11G should cover:
+Phase 11G should now be split into:
 
-- Backup/restore drill for local PostgreSQL.
-- Storage root backup and restore strategy.
-- Backup metadata tying DB dump, storage archive, app commit, and env/config names together.
-- Env secret rotation plan.
-- Session and file token secret validation.
-- LAN base URL, host binding, cookie `Secure` and `SameSite`, and firewall review.
-- CSRF and rate-limit review for cookie-auth state-changing routes.
-- Logging and error leakage review.
-- Admin bootstrap and password provisioning runbook.
-- Database migration/seeding runbook for the local target.
-- Rollback runbook for app, DB, and storage.
+- 11G.0 Operational Hardening Breakdown Planning.
+- 11G.1 Operational Readiness Runbook And Backup/Restore Plan.
+- 11G.2 Preview Performance Baseline And Asset Hygiene Planning.
+- 11G.3 Human-Run Backup/Restore Drill Evidence.
+- 11G.4 LAN Binding And Client Smoke Evidence.
+- 11G.5 Cookie Auth, CSRF, Rate-Limit Security Review.
+- 11G.6 Operations Rollback And Release Handoff.
 
 Recommended final gate after Phase 11G:
 
 ```text
-Phase 11H  Final Release Decision Or Production Readiness Gate
+Phase 11H  Final Release Readiness Gate And Supabase Retirement Decision
 ```
 
-Phase 11H should be the human-controlled go/no-go decision after executed regression, backup/restore, LAN, and security-hardening evidence is available.
+Phase 11H should be the human-controlled go/no-go decision after executed regression, backup/restore, LAN, security-review, rollback, performance-baseline, and known-risk evidence is available.

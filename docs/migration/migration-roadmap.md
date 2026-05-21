@@ -468,9 +468,9 @@ Exit criteria:
 
 - Met for Phase 10-owned server-side user-management/password routes after Phase 10F. No required Supabase Auth/Admin runtime path remains in those routes, and final browser helper/package/env/global cleanup is handed off to Phase 11 with a verified checklist.
 
-## Phase 11: Stabilization, Regression, Cleanup, And Release Readiness
+## Phase 11: Stabilization, Regression, Cleanup, And Operational Handoff
 
-Goal: Confirm compatibility and prepare the local/LAN release.
+Goal: Confirm compatibility and prepare the local/LAN operational handoff without claiming final readiness before executed evidence and the human 11H decision.
 
 Current status:
 
@@ -478,14 +478,16 @@ Current status:
 - Phase 11F planning/report preparation completed on 2026-05-19 in `docs/migration/phase-11f-regression-smoke-plan.md`. It produced the human-run regression command plan, domain smoke checklist, report template, stop/go criteria, Supabase cleanup audit command plan, and Phase 11G/11H hardening handoff. Later Phase 11F regression execution recorded `pnpm test` PASS, `pnpm build` PASS, active Supabase runtime/package/env-constant grep PASS, and mostly passing core manual smoke for Admin, Pegawai, PPK, and Bendahara workflows.
 - Phase 11F.4a fixed the `pg-native` optional dependency preview crash, Phase 11F.4b fixed the production preview JSX dev-runtime `RootDocument` failure, and Phase 11F.4c completed a bounded production-preview performance audit on 2026-05-20. Preview on port `3018` returned `200` for `/`, `/api/auth/session`, and `/api/master-fungsi`; direct `/__tsd/console-pipe` returned `404`; built output had no devtools/console-pipe/JSX-dev-runtime matches. No preview request loop or source-level memory/listener leak was proven. Authenticated browser DevTools long-session measurements remain pending and are not final performance certification.
 - Phase 11F.5 is the post-smoke stabilization slice before 11G. It classified remaining human-smoke and Lighthouse findings into P1/P2/P3, kept preview performance non-blocking based on current evidence, and split work into narrow subphases for logout/password-change UX, Master Klasifikasi save loading, kelengkapan duplicate validation, Attachment Replacement Old File Cleanup plus the 11F.5d.1 superseded pending replacement cleanup follow-up, admin storage orphan cleanup diagnostics hardening plus the human-reported pending-only dry-run response/message consistency follow-up, Kategori/Detail consistency, accessibility/Lighthouse polish, forbidden UX/guard log cleanup, the Pegawai guard React warning cleanup follow-up, and Pegawai canonical route alignment.
-- Phase 11F.5a through 11F.5h were implemented, human retested or accepted where reported, and committed. Phase 11F.6 recorded the final post-stabilization recap on 2026-05-20 as docs/report evidence only, with lightweight git/doc audits and no runtime fixes. Next recommended phase: Phase 11G Backup/Restore, LAN Deployment, And Operations Hardening. Phase 11G remains human-controlled and must not be claimed complete until backup/restore, LAN, CSRF/rate-limit/security review if planned, rollback, and operational-hardening evidence exists. If later authenticated preview smoke shows idle API loops, unbounded heap/listener/DOM growth, or severe preview navigation lag, stop and open Phase 11F.4d Targeted Preview Performance Fix.
+- Phase 11F.5a through 11F.5h were implemented, human retested or accepted where reported, and committed. Phase 11F.6 recorded the final post-stabilization recap on 2026-05-20 as docs/report evidence only, with lightweight git/doc audits and no runtime fixes. Phase 11G.0 is the current docs-only operational-hardening breakdown phase and creates `docs/migration/phase-11g-operations-plan.md`. Next recommended phase: Phase 11G.1 Operational Readiness Runbook And Backup/Restore Plan. Phase 11G remains human-controlled and must not be claimed complete until backup/restore, LAN, cookie-auth security review, rollback, performance baseline, and operational handoff evidence exists. If later authenticated clean-preview smoke shows idle API loops, unbounded heap/listener/DOM growth, or severe navigation lag, stop and open a targeted performance fix phase before final 11H decision.
 
 Allowed scope:
 
 - End-to-end regression and smoke checks.
 - Narrow post-smoke stabilization subphases from Phase 11F.5.
+- Phase 11G docs-only breakdown, runbook templates, evidence templates, and operational checklists.
 - Docker/PostgreSQL persistence and LAN runbook finalization.
-- PostgreSQL plus `storage/` backup/restore scripts and drills.
+- PostgreSQL plus `storage/` backup/restore planning and human-run drills.
+- Clean no-extension performance baseline and asset hygiene classification.
 - Final dependency/env cleanup after verified parity.
 - Security and operational hardening.
 
@@ -496,12 +498,13 @@ Non-goals:
 - No Supabase cleanup before replacement gaps are closed.
 - No new product features before 11H or before an explicit human 11G/11H decision.
 - No `/pegawai/dokumen` to `/pegawai/inbox` route rename during 11F.5.
+- No production, LAN, release, backup/restore, or go-live approval claim before the relevant evidence is recorded and reviewed.
 
 Expected outputs:
 
 - Regression report.
 - Phase 11F.5 stabilization plan and any later stabilization recap.
-- Deployment and backup/restore docs.
+- Phase 11G operations plan, runbooks, evidence templates, and backup/restore/LAN/security review records.
 - Known risk list.
 - Final cleanup diff if parity permits.
 
@@ -518,4 +521,4 @@ Key validation gates:
 
 Exit criteria:
 
-- The local PostgreSQL/auth/storage app is release-ready for the intended local/LAN deployment.
+- Phase 11G evidence and blockers are organized for the human-controlled Phase 11H decision; final readiness is not automatic.
