@@ -2,9 +2,9 @@
 
 Date prepared: 2026-05-21.
 
-Status: decision framework recorded; decisions pending.
+Status: decision framework recorded; destructive admin cleanup hardening implemented pending human retest; remaining P1 decisions pending.
 
-This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. It does not implement runtime hardening, does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
+This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2c now implements the selected destructive admin cleanup hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
 
 The local target remains:
 
@@ -22,15 +22,17 @@ Allowed in 11H.2:
 - update migration decision docs and forward links;
 - preserve the P1 security gates without downgrade.
 
-Not allowed in 11H.2:
+Not allowed in the original framework-only 11H.2 record:
 
 - no CSRF implementation;
 - no Origin or Referer middleware implementation;
 - no rate-limit implementation;
-- no destructive admin cleanup route implementation;
+- no additional destructive admin cleanup route implementation beyond the selected Phase 11H.2c hardening recorded below;
 - no raw logical-path file-access hardening implementation;
 - no runtime source, test, package, env, DB, Drizzle, Supabase folder, route-generation, firewall/network, backup/restore, storage cleanup, or commit changes;
 - no final readiness, production readiness, LAN readiness, release readiness, operational certification, or go-live approval claim.
+
+Phase 11H.2c is the human-selected runtime follow-up exception for destructive admin cleanup hardening. It does not authorize unrelated runtime changes or any of the other P1 implementations.
 
 ## Decision Policy
 
@@ -38,13 +40,21 @@ Accepted bounded risk requires explicit human-reviewed operational risk acceptan
 
 If a P1 item is accepted as bounded risk, the exact deployment boundary must be stated. Trusted HTTP LAN means internal trusted clients only, no public internet exposure, no broader rollout approval, and no reuse as a public deployment posture. Preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
 
-Because no explicit human disposition was provided for the four P1 items in this phase, every current human decision is recorded as:
+Phase 11H.2 initially recorded no explicit human disposition for the four P1 items. On 2026-05-21, the human selected incremental P1 implementation and chose Phase 11H.2c Destructive Admin Cleanup Hardening as the first follow-up.
+
+The remaining P1 items stay:
 
 ```text
 decision pending
 ```
 
-Decision pending preserves release ambiguity. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
+The destructive admin cleanup item is now:
+
+```text
+implementation selected and implemented pending human retest
+```
+
+Decision pending preserves release ambiguity for the remaining P1 items. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
 
 ## P1 Decision Matrix
 
@@ -52,7 +62,7 @@ Decision pending preserves release ambiguity. It is not temporary approval and d
 |---|---|---|---|
 | CSRF/origin strategy | decision pending | Phase 11H.2a - CSRF/Origin Protection Follow-up | Final readiness remains unresolved while pending. |
 | Login rate-limit/brute-force foundation | decision pending | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Final readiness remains unresolved while pending. |
-| Destructive admin cleanup hardening | decision pending | Phase 11H.2c - Destructive Admin Cleanup Hardening | Final readiness remains unresolved while pending. |
+| Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Phase 11H.2c - Destructive Admin Cleanup Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 | Raw logical-path file-access hardening | decision pending | Phase 11H.2d - Raw Logical-Path File Access Hardening | Final readiness remains unresolved while pending. |
 
 ## 1. CSRF/Origin Strategy
@@ -158,9 +168,19 @@ Release classification impact:
 
 ## 3. Destructive Admin Cleanup Hardening
 
-Current issue:
+Previous issue:
 
 - Destructive admin cleanup can currently be triggered via GET query flags.
+
+11H.2c implementation status:
+
+- `GET /api/admin/cleanup-orphan-files` is now non-destructive and always behaves as dry-run/report, even when `dry_run=false` appears in the query string.
+- Destructive cleanup now requires `POST /api/admin/cleanup-orphan-files` with JSON body intent.
+- POST destructive cleanup requires `dry_run=false` and `confirm=true`.
+- Pending cleanup still additionally requires `include_pending=true`, `confirm=true`, and age eligibility through `min_age_minutes`.
+- Missing destructive intent defaults to safe dry-run behavior; invalid POST body values return `400`.
+- Existing local `dms_session` and assigned `ADMIN` authorization remain required.
+- Response payloads continue to use logical storage paths and summary fields; no physical paths or storage roots are exposed.
 
 Risk summary:
 
@@ -173,11 +193,13 @@ Affected surfaces:
 - Admin storage diagnostics and orphan cleanup flow.
 - Any operator workflow that arms cleanup with destructive query flags.
 
-Current mitigation:
+Current mitigation after 11H.2c:
 
 - Route requires assigned `ADMIN`.
-- Cleanup defaults to dry-run/report-only.
-- Destructive cleanup requires explicit query flags.
+- GET cleanup is dry-run/report-only.
+- POST cleanup defaults to dry-run/report-only unless destructive intent is explicit in the JSON body.
+- Formal orphan deletion requires POST body `dry_run=false` and `confirm=true`.
+- Pending deletion requires POST body `dry_run=false`, `include_pending=true`, `confirm=true`, and age eligibility.
 - Cleanup protects referenced document paths and retained archive snapshots, skips unsupported/pending categories unless explicitly armed, and avoids physical path disclosure.
 
 Decision options:
@@ -190,10 +212,10 @@ Decision options:
 Current human decision:
 
 ```text
-decision pending
+implementation selected and implemented pending human retest
 ```
 
-Required next phase if implementation is selected:
+Implementation phase:
 
 ```text
 Phase 11H.2c - Destructive Admin Cleanup Hardening
@@ -201,8 +223,9 @@ Phase 11H.2c - Destructive Admin Cleanup Hardening
 
 Release classification impact:
 
-- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
-- If bounded risk is accepted later, the written procedure must state that destructive cleanup remains admin-only, unexposed beyond trusted operators, and procedure-controlled.
+- This P1 item is no longer decision-pending, but it remains pending human retest.
+- 11H.3 should not proceed as a final release handoff classification while other P1 decisions remain pending or while 11H.2c retest remains unreviewed.
+- This implementation does not add the separate app-wide CSRF/origin strategy and does not resolve the raw logical-path file-access P1.
 
 ## 4. Raw Logical-Path File-Access Hardening
 
@@ -258,19 +281,19 @@ Release classification impact:
 ## Current 11H.2 Classification
 
 ```text
-decision framework recorded, decisions pending
+decision framework recorded, 11H.2c implemented pending human retest, remaining P1 decisions pending
 ```
 
-Rationale: the P1 matrix is recorded, but the human has not selected implementation, bounded-risk acceptance, deferral, or blocker disposition for any P1 item.
+Rationale: the P1 matrix is recorded, and the human selected implementation for destructive admin cleanup hardening first. The runtime change is implemented, but human retest is still pending. CSRF/origin, login rate-limit/brute-force, and raw logical-path file-access hardening remain unresolved.
 
 ## Release Classification Impact
 
 No final readiness decision is made by this phase.
 
-Decision-pending P1 gates mean:
+Remaining P1 gates mean:
 
 - final release handoff classification remains unresolved;
-- 11H.3 should not be used as a final readiness approval step until P1 decisions are explicitly resolved;
+- 11H.3 should not be used as a final readiness approval step until remaining P1 decisions are explicitly resolved and 11H.2c retest is reviewed;
 - trusted HTTP LAN evidence remains bounded smoke input only;
 - trusted HTTP LAN is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
@@ -278,16 +301,19 @@ Decision-pending P1 gates mean:
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
+Phase 11H.2d - Raw Logical-Path File Access Hardening
 ```
 
-If the human later chooses implementation for all P1 items, start with:
+unless a blocker remains in 11H.2c human retest.
+
+Other unresolved P1 follow-ups remain:
 
 ```text
 Phase 11H.2a - CSRF/Origin Protection Follow-up
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 ```
 
-If the human later explicitly accepts all P1 risks with written trusted-LAN-only constraints, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
+If the human later explicitly accepts remaining P1 risks with written trusted-LAN-only constraints and reviews 11H.2c retest, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
 
 If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or schedule targeted implementation.
 

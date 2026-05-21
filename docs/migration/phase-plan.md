@@ -12,7 +12,7 @@ Current active area after Phase 10F is Phase 11 global cleanup, regression, and 
 
 Phase 11G.5 status update: the current recommended phase is now `11G.6 - Operations Rollback And Release Handoff`. Phase 11G.5 is recorded in `docs/migration/phase-11g-security-review.md` and supersedes the stale 11G.4 follow-up note in the long current-area recap above.
 
-Phase 11H.2 status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records the P1 security gate decision framework. All four P1 decisions are pending because no explicit human disposition was provided. The next recommended phase is `Phase 11H.2 Decision Follow-up - Human disposition for P1 gates`, not 11H.3.
+Phase 11H.2c status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records that the human selected incremental P1 implementation and Phase 11H.2c Destructive Admin Cleanup Hardening was implemented pending human retest. GET cleanup is now dry-run/report-only and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`; pending deletion still requires `include_pending=true` and age eligibility. CSRF/origin, login rate-limit/brute-force, and raw logical-path file-access P1 decisions remain pending. The next recommended phase is `Phase 11H.2d - Raw Logical-Path File Access Hardening` unless a blocker remains in 11H.2c retest, not 11H.3.
 
 Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. Phase 11F.5d.2 is inserted after 11F.5d.1 for admin storage orphan cleanup diagnostics hardening. These inserted storage items do not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and do not claim those later subphases are complete.
 
@@ -4930,7 +4930,7 @@ Subphase sequence:
 | 11H.2 | P1 Security Gate Decision | Human chooses disposition for each carried P1 gate. | Each P1 is implemented, accepted with bounded trusted LAN-only risk, deferred, or blocks final readiness. |
 | 11H.2a | CSRF/Origin Protection Follow-up | Optional implementation if chosen by the human. | Approved cookie-auth state-change protection is implemented and verified. |
 | 11H.2b | Login Rate-Limit/Brute-Force Follow-up | Optional implementation if chosen by the human. | Login brute-force foundation is implemented and verified. |
-| 11H.2c | Destructive Admin Cleanup Hardening | Optional implementation if chosen by the human. | Destructive cleanup is POST-only or protected by the approved stronger guard. |
+| 11H.2c | Destructive Admin Cleanup Hardening | Implemented pending human retest. | Destructive cleanup is POST-only; GET remains dry-run/report-only. |
 | 11H.2d | Raw Logical-Path File Access Hardening | Optional implementation if chosen by the human. | Raw logical-path access cannot bypass `DIMUSNAHKAN` policy. |
 | 11H.3 | Final Release Handoff Classification | Final human classification. | Complete, partial, blocked, or deferred classification is recorded without overclaiming. |
 
@@ -5039,10 +5039,10 @@ Current human decision status:
 |---|---|---|
 | CSRF/origin strategy | decision pending | 11H.2a |
 | Login rate-limit/brute-force foundation | decision pending | 11H.2b |
-| Destructive admin cleanup hardening | decision pending | 11H.2c |
+| Destructive admin cleanup hardening | implementation selected and implemented pending human retest | 11H.2c |
 | Raw logical-path file-access hardening | decision pending | 11H.2d |
 
-11H.2 does not implement runtime hardening, does not accept bounded risk, does not downgrade P1 items, and does not make a final readiness decision. Decision pending is not temporary approval.
+11H.2c implements runtime hardening only for destructive admin cleanup. 11H.2 does not accept bounded risk, does not downgrade P1 items, and does not make a final readiness decision. Decision pending for the remaining P1 items is not temporary approval.
 
 Release classification impact:
 
@@ -5054,7 +5054,7 @@ Release classification impact:
 Next recommended phase:
 
 ```text
-Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
+Phase 11H.2d - Raw Logical-Path File Access Hardening
 ```
 
 ## Validation Gates

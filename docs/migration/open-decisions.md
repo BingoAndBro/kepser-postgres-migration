@@ -62,9 +62,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 11H.1 Supabase retirement classification.
   Date: 2026-05-21.
   Rationale: `docs/migration/phase-11h-final-supabase-audit.md` records that Supabase is retired from active runtime/package dependency; historical docs and `supabase/` artifacts remain for traceability unless human policy chooses cleanup. Remaining source comments/type-only residue, `.env.example` Supabase key names, stale E2E expectations, historical docs/spec wording, and `supabase/` retention are cleanup or policy decisions, not active runtime/package blockers. This does not claim full Supabase removal from the repository and does not resolve the unresolved P1 security gates.
-- Phase 11H.2 P1 security gate decision framework.
+- Phase 11H.2 P1 security gate decision framework and 11H.2c cleanup hardening selection.
   Date: 2026-05-21.
-  Rationale: `docs/migration/phase-11h-p1-security-gate-decision.md` records the decision framework for CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path file-access hardening. Current human decision for all four P1 items is `decision pending` because no explicit disposition was provided. This does not implement hardening, accept bounded risk, downgrade P1 items, approve 11H.3, or make a final readiness decision.
+  Rationale: `docs/migration/phase-11h-p1-security-gate-decision.md` records the decision framework for CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path file-access hardening. The human selected incremental P1 implementation and chose destructive admin cleanup hardening first. Phase 11H.2c is implemented pending human retest: GET cleanup is dry-run/report-only, and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`. This does not accept bounded risk, downgrade P1 items, approve 11H.3, make a final readiness decision, or resolve the remaining P1 items.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
@@ -371,14 +371,14 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Exact app-layer rate-limit design before 11H/wider rollout.
   Phase 11G.5 note: login brute-force protection is the highest-priority gap; upload, file-token issuance, workflow, archive, and admin mutations also need scoped throttling/audit decisions.
   Phase 11H.2 status: decision pending. Options remain implement 11H.2b, accept bounded trusted-LAN-only risk with explicit low-exposure constraints, defer final release classification, or block final readiness.
-- Whether destructive admin storage cleanup should be converted from GET query flags to POST-only mutation semantics or guarded by a stronger centralized CSRF/origin control.
-  Phase 11G.5 note: current cleanup defaults to dry-run and requires ADMIN, but destructive mode remains GET-triggered when query flags disable dry-run.
-  Phase 11H.2 status: decision pending. Options remain implement 11H.2c, accept bounded risk only if admin-only cleanup remains unexposed and procedure-controlled, defer final release classification, or block final readiness.
+- Destructive admin storage cleanup POST-only hardening.
+  Phase 11G.5 note: cleanup defaulted to dry-run and required ADMIN, but destructive mode was GET-triggered when query flags disabled dry-run.
+  Phase 11H.2c status: implementation selected and implemented pending human retest. GET cleanup is now dry-run/report-only, including with destructive query flags. Destructive cleanup requires POST body `dry_run=false` and `confirm=true`; pending cleanup additionally requires `include_pending=true` and age eligibility. This does not resolve the separate app-wide CSRF/origin P1.
 - Whether raw logical-path preview/download compatibility routes should become owner-only, document-token-only, or status-aware before final rollout.
   Phase 11G.5 note: document-specific preview/download blocks `DIMUSNAHKAN`; raw logical-path compatibility does not independently revalidate archive status.
   Phase 11H.2 status: decision pending. Options remain implement 11H.2d, accept bounded risk only if raw compatibility routes are constrained and not used for destroyed archives, defer final release classification, or block final readiness.
 - Final 11H P1 security decision.
-  Phase 11H.2 note: decision framework is recorded, decisions pending. 11H must still decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing. 11G.6, 11H.0, 11H.1, and 11H.2 documentation do not implicitly accept these risks.
+  Phase 11H.2 note: decision framework is recorded. 11H.2c destructive admin cleanup hardening is implemented pending human retest. 11H must still decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing, and must review 11H.2c retest before any final classification. 11G.6, 11H.0, 11H.1, 11H.2, and 11H.2c documentation do not implicitly accept these risks.
 - Supabase cleanup policy after active runtime/package retirement.
   Phase 11H.1 note: active runtime/package Supabase dependency is retired, but cleanup policy remains open for historical docs/spec wording, `.env.example` Supabase key names, stale test expectations, source comment/type residue, and the retained `supabase/` folder plus legacy CLI metadata. A separate human-approved cleanup phase is required before claiming full Supabase removal from the repository.
 - Final deployment posture decision.
