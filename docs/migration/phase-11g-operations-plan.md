@@ -292,7 +292,7 @@ The handoff consolidates:
 ## Next Recommended Phase
 
 ```text
-Phase 11H - Final Release Readiness Gate
+Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
 ```
 
-Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, 11G.5 documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes, and 11G.6 has consolidated rollback, operator handoff, evidence inventory, and P1/P2 security follow-ups. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment. Phase 11H is human-controlled and is not automatically approved by 11G.6.
+Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, 11G.5 documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes, and 11G.6 has consolidated rollback, operator handoff, evidence inventory, and P1/P2 security follow-ups. 11H.0 records the final gate sequence and decision matrix in `docs/migration/phase-11h-final-readiness-plan.md`; it does not make a final release decision. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment. Phase 11H is human-controlled and is not automatically approved by 11G.6 or 11H.0.

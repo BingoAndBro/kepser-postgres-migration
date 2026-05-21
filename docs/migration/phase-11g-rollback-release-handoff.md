@@ -282,10 +282,10 @@ Classify as `partial` later if evidence is found incomplete or P1 decisions are 
 ## Next Phase
 
 ```text
-Phase 11H - Final Release Readiness Gate
+Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
 ```
 
-11H is human-controlled. It is not automatically approved by 11G.6. 11H must address or explicitly accept the P1 security findings with bounded deployment constraints and written risk acceptance.
+11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only. It is not automatically approved by 11G.6 and does not make the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the P1 security findings with bounded deployment constraints and written risk acceptance.
 
 ## Evidence Handling Rules
 

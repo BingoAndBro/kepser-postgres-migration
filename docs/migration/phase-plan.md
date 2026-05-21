@@ -4915,52 +4915,61 @@ Phase 11H - Final Release Readiness Gate
 
 ### Phase 11H: Final Release Readiness Gate And Supabase Retirement Decision
 
-Goal: decide whether final Supabase retirement is complete, partial, or deferred.
+Goal: run the human-controlled final gate without making 11G.6 or 11H.0 an automatic release decision.
 
-Runtime/docs scope:
+11H must classify Supabase retirement, P1 security gates, deployment posture, bounded evidence acceptance, and final handoff status. It must not claim production readiness, LAN readiness, release readiness, operational certification, or go-live unless the human explicitly records that final classification after the required decisions.
 
-- Final source/package/env/docs/tests audit.
-- Record remaining reference-only docs/tests if any.
-- Record release risks, accepted limitations, and next maintenance tasks.
-- Produce final handoff for the local/LAN target.
+Subphase sequence:
 
-Non-goals:
+| Phase | Name | Scope | Exit condition |
+|---|---|---|---|
+| 11H.0 | Final Readiness Gate Planning And Decision Matrix | Docs-only gate planning in `docs/migration/phase-11h-final-readiness-plan.md`. | Subphase sequence, matrix, exit criteria, and next phase are documented. |
+| 11H.1 | Final Supabase Runtime/Package/Env/Docs Audit | Read-only audit of active runtime, package files, env handling, docs references, `supabase/`, DB, and Drizzle folders. | Supabase retirement classification is recorded without printing env values. |
+| 11H.2 | P1 Security Gate Decision | Human chooses disposition for each carried P1 gate. | Each P1 is implemented, accepted with bounded trusted LAN-only risk, deferred, or blocks final readiness. |
+| 11H.2a | CSRF/Origin Protection Follow-up | Optional implementation if chosen by the human. | Approved cookie-auth state-change protection is implemented and verified. |
+| 11H.2b | Login Rate-Limit/Brute-Force Follow-up | Optional implementation if chosen by the human. | Login brute-force foundation is implemented and verified. |
+| 11H.2c | Destructive Admin Cleanup Hardening | Optional implementation if chosen by the human. | Destructive cleanup is POST-only or protected by the approved stronger guard. |
+| 11H.2d | Raw Logical-Path File Access Hardening | Optional implementation if chosen by the human. | Raw logical-path access cannot bypass `DIMUSNAHKAN` policy. |
+| 11H.3 | Final Release Handoff Classification | Final human classification. | Complete, partial, blocked, or deferred classification is recorded without overclaiming. |
 
-- No last-minute cleanup without audit.
-- No overclaiming final Supabase removal.
-- No commit unless explicitly requested.
+#### Phase 11H.0: Final Readiness Gate Planning And Decision Matrix
 
-Candidate files to read/change:
+Date: 2026-05-21.
 
-- `docs/migration/phase-plan.md`
-- Any final handoff/release note explicitly scoped by the human.
-- Read-only audit over `src`, `tests`, `docs`, package files, env examples, DB/drizzle/supabase folders.
+Status: planning complete in `docs/migration/phase-11h-final-readiness-plan.md`. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, or commit was changed or run by this phase.
 
-Guardrails:
+11H.0 output:
 
-- Final Supabase removal can be claimed only if no active runtime dependency remains.
-- Remaining docs/spec/test references must be explicitly classified as reference-only.
-- If `supabase/` historical migrations/functions remain in the repo, do not call that runtime removal unless the release policy says historical migration references can remain.
+- dedicated 11H.0 plan and decision matrix;
+- safe 11H subphase sequence;
+- P1 security gate carry-forward from 11G.5/11G.6;
+- Supabase retirement decision framework;
+- release readiness classification framework;
+- deployment posture decision framework;
+- evidence acceptance framework for 11G.2a, 11G.3, and 11G.4;
+- next recommended phase.
 
-Validation gates:
+11H.0 does not make a final release decision. It does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live.
 
-- `git grep` confirms no active Supabase runtime dependency in `src`.
-- Package/env cleanup status is documented.
-- Regression, backup/restore, and LAN readiness are complete or blockers are listed.
-- No unapproved files changed.
+P1 gates carried forward without downgrade:
 
-Manual validation commands for human:
+- CSRF/origin strategy for cookie-authenticated state-changing routes.
+- Login rate-limit/brute-force foundation.
+- Destructive admin cleanup hardening.
+- Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
 
-- `git status --short --branch`
-- `git diff --check`
-- `git diff --name-only`
-- `git grep -n "supabase\|SUPABASE\|@supabase" -- src tests docs package.json pnpm-lock.yaml`
-- `git diff -- src/routeTree.gen.ts package.json pnpm-lock.yaml .env .env.migration db drizzle supabase`
+11H.0 exit criteria:
 
-Deferred items / exit criteria:
+- subphase plan created;
+- decision matrix created;
+- P1 gates carried forward;
+- next recommended phase selected.
 
-- Exit when the release handoff clearly states whether Supabase is fully retired from active runtime, partially retained, or deferred with exact blockers.
-- Release readiness is accepted only after clean-local runtime, regression, backup/restore, and LAN hardening gates are satisfied.
+Next recommended phase:
+
+```text
+Phase 11H.1 - Final Supabase Runtime/Package/Env/Docs Audit
+```
 
 ## Validation Gates
 

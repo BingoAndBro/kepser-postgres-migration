@@ -172,10 +172,10 @@ Deferred before 11H/wider rollout:
 If no new runtime blocker is reported by the human, the next recommended phase is:
 
 ```text
-Phase 11H - Final Release Readiness Gate
+Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
 ```
 
-11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`. It does not approve production, release, operational certification, or go-live by itself. Phase 11H remains human-controlled and must implement, explicitly accept, or defer with written risk acceptance the P1 findings before any honest final readiness claim.
+11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`, and 11H.0 records the final gate sequence in `docs/migration/phase-11h-final-readiness-plan.md`. Neither document approves production, release, operational certification, or go-live by itself. Later 11H phases remain human-controlled and must implement, explicitly accept, defer, or block on the P1 findings before any honest final readiness claim.
 
 If the human wants to harden before 11G.6 instead of recording the handoff first, use narrow follow-up phases:
 

@@ -56,6 +56,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Phase 11G.6 handoff classification.
   Date: 2026-05-21.
   Rationale: `docs/migration/phase-11g-rollback-release-handoff.md` classifies 11G.6 as complete for documentation handoff only. This does not approve 11H, production readiness, LAN readiness, release readiness, operational certification, or go-live. The P1 security findings from 11G.5 remain unresolved until implemented, explicitly accepted with bounded constraints, or deferred with written risk acceptance.
+- Phase 11H.0 gate planning classification.
+  Date: 2026-05-21.
+  Rationale: `docs/migration/phase-11h-final-readiness-plan.md` classifies 11H.0 as planning complete only. It creates the 11H subphase sequence and decision matrix, carries forward 11G.5/11G.6 P1 security gates without downgrade, and selects 11H.1 as the next read-only audit. It does not make a final release decision, approve production readiness, approve LAN readiness, approve release readiness, approve operational certification, or approve go-live.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
@@ -365,7 +368,11 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Whether raw logical-path preview/download compatibility routes should become owner-only, document-token-only, or status-aware before final rollout.
   Phase 11G.5 note: document-specific preview/download blocks `DIMUSNAHKAN`; raw logical-path compatibility does not independently revalidate archive status.
 - Final 11H P1 security decision.
-  Phase 11G.6 note: 11H must decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing. 11G.6 documentation does not implicitly accept these risks.
+  Phase 11H.0 note: 11H must decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing. 11G.6 and 11H.0 documentation do not implicitly accept these risks.
+- Final Supabase retirement classification.
+  Phase 11H.0 note: 11H.1 must classify active runtime retirement, package dependency retirement, human-controlled env references, historical docs references, and `supabase/` historical folder policy. Active runtime/package matches are blockers unless explicitly resolved; historical docs and `supabase/` folder references may remain only if classified as migration history.
+- Final deployment posture decision.
+  Phase 11H.0 note: preferred final posture remains HTTPS plus `Secure` `dms_session`. Temporary trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` can remain bounded/internal only and must not be treated as broader rollout approval.
 - Final rollback operating policy.
   Phase 11G.6 note: paired DB/storage restore into a clean target was validated by bounded 11G.3 evidence. Active-environment overwrite, partial DB-only or storage-only restore, backup retention, and post-backup data divergence handling still require explicit human decisions before use.
 
