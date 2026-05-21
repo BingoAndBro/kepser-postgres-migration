@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.4 evidence template prepared, Phase 11G.4a LAN HTTP session-cookie compatibility fix implemented, Phase 11G.4b LAN HTTP browser API compatibility fix implemented, and human LAN/client-smoke retest still pending. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 records human-provided backup/restore drill evidence as PASS for the bounded drill. No backup, restore, LAN binding, firewall change, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
+Status: Phase 11G.5 security posture review is recorded in `docs/migration/phase-11g-security-review.md`. Phase 11G.4 bounded LAN smoke is PASS after 11G.4a and 11G.4b human retest, Phase 11G.3 backup/restore drill evidence is PASS for the bounded drill, and Phase 11G.2a clean preview performance evidence is recorded. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -18,7 +18,7 @@ This plan breaks Phase 11G into small reviewable subphases before any operationa
 | 11G.4 | LAN Binding And Client Smoke Evidence | Human intentionally binds app to LAN and tests from another trusted LAN client. | Host/port/firewall/client smoke evidence is recorded without broad PostgreSQL exposure. |
 | 11G.4a | LAN HTTP Session Cookie Compatibility Fix | Narrow auth-cookie helper fix for trusted HTTP LAN mode only. | `DMS_SESSION_COOKIE_SECURE=false` can omit `Secure` for HTTP LAN while HTTPS/production-like defaults remain secure. |
 | 11G.4b | LAN HTTP Browser API Compatibility Fix | Narrow client-side temporary ID fallback for additional kelengkapan over HTTP LAN. | Ajukan/Revisi additional kelengkapan no longer depends directly on `crypto.randomUUID()` in HTTP LAN browser contexts. |
-| 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review-only first pass over cookie-auth and state-changing routes. | CSRF/rate-limit posture and gaps are documented; implementation requires a later approved phase. |
+| 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review-only first pass over cookie-auth and state-changing routes. | Review complete in `phase-11g-security-review.md`; P1/P2 hardening items are carried to 11G.6/11H handoff. |
 | 11G.6 | Operations Rollback And Release Handoff | Consolidate rollback plan, operator checklist, known accepted risks, and 11H inputs. | Phase 11H has evidence, open blockers, and accepted risks to review. |
 | 11H | Final Release Readiness Gate And Supabase Retirement Decision | Human go/no-go decision. | Human records the final decision; no automatic certification. |
 
@@ -202,7 +202,22 @@ Same-machine-only validation cannot be classified as PASS for 11G.4. The current
 
 ### 11G.5 Cookie Auth, CSRF, Rate-Limit Security Review
 
-This is review-only first. Any CSRF or rate-limit implementation must be a later approved implementation phase.
+Dedicated review:
+
+- `docs/migration/phase-11g-security-review.md`
+
+Current 11G.5 status:
+
+- Review classification: complete for the bounded documentation/security posture scope.
+- No runtime security changes were implemented.
+- No P0/P1 blocker was found that prevents starting 11G.6 rollback/handoff documentation.
+- P1 before 11H/wider rollout: explicit CSRF/origin strategy for cookie-authenticated state-changing routes.
+- P1 before 11H/wider rollout: app-layer login brute-force/rate-limit foundation.
+- P1 before 11H/wider rollout: harden destructive admin storage cleanup because destructive mode is currently a GET route with query flags.
+- P1 before 11H/wider rollout: narrow or status-revalidate raw logical-path preview/download compatibility routes so they cannot bypass `DIMUSNAHKAN` protections.
+- P2 before final release: add scoped throttling/audit coverage for upload, file-token issuance, workflow, archive, and admin mutations.
+
+This is review-only first. Any CSRF, rate-limit, admin cleanup, or file-access hardening implementation must be a later approved implementation phase.
 
 Review checklist:
 
@@ -215,6 +230,7 @@ Review checklist:
 - State-changing cookie-auth routes are inventoried and CSRF posture is classified.
 - Login, password reset/change, upload, and other sensitive routes have brute-force/rate-limit posture classified.
 - Security posture does not rely on Supabase Auth protections.
+- Trusted HTTP LAN residual risk is documented as temporary and bounded.
 
 ### 11G.6 Rollback And 11H Handoff
 
@@ -239,6 +255,9 @@ Output should consolidate:
 | P1 before 11H | LAN client smoke | Must prove intentional app access from another trusted LAN client. |
 | P1 before 11H | Rollback plan | Must cover app, DB, and storage. |
 | P1 before 11H | Cookie-auth security review | Must include CSRF/rate-limit posture and server-side denial checks. |
+| P1 before 11H | CSRF/origin strategy | SameSite=Lax is not complete protection for cookie-authenticated state-changing routes. |
+| P1 before 11H | Login rate-limit foundation | Current app-layer throttling is absent; reverse proxy/firewall limits are defense in depth only. |
+| P1 before 11H | Sensitive admin/file-access hardening | Destructive admin cleanup should not remain GET-triggered for final/wider rollout; raw logical-path file access needs status-aware `DIMUSNAHKAN` protection or narrowing. |
 | P1/P2 depending clean baseline | Performance baseline and asset hygiene | Baseline is required before final decision; implementation depends on clean evidence. |
 | P2/P3 | Admin TBT optimization | P2 only if clean preview shows meaningful lag; otherwise backlog. |
 | P2/P3 | Broader accessibility polish | Beyond already fixed findings unless new concrete blockers appear. |
@@ -258,7 +277,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-11G.5 - Cookie Auth, CSRF, Rate-Limit Security Review
+11G.6 - Operations Rollback And Release Handoff
 ```
 
-Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation, and final human LAN smoke after 11G.4a/11G.4b is now recorded as PASS for the bounded LAN smoke gate. The next unresolved 11G gate is the cookie-auth/CSRF/rate-limit review. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment.
+Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, and 11G.5 has documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes. 11G.6 should consolidate rollback, operator handoff, evidence inventory, and the P1/P2 security follow-ups for the human-controlled 11H decision. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment.

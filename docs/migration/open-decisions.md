@@ -353,6 +353,14 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - How the obsolete `arsip_verifikasi_penyusutan` references inside the old Supabase Edge Function should be reconciled when replacing archive retention scheduling.
 - Exact API migration strategy by endpoint after DB/auth/storage foundations are ready.
 - Whether `.env.example` concrete-looking Supabase keys should be replaced with placeholders in a separate hygiene task.
+- Exact CSRF/origin enforcement design for cookie-authenticated state-changing routes before 11H/wider rollout.
+  Phase 11G.5 note: current state-changing routes rely on `SameSite=Lax`, method restrictions, request validation, session revalidation, RBAC, ownership/status checks, and audit logs, but no app-wide CSRF token or explicit `Origin`/`Referer` enforcement was found.
+- Exact app-layer rate-limit design before 11H/wider rollout.
+  Phase 11G.5 note: login brute-force protection is the highest-priority gap; upload, file-token issuance, workflow, archive, and admin mutations also need scoped throttling/audit decisions.
+- Whether destructive admin storage cleanup should be converted from GET query flags to POST-only mutation semantics or guarded by a stronger centralized CSRF/origin control.
+  Phase 11G.5 note: current cleanup defaults to dry-run and requires ADMIN, but destructive mode remains GET-triggered when query flags disable dry-run.
+- Whether raw logical-path preview/download compatibility routes should become owner-only, document-token-only, or status-aware before final rollout.
+  Phase 11G.5 note: document-specific preview/download blocks `DIMUSNAHKAN`; raw logical-path compatibility does not independently revalidate archive status.
 
 ## Decision Log Rules
 

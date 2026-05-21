@@ -113,6 +113,23 @@ Do not commit secrets. Provide examples only.
 
 Do not expose HTTP LAN mode to the public internet. Final/best-practice deployment should prefer HTTPS with the session cookie `Secure` flag enabled.
 
+## Cookie Auth And Browser Security Posture
+
+Phase 11G.5 reviewed the local cookie-auth posture for trusted LAN deployment:
+
+- `dms_session` is an opaque `HttpOnly`, `SameSite=Lax`, `Path=/` cookie.
+- `SameSite=Lax` reduces common cross-site request risk but is not complete CSRF protection.
+- Trusted HTTP LAN/local testing may set `DMS_SESSION_COOKIE_SECURE=false`; final/best-practice deployment should prefer HTTPS with `Secure`.
+- `dms_active_role` remains UX-only and is not authorization proof.
+- Server/API session and role checks remain authoritative.
+
+Before wider browser-accessible rollout, deployment planning must include:
+
+- explicit CSRF/origin strategy for cookie-authenticated state-changing routes;
+- app-layer login brute-force/rate-limit protection, with reverse-proxy limits only as defense in depth;
+- POST-only or strongly guarded destructive admin cleanup;
+- status-aware or narrowed raw logical-path file-access compatibility so `DIMUSNAHKAN` archive access blocking cannot be bypassed.
+
 ## What Not To Implement Yet
 
 - No Docker Compose yet.

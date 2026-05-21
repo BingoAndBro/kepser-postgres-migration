@@ -146,6 +146,16 @@ Implications:
 - `DMS_SESSION_COOKIE_SECURE=false` is only for trusted HTTP LAN/local smoke or internal deployment. Final/best-practice deployment should prefer HTTPS plus `DMS_SESSION_COOKIE_SECURE=true` or the secure default.
 - If HTTPS is required, hostname/certificate strategy must be decided before rollout.
 
+## Deployment Security Constraints
+
+Phase 11G.5 records these constraints for any serious/final browser-accessible deployment:
+
+- Cookie-authenticated state-changing routes need explicit CSRF/origin protection; `SameSite=Lax` alone is not sufficient as the final story.
+- Login needs app-layer brute-force/rate-limit protection. Reverse proxy, firewall, Docker, and trusted-LAN placement may reduce exposure but must not be the only control for final deployment.
+- Destructive admin cleanup must not rely on GET query flags without strong origin/CSRF protection.
+- Raw logical-path preview/download compatibility must be narrowed or status-aware before final rollout so archive `DIMUSNAHKAN` access blocking remains authoritative.
+- HTTPS plus `Secure` session cookies is the preferred final posture.
+
 ## What Not To Implement Yet
 
 - Do not create Docker Compose yet.
