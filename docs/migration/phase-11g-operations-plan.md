@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.0 docs-only planning. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, or release decision is performed by this document.
+Status: Phase 11G.1 docs/runbook update. Phase 11G.0 created the subphase breakdown. Phase 11G.1 adds the backup/restore runbook link and keeps execution deferred. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -41,6 +41,12 @@ Forbidden:
 ### 11G.1 Runbook And Backup/Restore Plan
 
 Output should be a human-executable runbook and evidence template, not an executed drill.
+
+11G.1 runbook:
+
+- `docs/migration/phase-11g-backup-restore-runbook.md`
+
+The runbook defines operator prerequisites, required backup artifacts, PostgreSQL dump and restore command templates, local storage archive/copy templates, metadata manifest template, restore-to-clean-target flow, DB/storage alignment checks, `DIMUSNAHKAN` access validation, storage diagnostics dry-run validation, rollback pairing rules, and the evidence log for Phase 11G.3.
 
 The plan must cover:
 
@@ -186,7 +192,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-Phase 11G.1 - Operational Readiness Runbook And Backup/Restore Plan
+Phase 11G.2 - Preview Performance Baseline And Asset Hygiene Planning
 ```
 
-11G.1 should remain docs/runbook-only. The first actual operational execution should be 11G.3 after the runbook is reviewed.
+The established 11G sequence places the clean no-extension performance baseline before the human-run backup/restore drill. The first actual backup/restore execution should remain Phase 11G.3 after the runbook is reviewed and 11G.2 records the preview-performance baseline plan.
