@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: docs/planning-only. This plan defines how the human should collect clean preview Lighthouse evidence and how 11G/11H should classify performance, asset, cache, compression, and main-thread findings. Codex did not run Lighthouse, build, preview, tests, DB commands, Docker commands, firewall commands, backup/restore commands, package commands, deployment commands, route generation, or runtime profiling for this phase.
+Status: docs/planning plus recorded 11G.2a evidence. This plan defines how the human should collect clean preview Lighthouse evidence and how 11G/11H should classify performance, asset, cache, compression, and main-thread findings. Phase 11G.2a evidence is recorded as of 2026-05-21 from human-provided clean preview Lighthouse results. Codex did not run Lighthouse, build, preview, tests, DB commands, Docker commands, firewall commands, backup/restore commands, package commands, deployment commands, route generation, or runtime profiling for this phase.
 
 ## Purpose And Scope
 
@@ -14,7 +14,7 @@ Phase 11G.2 turns recent fluctuating Lighthouse observations into a repeatable b
 - no active Supabase runtime/package/helper fallback;
 - no old Supabase data or file recovery.
 
-The output of this phase is the plan and evidence template. Actual evidence belongs to a later human-run phase.
+The output of Phase 11G.2 is the plan and evidence template. Phase 11G.2a now records the current human-run evidence set.
 
 ## Non-Goals And Safety Warnings
 
@@ -86,28 +86,39 @@ Initial matrix:
 
 | Role/context | URL | Required? | Notes |
 |---|---|---:|---|
-| Public/login | `/login` | Recommended | Captures unauthenticated shell, logo asset, form accessibility. |
-| Pegawai | `/pegawai` | Required minimum option | Pegawai dashboard. |
+| Public/login | `/login` | Required minimum | Captures unauthenticated shell, logo asset, form accessibility. |
+| Pegawai | `/pegawai` | Required minimum | Pegawai dashboard. |
 | Pegawai | `/pegawai/dokumen` | Recommended | Workflow document list. |
 | PPK | `/ppk` | Recommended | PPK dashboard. |
-| PPK | `/ppk/inbox` | Required minimum option | Workflow inbox candidate. |
+| PPK | `/ppk/inbox` | Required minimum candidate | Workflow inbox candidate. |
 | Bendahara | `/bendahara` | Recommended | Bendahara dashboard. |
-| Bendahara | `/bendahara/inbox` | Required minimum option | Workflow inbox candidate. |
-| Arsiparis | `/arsiparis` | Required minimum option | Arsiparis dashboard. |
+| Bendahara | `/bendahara/inbox` | Required minimum candidate | Workflow inbox candidate. |
+| Arsiparis | `/arsiparis` | Required minimum candidate | Arsiparis dashboard. |
 | Arsiparis | `/arsiparis/inbox` | Recommended | Archive intake/workflow inbox. |
 | Arsiparis | `/arsiparis/aktif` | Recommended | Archive list and filters. |
-| Admin | `/admin` | Required minimum option | Admin dashboard. |
+| Admin | `/admin` | Required minimum candidate | Admin dashboard. |
 | Admin | `/admin/master-data/user` | Recommended | User-management data table. |
 | Admin | `/admin/master-data/kegiatan` | Recommended | Master-data page. |
 | Admin | `/admin/master-data/kategori` | Recommended | Master-data page. |
 | Admin | `/admin/master-data/detail` | Recommended | Master-data page. |
 
-The human may reduce the initial run if time is limited, but the minimum baseline must include:
+The human may reduce the initial run if time is limited, but the official minimum baseline must include:
 
-- one Pegawai page;
-- one Admin page;
-- one Arsiparis page;
-- one workflow inbox page.
+- `/login`;
+- `/pegawai`;
+- one workflow inbox page such as `/ppk/inbox`, `/bendahara/inbox`, or `/arsiparis/inbox`;
+- one Arsiparis page such as `/arsiparis` or `/arsiparis/aktif`;
+- one Admin page such as `/admin` or `/admin/master-data/user`.
+
+Recommended expanded matrix:
+
+- `/pegawai/dokumen`;
+- `/ppk`;
+- `/bendahara`;
+- `/arsiparis/inbox`;
+- `/admin/master-data/kegiatan`;
+- `/admin/master-data/kategori`;
+- `/admin/master-data/detail`.
 
 Expanded route coverage can remain future optional work.
 
@@ -142,7 +153,7 @@ When results fluctuate, record all runs and use the median for the decision colu
 If the clean baseline still flags `/bps-logo.png`, recommend a later tiny approved phase:
 
 ```text
-11G.2a - Optimize Static Logo Asset
+11G.2b - Optimize Static Logo Asset
 ```
 
 Acceptable improvement options for that later phase:
@@ -209,25 +220,122 @@ Evidence notes:
 - Redact URL query tokens, cookies, file tokens, and file paths.
 - Store screenshots only after verifying they do not reveal secrets or physical roots.
 
+## Phase 11G.2a - Human Clean Preview Performance Baseline Evidence
+
+Date/status: 2026-05-21, evidence recorded and accepted for operational input.
+
+Evidence status:
+
+- Human provided clean preview Lighthouse results for `/login`, `/pegawai`, `/ppk`, `/bendahara/selesai`, `/arsiparis`, and `/admin/master-data/user`.
+- Human reported `pnpm build` succeeded and `pnpm preview` was used for the measured baseline.
+- Human reported no severe clean-preview lag, no repeated Performance below 60, no repeated TBT above 1000 ms, and no idle request loop or unbounded heap/listener/DOM growth in this evidence set.
+- Build duration around 15.46s versus earlier builds around 13s is treated as normal local variance in this update, not as a performance blocker.
+
+Evidence provenance/source:
+
+| Evidence source | Status | Notes |
+|---|---|---|
+| Manual notes | Recorded | Human provided serving-mode and interpretation notes. |
+| Copied Lighthouse summary | Recorded | Only provided page scores are recorded; missing metrics remain `not recorded`. |
+| Screenshots | Recorded | Summarized only the visible metrics described by the human. |
+| Browser/extension condition statement | Recorded | Human described these results as clean preview testing conditions versus prior noisy runs. |
+
+Required human-run command template:
+
+```powershell
+pnpm build
+pnpm preview
+```
+
+Human-run steps:
+
+1. Run `pnpm build`.
+2. Run `pnpm preview`.
+3. Open the preview URL in a clean browser profile or incognito/private window with extensions disabled.
+4. Log in through the approved human-controlled credential channel.
+5. Navigate to each target page.
+6. Let the page settle.
+7. Run Lighthouse manually.
+8. Run each target 3 times where feasible.
+9. Record the median or consistent repeated score, plus any spread if results are unstable.
+
+Test environment:
+
+| Field | Value |
+|---|---|
+| Machine/browser | not recorded |
+| Browser profile | clean preview testing conditions reported by human |
+| Extension status | clean/no-extension conditions reported by human |
+| Serving mode | `pnpm preview` |
+| Dataset/user roles | mixed role baseline across provided URLs |
+| Machine condition | no severe lag reported; build-time variance treated as normal local variance |
+
+Minimum official run matrix:
+
+| Role/context | URL | Required? | Evidence status |
+|---|---|---:|---|
+| Public/login | `/login` | Yes | Recorded |
+| Pegawai | `/pegawai` | Yes | Recorded |
+| Workflow inbox | `/ppk/inbox`, `/bendahara/inbox`, or `/arsiparis/inbox` | Yes, choose at least one | Not fully matched; nearest recorded workflow/admin pages were `/ppk` and `/bendahara/selesai` |
+| Arsiparis | `/arsiparis` or `/arsiparis/aktif` | Yes, choose at least one | Recorded via `/arsiparis` |
+| Admin | `/admin` or `/admin/master-data/user` | Yes, choose at least one | Recorded via `/admin/master-data/user` |
+
+Recommended expanded run matrix:
+
+| Role/context | URL | Evidence status |
+|---|---|---|
+| Pegawai document list | `/pegawai/dokumen` | Not recorded |
+| PPK dashboard | `/ppk` | Recorded |
+| Bendahara dashboard | `/bendahara` | Not recorded |
+| Arsiparis inbox | `/arsiparis/inbox` | Not recorded |
+| Admin kegiatan | `/admin/master-data/kegiatan` | Not recorded |
+| Admin kategori | `/admin/master-data/kategori` | Not recorded |
+| Admin detail | `/admin/master-data/detail` | Not recorded |
+
+11G.2a result table:
+
+| Date/time | Machine/browser | Extension status | Serving mode | Role | URL | Run # | Performance | Accessibility | FCP | LCP | TBT | CLS | Requests | Transfer/resource size | Top findings | Decision | Notes |
+|---|---|---|---|---|---|---:|---:|---:|---|---|---|---|---:|---|---|---|---|
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | Public/login | `/login` | 1 | 99 | 92 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | Pegawai | `/pegawai` | 1 | 99 | 94 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | PPK | `/ppk` | 1 | 99 | 94 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | Bendahara | `/bendahara/selesai` | 1 | 97 | 96 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | Arsiparis | `/arsiparis` | 1 | 98 | 94 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+| 2026-05-21 | not recorded | Clean/no-extension reported by human | `pnpm preview` | Admin | `/admin/master-data/user` | 1 | 99 | 96 | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | Clean baseline accepted | Best Practices 100; SEO 92. |
+
+11G.2a decision:
+
+```text
+Next: Phase 11G.3 - Human-Run Backup/Restore Drill Evidence
+```
+
+Classification from recorded clean evidence:
+
+- Clean browser/no-extension compliance: accepted for operational input based on the human-reported clean preview testing conditions.
+- Performance: acceptable for internal LAN operational input. All provided pages scored between 97 and 99, with no severe clean-preview lag reported.
+- Accessibility: acceptable for operational input. All provided pages scored between 92 and 96.
+- Best Practices: 100 on all provided pages.
+- SEO: 92 on all provided pages.
+- Earlier Lighthouse scores in the 70s are now classified as likely environment-dependent or extension/test-condition noise unless reproduced again under clean no-extension conditions.
+- Asset hygiene: `/bps-logo.png` remains an optional P2 asset hygiene item only. Current clean scores do not make it a blocker.
+- Cache/compression: remains a deployment-server or final-serving concern unless reproduced in final serving setup.
+- TBT/main-thread: no current blocker. No repeated TBT above 1000 ms, severe lag, idle request loop, or unbounded heap/listener/DOM growth was reported in this clean evidence.
+
 ## Follow-Up Phase Decision
 
 Recommended next phase after this docs-only 11G.2:
 
 ```text
-11G.2a - Human Clean Preview Performance Baseline Evidence
-```
-
-Rationale: recent Lighthouse concern is active enough that human-run clean evidence should be recorded before treating backup/restore drill evidence as the next operational input. If the human chooses to prioritize backup/restore first, the established alternative remains:
-
-```text
 11G.3 - Human-Run Backup/Restore Drill Evidence
 ```
 
-Implementation follow-ups should be opened only from clean evidence:
+Rationale: the clean preview Lighthouse baseline is now recorded and acceptable for internal operational input. A separate performance investigation is not needed from the current evidence set, and backup/restore drill evidence is the next operational phase.
 
-- tiny asset hygiene phase if `/bps-logo.png` remains a confirmed large static asset finding;
-- targeted performance investigation only for repeated clean severe lag, repeated Performance below 60, repeated TBT above 1000 ms, idle request loops, or unbounded growth;
-- deployment-server header/topology phase for cache/compression if reproduced in the final serving setup.
+Optional future follow-ups:
+
+- `11G.2b - Optimize Static Logo Asset` can be skipped for now or deferred as P2 unless the human wants asset cleanup before 11H.
+- `11G.2c - Bounded Dashboard Performance Investigation` is not needed now.
+- Deployment-server header or topology follow-up remains relevant only if cache/compression concerns reproduce in final serving.
 
 ## Handoff To 11G.3
 

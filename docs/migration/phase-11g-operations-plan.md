@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.2 docs/planning update. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, and Phase 11G.2 adds the clean preview performance baseline and asset hygiene plan. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, or release decision is performed by this document.
+Status: Phase 11G.2a evidence-recording documentation update. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, and Phase 11G.2a now records the human-provided clean Lighthouse baseline. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -12,7 +12,8 @@ This plan breaks Phase 11G into small reviewable subphases before any operationa
 |---|---|---|---|
 | 11G.0 | Operational Hardening Breakdown Planning | Docs-only planning and lightweight audits. | 11G subphases, guardrails, and next phase are documented. |
 | 11G.1 | Operational Readiness Runbook And Backup/Restore Plan | Create runbook and evidence templates only. No actual backup/restore. | Human has a reviewed procedure and evidence template to execute later. |
-| 11G.2 | Preview Performance Baseline And Asset Hygiene Planning | Clean no-extension Lighthouse baseline and asset/performance classification only. | Baseline table records role dashboard scores and decides whether asset hygiene is a tiny later implementation phase. |
+| 11G.2 | Preview Performance Baseline And Asset Hygiene Planning | Clean no-extension Lighthouse baseline and asset/performance classification procedure only. | Baseline procedure and evidence template are documented. |
+| 11G.2a | Human Clean Preview Performance Baseline Evidence | Human runs clean no-extension Lighthouse; Codex records evidence only. | Official baseline evidence, provenance, and next recommendation are recorded. |
 | 11G.3 | Human-Run Backup/Restore Drill Evidence | Human executes backup/restore into a clean local target; Codex records evidence only. | Restore evidence, validation checks, and blockers are recorded. |
 | 11G.4 | LAN Binding And Client Smoke Evidence | Human intentionally binds app to LAN and tests from another trusted LAN client. | Host/port/firewall/client smoke evidence is recorded without broad PostgreSQL exposure. |
 | 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review-only first pass over cookie-auth and state-changing routes. | CSRF/rate-limit posture and gaps are documented; implementation requires a later approved phase. |
@@ -70,6 +71,16 @@ The recent Lighthouse results are environment-dependent evidence, not final depl
 - `docs/migration/phase-11g-performance-baseline-plan.md`
 
 The plan defines clean-browser baseline conditions, human-only baseline command templates, an operationally manageable role/page matrix, metrics to record, evidence table, asset hygiene classification, cache/compression classification, TBT/main-thread classification, internal decision thresholds, and the handoff choice between a human-run 11G.2a baseline evidence phase and 11G.3 backup/restore drill evidence.
+
+11G.2a evidence status:
+
+- `docs/migration/phase-11g-performance-baseline-plan.md` now contains a `Phase 11G.2a - Human Clean Preview Performance Baseline Evidence` section.
+- Evidence is recorded from the 2026-05-21 human-provided clean preview Lighthouse results.
+- Recorded pages are `/login`, `/pegawai`, `/ppk`, `/bendahara/selesai`, `/arsiparis`, and `/admin/master-data/user`.
+- Performance scores are all between 97 and 99; Accessibility scores are all between 92 and 96; Best Practices is 100 on all provided pages; SEO is 92 on all provided pages.
+- Missing metrics such as FCP, LCP, TBT, CLS, request count, and transfer size remain `not recorded` rather than inferred.
+- Earlier Lighthouse scores in the 70s are now treated as likely environment or extension/test-condition noise unless reproduced again under clean no-extension conditions.
+- Recommendations from the recorded evidence are: proceed to 11G.3, keep `/bps-logo.png` as optional P2 asset hygiene, and do not open 11G.2c from the current evidence.
 
 Minimum role/page coverage:
 
@@ -197,7 +208,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-Phase 11G.2a - Human Clean Preview Performance Baseline Evidence
+Phase 11G.3 - Human-Run Backup/Restore Drill Evidence
 ```
 
-Rationale: recent Lighthouse concern is active enough that human-run clean no-extension evidence should be recorded before backup/restore drill evidence is treated as the next operational input. If the human chooses to prioritize backup/restore first, the established alternative remains Phase 11G.3 Human-Run Backup/Restore Drill Evidence.
+Rationale: the clean preview baseline is now recorded and acceptable for internal operational input. No severe clean-preview lag, repeated low scores, repeated TBT spike, idle request loop, or unbounded growth was reported, so backup/restore drill evidence is the next recommended operational phase.
