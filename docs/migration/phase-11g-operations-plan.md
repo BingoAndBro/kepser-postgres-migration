@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.2a evidence-recording documentation update. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, and Phase 11G.2a now records the human-provided clean Lighthouse baseline. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, or release decision is performed by this document.
+Status: Phase 11G.3 evidence template pending human data. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 now has a dedicated backup/restore evidence log with missing evidence classified as pending. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -106,6 +106,19 @@ Classification rules:
 
 The human executes the selected backup and restore commands against a clean local target. Codex may update docs from human-provided evidence only.
 
+Dedicated evidence log:
+
+- `docs/migration/phase-11g-backup-restore-evidence.md`
+
+Current 11G.3 status:
+
+- Evidence source: no terminal output, screenshots, manual operator notes, or summarized operator reporting has been provided yet.
+- Backup evidence: pending.
+- Restore evidence: pending.
+- DB/storage alignment evidence: pending.
+- Decision classification: `PARTIAL`, because missing restore validation prevents PASS.
+- Next recommendation: `11G.3 follow-up - complete backup/restore evidence`.
+
 Evidence template:
 
 | Item | Evidence | Result | Notes |
@@ -208,7 +221,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-Phase 11G.3 - Human-Run Backup/Restore Drill Evidence
+11G.3 follow-up - complete backup/restore evidence
 ```
 
-Rationale: the clean preview baseline is now recorded and acceptable for internal operational input. No severe clean-preview lag, repeated low scores, repeated TBT spike, idle request loop, or unbounded growth was reported, so backup/restore drill evidence is the next recommended operational phase.
+Rationale: the clean preview baseline is recorded, but no human backup/restore drill evidence has been provided yet. Missing backup, restore, validation, `DIMUSNAHKAN`, diagnostics, and DB/storage alignment evidence prevents PASS and blocks 11G.4.

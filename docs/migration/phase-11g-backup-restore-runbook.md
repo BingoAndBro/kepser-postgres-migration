@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: docs/runbook-only. This file provides templates for a later human-run drill. It does not execute PostgreSQL backup, PostgreSQL restore, local storage backup, local storage restore, LAN binding, firewall changes, deployment, tests, build, preview, migrations, seeds, or cleanup.
+Status: docs/runbook plus 11G.3 evidence handoff. This file provides templates for a human-run drill and now links to the dedicated 11G.3 evidence log. It does not execute PostgreSQL backup, PostgreSQL restore, local storage backup, local storage restore, LAN binding, firewall changes, deployment, tests, build, preview, migrations, seeds, or cleanup.
 
 ## Purpose And Scope
 
@@ -303,6 +303,12 @@ Dry-run interpretation:
 
 ## Evidence Log Template
 
+Dedicated 11G.3 evidence log:
+
+- `docs/migration/phase-11g-backup-restore-evidence.md`
+
+Current evidence status: pending. No human backup/restore drill output has been provided yet, so the evidence log is a template plus missing-evidence checklist and the decision remains `PARTIAL`.
+
 | Date/time | Operator | Source commit | Backup id | Backup result | Restore target | Restore result | Login result | Document list result | Preview/download result | DIMUSNAHKAN blocking result | Storage diagnostics result | Blockers | Decision |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | TODO | TODO | `<APP_COMMIT>` | `dms-local-<TIMESTAMP>-<APP_COMMIT>` | TODO | Clean local target | TODO | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
@@ -325,14 +331,14 @@ Evidence rules:
 - Archive scheduler replacement remains a separate open migration decision.
 - App containerization remains deferred.
 
-## Handoff To 11G.2a And 11G.3
+## Handoff To 11G.3
 
 Next recommended phase:
 
 ```text
-Phase 11G.2a - Human Clean Preview Performance Baseline Evidence
+11G.3 follow-up - complete backup/restore evidence
 ```
 
-Rationale: Phase 11G.2 created `docs/migration/phase-11g-performance-baseline-plan.md` and places clean no-extension human evidence before the backup/restore drill when recent Lighthouse concern should be resolved first. That keeps performance evidence separate from restore evidence and avoids treating extension-noisy results as official.
+Rationale: Phase 11G.2a clean preview Lighthouse evidence is already recorded. Phase 11G.3 now has a dedicated evidence log, but no human backup/restore drill evidence has been provided yet.
 
-If the human chooses to prioritize backup/restore first, 11G.3 can use this runbook directly. In 11G.3, the human executes the selected templates, then Codex records evidence from the human-provided results without running backup/restore commands itself.
+The human executes the selected templates, then Codex records evidence from the human-provided results without running backup/restore commands itself. Do not proceed to 11G.4 until 11G.3 evidence is complete enough to classify as PASS.
