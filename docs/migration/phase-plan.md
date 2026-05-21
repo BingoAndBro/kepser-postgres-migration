@@ -12,6 +12,8 @@ Current active area after Phase 10F is Phase 11 global cleanup, regression, and 
 
 Phase 11G.5 status update: the current recommended phase is now `11G.6 - Operations Rollback And Release Handoff`. Phase 11G.5 is recorded in `docs/migration/phase-11g-security-review.md` and supersedes the stale 11G.4 follow-up note in the long current-area recap above.
 
+Phase 11H.2 status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records the P1 security gate decision framework. All four P1 decisions are pending because no explicit human disposition was provided. The next recommended phase is `Phase 11H.2 Decision Follow-up - Human disposition for P1 gates`, not 11H.3.
+
 Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. Phase 11F.5d.2 is inserted after 11F.5d.1 for admin storage orphan cleanup diagnostics hardening. These inserted storage items do not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and do not claim those later subphases are complete.
 
 ## Phase 0 To Phase 2: Planning And Audit
@@ -5014,6 +5016,45 @@ Next recommended phase:
 
 ```text
 Phase 11H.2 - P1 Security Gate Decision
+```
+
+#### Phase 11H.2: P1 Security Gate Decision
+
+Date: 2026-05-21.
+
+Status: decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`; decisions pending. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, Supabase folder change, or commit was changed or run by this phase.
+
+11H.2 output:
+
+- dedicated P1 security gate decision record;
+- decision options for each unresolved P1 gate;
+- current human decision status for each P1 gate;
+- required next phase if implementation is selected;
+- release classification impact;
+- open-decision status update.
+
+Current human decision status:
+
+| P1 gate | Current human decision | Implementation phase if selected |
+|---|---|---|
+| CSRF/origin strategy | decision pending | 11H.2a |
+| Login rate-limit/brute-force foundation | decision pending | 11H.2b |
+| Destructive admin cleanup hardening | decision pending | 11H.2c |
+| Raw logical-path file-access hardening | decision pending | 11H.2d |
+
+11H.2 does not implement runtime hardening, does not accept bounded risk, does not downgrade P1 items, and does not make a final readiness decision. Decision pending is not temporary approval.
+
+Release classification impact:
+
+- final release handoff classification remains unresolved;
+- 11H.3 should not proceed as a final readiness approval step while P1 decisions remain pending;
+- trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval;
+- preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
+
+Next recommended phase:
+
+```text
+Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
 ```
 
 ## Validation Gates

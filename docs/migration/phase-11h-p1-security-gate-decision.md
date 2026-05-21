@@ -1,0 +1,305 @@
+# Phase 11H.2 - P1 Security Gate Decision
+
+Date prepared: 2026-05-21.
+
+Status: decision framework recorded; decisions pending.
+
+This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. It does not implement runtime hardening, does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
+
+The local target remains:
+
+- local PostgreSQL plus Drizzle;
+- local `dms_session` auth;
+- local filesystem storage;
+- no active Supabase runtime or package dependency;
+- no old Supabase data or file recovery expected.
+
+## Scope And Non-Goals
+
+Allowed in 11H.2:
+
+- record the current issue, risk, affected surfaces, mitigations, options, decision status, required follow-up phase, and release classification impact for each unresolved P1 gate;
+- update migration decision docs and forward links;
+- preserve the P1 security gates without downgrade.
+
+Not allowed in 11H.2:
+
+- no CSRF implementation;
+- no Origin or Referer middleware implementation;
+- no rate-limit implementation;
+- no destructive admin cleanup route implementation;
+- no raw logical-path file-access hardening implementation;
+- no runtime source, test, package, env, DB, Drizzle, Supabase folder, route-generation, firewall/network, backup/restore, storage cleanup, or commit changes;
+- no final readiness, production readiness, LAN readiness, release readiness, operational certification, or go-live approval claim.
+
+## Decision Policy
+
+Accepted bounded risk requires explicit human-reviewed operational risk acceptance. It cannot be inferred from silence, omission, or documentation completion.
+
+If a P1 item is accepted as bounded risk, the exact deployment boundary must be stated. Trusted HTTP LAN means internal trusted clients only, no public internet exposure, no broader rollout approval, and no reuse as a public deployment posture. Preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
+
+Because no explicit human disposition was provided for the four P1 items in this phase, every current human decision is recorded as:
+
+```text
+decision pending
+```
+
+Decision pending preserves release ambiguity. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
+
+## P1 Decision Matrix
+
+| P1 item | Current human decision | Required next phase if implementation is selected | Release classification impact |
+|---|---|---|---|
+| CSRF/origin strategy | decision pending | Phase 11H.2a - CSRF/Origin Protection Follow-up | Final readiness remains unresolved while pending. |
+| Login rate-limit/brute-force foundation | decision pending | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Final readiness remains unresolved while pending. |
+| Destructive admin cleanup hardening | decision pending | Phase 11H.2c - Destructive Admin Cleanup Hardening | Final readiness remains unresolved while pending. |
+| Raw logical-path file-access hardening | decision pending | Phase 11H.2d - Raw Logical-Path File Access Hardening | Final readiness remains unresolved while pending. |
+
+## 1. CSRF/Origin Strategy
+
+Current issue:
+
+- No app-wide CSRF token or explicit `Origin`/`Referer` validation was found in 11G.5.
+- Cookie-authenticated state-changing routes rely on `SameSite=Lax`, method restrictions, validation, session/RBAC revalidation, and status/owner checks.
+
+Risk summary:
+
+- Browser-based cookie-authenticated state changes remain exposed to CSRF-style risks that `SameSite=Lax` does not fully eliminate.
+- High-impact actions include password changes, admin user operations, document workflow mutations, archive lifecycle actions, upload/pending cleanup, and destructive cleanup.
+
+Affected surfaces:
+
+- Auth logout and role switch.
+- Self-service password change.
+- Admin user/password/master-data/Ketua Tim mutations.
+- Pegawai document create/update/submit/delete.
+- PPK/Bendahara approval, rejection, kembalikan, and resubmit actions.
+- Arsip archive/lifecycle/destruction actions.
+- Upload and pending cleanup routes.
+- Destructive admin cleanup when armed.
+
+Current mitigation:
+
+- `dms_session` is `HttpOnly`.
+- `SameSite=Lax` is set.
+- State-changing routes generally use non-GET methods, except the destructive admin cleanup concern below.
+- Server routes revalidate session, assigned roles, ownership, document/archive status, and request payloads where applicable.
+
+Decision options:
+
+- A. Implement Phase 11H.2a CSRF/Origin Protection Follow-up before 11H.3.
+- B. Accept bounded trusted-LAN-only risk with explicit written constraints.
+- C. Defer final release classification.
+- D. Block final readiness.
+
+Current human decision:
+
+```text
+decision pending
+```
+
+Required next phase if implementation is selected:
+
+```text
+Phase 11H.2a - CSRF/Origin Protection Follow-up
+```
+
+Release classification impact:
+
+- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
+- If accepted as bounded risk later, the written boundary must stay trusted-LAN/internal only and must not be reused for wider or public deployment.
+
+## 2. Login Rate-Limit/Brute-Force Foundation
+
+Current issue:
+
+- No active app-layer login throttling was found in 11G.5.
+
+Risk summary:
+
+- Login is reachable before authentication and is the primary brute-force surface.
+- Generic credential errors and Argon2id password hashing help, but they are not a throttling or lockout strategy.
+- Severity depends on deployment exposure, but absence of app-layer throttling remains P1 before final/wider rollout.
+
+Affected surfaces:
+
+- Login endpoint and login form.
+- Potentially password change and admin password/user management actions as later scoped throttling backlog.
+
+Current mitigation:
+
+- Passwords use Argon2id.
+- Login returns generic invalid-credential behavior.
+- Local/LAN placement and firewall/reverse-proxy controls may reduce exposure, but they are not app-layer protection.
+
+Decision options:
+
+- A. Implement Phase 11H.2b Login Rate-Limit/Brute-Force Follow-up before 11H.3.
+- B. Accept bounded trusted-LAN-only risk with explicit written constraints for trusted LAN/internal use and low-exposure deployment only.
+- C. Defer final release classification.
+- D. Block final readiness.
+
+Current human decision:
+
+```text
+decision pending
+```
+
+Required next phase if implementation is selected:
+
+```text
+Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
+```
+
+Release classification impact:
+
+- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
+- Trusted LAN placement does not become broad deployment approval; if the risk is accepted later, exposure scope must be explicitly bounded.
+
+## 3. Destructive Admin Cleanup Hardening
+
+Current issue:
+
+- Destructive admin cleanup can currently be triggered via GET query flags.
+
+Risk summary:
+
+- Destructive file cleanup is high-impact.
+- GET-triggered destructive behavior is weak against accidental link navigation and CSRF-style browser flows compared with POST-only mutation semantics plus origin/CSRF protection.
+- Current dry-run defaults and ADMIN checks reduce risk but do not resolve the method/CSRF concern.
+
+Affected surfaces:
+
+- Admin storage diagnostics and orphan cleanup flow.
+- Any operator workflow that arms cleanup with destructive query flags.
+
+Current mitigation:
+
+- Route requires assigned `ADMIN`.
+- Cleanup defaults to dry-run/report-only.
+- Destructive cleanup requires explicit query flags.
+- Cleanup protects referenced document paths and retained archive snapshots, skips unsupported/pending categories unless explicitly armed, and avoids physical path disclosure.
+
+Decision options:
+
+- A. Implement Phase 11H.2c Destructive Admin Cleanup Hardening before 11H.3.
+- B. Accept bounded risk only if the admin-only route remains unexposed, procedure-controlled, and internal/trusted.
+- C. Defer final release classification.
+- D. Block final readiness.
+
+Current human decision:
+
+```text
+decision pending
+```
+
+Required next phase if implementation is selected:
+
+```text
+Phase 11H.2c - Destructive Admin Cleanup Hardening
+```
+
+Release classification impact:
+
+- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
+- If bounded risk is accepted later, the written procedure must state that destructive cleanup remains admin-only, unexposed beyond trusted operators, and procedure-controlled.
+
+## 4. Raw Logical-Path File-Access Hardening
+
+Current issue:
+
+- Raw logical-path preview/download compatibility routes do not independently revalidate archive status like document-token routes do.
+- Concern: `DIMUSNAHKAN` policy must not be bypassed by stale/raw access.
+
+Risk summary:
+
+- Document-token routes revalidate document/archive status and block destroyed archive access.
+- Raw logical-path compatibility can authorize by path ownership or broad role knowledge without independent archive status revalidation.
+- A stale or known logical path must not bypass `DIMUSNAHKAN` access policy.
+
+Affected surfaces:
+
+- Raw logical-path preview URL compatibility route.
+- Raw logical-path download URL compatibility route.
+- Internal file-access tokens issued from raw logical-path requests.
+
+Current mitigation:
+
+- Raw access still requires a local session.
+- Logical paths are validated.
+- Path traversal and root containment checks exist.
+- Existing raw owner/role compatibility checks apply.
+- Document-specific file-access routes block `DIMUSNAHKAN`.
+
+Decision options:
+
+- A. Implement Phase 11H.2d Raw Logical-Path File Access Hardening before 11H.3.
+- B. Accept bounded risk only if raw compatibility routes are constrained and not used for destroyed archives.
+- C. Defer final release classification.
+- D. Block final readiness.
+
+Current human decision:
+
+```text
+decision pending
+```
+
+Required next phase if implementation is selected:
+
+```text
+Phase 11H.2d - Raw Logical-Path File Access Hardening
+```
+
+Release classification impact:
+
+- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
+- If bounded risk is accepted later, the written constraints must state how raw compatibility routes are kept away from destroyed archive access and why that is acceptable only inside the stated deployment boundary.
+
+## Current 11H.2 Classification
+
+```text
+decision framework recorded, decisions pending
+```
+
+Rationale: the P1 matrix is recorded, but the human has not selected implementation, bounded-risk acceptance, deferral, or blocker disposition for any P1 item.
+
+## Release Classification Impact
+
+No final readiness decision is made by this phase.
+
+Decision-pending P1 gates mean:
+
+- final release handoff classification remains unresolved;
+- 11H.3 should not be used as a final readiness approval step until P1 decisions are explicitly resolved;
+- trusted HTTP LAN evidence remains bounded smoke input only;
+- trusted HTTP LAN is not public or wider rollout approval;
+- preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
+
+## Next Recommended Phase
+
+```text
+Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
+```
+
+If the human later chooses implementation for all P1 items, start with:
+
+```text
+Phase 11H.2a - CSRF/Origin Protection Follow-up
+```
+
+If the human later explicitly accepts all P1 risks with written trusted-LAN-only constraints, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
+
+If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or schedule targeted implementation.
+
+## What Is Not Claimed
+
+- Not security certification.
+- Not penetration testing completion.
+- Not final release approval.
+- Not production readiness.
+- Not LAN readiness.
+- Not release readiness.
+- Not operational certification.
+- Not go-live approval.
+- Not acceptance of bounded risk.
+- Not implementation of any P1 hardening.

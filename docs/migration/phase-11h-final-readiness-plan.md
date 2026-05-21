@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit now recorded in `docs/migration/phase-11h-final-supabase-audit.md`. This document does not make a final release decision, does not approve go-live, does not claim production readiness, does not claim LAN readiness, and does not implement runtime hardening.
+Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit recorded in `docs/migration/phase-11h-final-supabase-audit.md` and the 11H.2 P1 security gate decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. The 11H.2 decisions are pending. This document does not make a final release decision, does not approve go-live, does not claim production readiness, does not claim LAN readiness, and does not implement runtime hardening.
 
 The local target remains:
 
@@ -151,10 +151,10 @@ This classification means only that gate planning is ready for human review and 
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2 - P1 Security Gate Decision
+Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
 ```
 
-Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. The next gate is the human-controlled P1 security decision. This is not a release readiness claim.
+Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. 11H.2 then recorded the human-controlled P1 security decision framework, but no explicit human disposition was provided. The next gate remains a human decision follow-up, not 11H.3. This is not a release readiness claim.
 
 ## Phase 11H.1 Audit Result
 
@@ -178,3 +178,28 @@ P1 gates remain unresolved and unchanged:
 - login rate-limit/brute-force foundation;
 - destructive admin cleanup hardening;
 - raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
+
+## Phase 11H.2 Decision Framework Result
+
+Date: 2026-05-21.
+
+Dedicated decision record:
+
+- `docs/migration/phase-11h-p1-security-gate-decision.md`
+
+11H.2 classification:
+
+```text
+decision framework recorded, decisions pending
+```
+
+Current human decision status:
+
+| P1 gate | Current human decision | Release classification impact |
+|---|---|---|
+| CSRF/origin strategy | decision pending | Final readiness remains unresolved while pending. |
+| Login rate-limit/brute-force foundation | decision pending | Final readiness remains unresolved while pending. |
+| Destructive admin cleanup hardening | decision pending | Final readiness remains unresolved while pending. |
+| Raw logical-path file-access hardening | decision pending | Final readiness remains unresolved while pending. |
+
+11H.2 did not implement any runtime hardening, did not accept bounded risk, did not downgrade P1 items, and did not make a final readiness decision. The preferred final posture remains HTTPS plus `Secure` `dms_session` cookies. Trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval.

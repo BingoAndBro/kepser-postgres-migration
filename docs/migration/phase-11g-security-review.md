@@ -167,12 +167,14 @@ Deferred before 11H/wider rollout:
 - Raw logical-path preview/download narrowing or status-aware revalidation.
 - Final HTTPS/`Secure` cookie deployment decision.
 
+Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as decision framework recorded, decisions pending. The 11G.5 P1 findings remain P1 and are not accepted, downgraded, or implemented by that decision-framework record.
+
 ## Next Phase Recommendation
 
-If no new runtime blocker is reported by the human, the next recommended phase is:
+If no new runtime blocker is reported by the human, the current recommended phase after the 11H.2 framework record is:
 
 ```text
-Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
+Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
 ```
 
 11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`, and 11H.0 records the final gate sequence in `docs/migration/phase-11h-final-readiness-plan.md`. Neither document approves production, release, operational certification, or go-live by itself. Later 11H phases remain human-controlled and must implement, explicitly accept, defer, or block on the P1 findings before any honest final readiness claim.

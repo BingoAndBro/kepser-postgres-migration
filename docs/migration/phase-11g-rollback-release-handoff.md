@@ -226,6 +226,8 @@ Carry-forward P1 items from 11G.5:
 
 P1 findings must not be downgraded to P2/P3 merely because rollback documentation is complete.
 
+Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as decision framework recorded, decisions pending. No P1 item was accepted as bounded risk, selected for implementation, deferred, or blocked by explicit human disposition in that phase.
+
 ## Supabase Retirement Handoff
 
 Current handoff position:
@@ -282,10 +284,10 @@ Classify as `partial` later if evidence is found incomplete or P1 decisions are 
 ## Next Phase
 
 ```text
-Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
+Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
 ```
 
-11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only. It is not automatically approved by 11G.6 and does not make the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the P1 security findings with bounded deployment constraints and written risk acceptance.
+11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2 is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as decision framework recorded with decisions pending. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the P1 security findings with bounded deployment constraints and written risk acceptance.
 
 ## Evidence Handling Rules
 
