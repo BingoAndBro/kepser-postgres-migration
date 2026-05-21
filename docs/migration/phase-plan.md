@@ -4870,6 +4870,49 @@ Next recommended phase:
 
 This review does not approve production readiness, release readiness, operational certification, LAN readiness, or go-live.
 
+#### Phase 11G.6: Operations Rollback And Release Handoff
+
+Date: 2026-05-21.
+
+Status: handoff documentation prepared in `docs/migration/phase-11g-rollback-release-handoff.md`. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, or commit was changed or run by this phase.
+
+Output:
+
+- `docs/migration/phase-11g-rollback-release-handoff.md` created as the operator-facing rollback and 11H release-input handoff.
+- `docs/migration/phase-11g-operations-plan.md` now points to the handoff and changes the next recommended phase to 11H.
+- `docs/migration/migration-roadmap.md`, `docs/migration/open-decisions.md`, `docs/migration/local-deployment-notes.md`, `docs/migration/deployment-target-contract.md`, and `docs/migration/phase-11g-security-review.md` now carry the 11G.6 handoff link or decision context.
+
+Handoff scope:
+
+- Evidence inventory for 11G.2a clean preview Lighthouse evidence, 11G.3 bounded backup/restore PASS, 11G.4 bounded trusted LAN smoke PASS, and 11G.5 security review.
+- Rollback guidance for app source, PostgreSQL dump restore, storage archive restore, config rollback, LAN deployment rollback, and DB/storage pairing.
+- Operator checklist for branch/commit, backup id, DB dump, storage archive, manifest, evidence review, P1 acceptance/scheduling, HTTPS decision, `DMS_SESSION_COOKIE_SECURE`, no old Supabase recovery, and no Supabase fallback.
+- 11H release-input checklist separated into completed evidence, unresolved P1s, P2/P3 backlog, accepted residual risks, and explicit human decisions.
+- P1 security decision gate carrying forward CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` revalidation/narrowing.
+- Supabase retirement handoff distinguishing active runtime/package retirement from historical docs references.
+
+Decision:
+
+```text
+complete
+```
+
+Rationale: handoff documentation is prepared, evidence and blockers are organized, P1 findings were not downgraded, and required audits did not find an active runtime/package Supabase match or protected-file diff.
+
+Important limits:
+
+- 11G.6 does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live.
+- P1 findings are not implicitly accepted by documentation completion.
+- Rollback procedures beyond the bounded 11G.3 clean-target drill remain operational guidance until executed and reviewed.
+- Rollback after new runtime activity may require explicit handling of post-backup data divergence.
+- Phase 11H is human-controlled and must address or explicitly accept P1 security findings.
+
+Next recommended phase:
+
+```text
+Phase 11H - Final Release Readiness Gate
+```
+
 ### Phase 11H: Final Release Readiness Gate And Supabase Retirement Decision
 
 Goal: decide whether final Supabase retirement is complete, partial, or deferred.

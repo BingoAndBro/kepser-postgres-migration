@@ -53,6 +53,9 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
 - Explicit session cookie secure override: `DMS_SESSION_COOKIE_SECURE`.
   Date: 2026-05-21.
   Rationale: Phase 11G.4a confirmed HTTP LAN login cannot persist `dms_session` when the cookie has `Secure`. The accepted compatibility gate is `DMS_SESSION_COOKIE_SECURE=false` for trusted HTTP LAN/local mode only, while unset/default behavior keeps secure-by-default production/HTTPS-compatible serving and `DMS_SESSION_COOKIE_SECURE=true` forces `Secure`.
+- Phase 11G.6 handoff classification.
+  Date: 2026-05-21.
+  Rationale: `docs/migration/phase-11g-rollback-release-handoff.md` classifies 11G.6 as complete for documentation handoff only. This does not approve 11H, production readiness, LAN readiness, release readiness, operational certification, or go-live. The P1 security findings from 11G.5 remain unresolved until implemented, explicitly accepted with bounded constraints, or deferred with written risk acceptance.
 - Default session expiration: 8 hours.
 - Remember me expiration: 30 days.
 - Phase 10D password reset/change session revocation policy: revoke all sessions after a successful password hash update.
@@ -361,6 +364,10 @@ This file tracks accepted architecture direction and unresolved choices. Rationa
   Phase 11G.5 note: current cleanup defaults to dry-run and requires ADMIN, but destructive mode remains GET-triggered when query flags disable dry-run.
 - Whether raw logical-path preview/download compatibility routes should become owner-only, document-token-only, or status-aware before final rollout.
   Phase 11G.5 note: document-specific preview/download blocks `DIMUSNAHKAN`; raw logical-path compatibility does not independently revalidate archive status.
+- Final 11H P1 security decision.
+  Phase 11G.6 note: 11H must decide the disposition of CSRF/origin strategy, login rate-limit/brute-force foundation, destructive admin cleanup hardening, and raw logical-path `DIMUSNAHKAN` status revalidation/narrowing. 11G.6 documentation does not implicitly accept these risks.
+- Final rollback operating policy.
+  Phase 11G.6 note: paired DB/storage restore into a clean target was validated by bounded 11G.3 evidence. Active-environment overwrite, partial DB-only or storage-only restore, backup retention, and post-backup data divergence handling still require explicit human decisions before use.
 
 ## Decision Log Rules
 

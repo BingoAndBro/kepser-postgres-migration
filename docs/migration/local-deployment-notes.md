@@ -130,6 +130,14 @@ Before wider browser-accessible rollout, deployment planning must include:
 - POST-only or strongly guarded destructive admin cleanup;
 - status-aware or narrowed raw logical-path file-access compatibility so `DIMUSNAHKAN` archive access blocking cannot be bypassed.
 
+Phase 11G.6 handoff note:
+
+- Rollback and release-input handoff is recorded in `docs/migration/phase-11g-rollback-release-handoff.md`.
+- Preferred final posture remains HTTPS with `Secure` `dms_session` cookies.
+- Trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` is bounded, temporary, and internal/trusted only.
+- If LAN smoke or deployment settings are rolled back, stop the app serving process, close any temporary app-port firewall exception if one was added, and confirm PostgreSQL remains not broadly exposed.
+- DB and storage rollback must use a matched backup pair unless a human explicitly accepts the mismatch and post-backup divergence risk.
+
 ## What Not To Implement Yet
 
 - No Docker Compose yet.

@@ -156,6 +156,8 @@ Phase 11G.5 records these constraints for any serious/final browser-accessible d
 - Raw logical-path preview/download compatibility must be narrowed or status-aware before final rollout so archive `DIMUSNAHKAN` access blocking remains authoritative.
 - HTTPS plus `Secure` session cookies is the preferred final posture.
 
+Phase 11G.6 records the rollback and 11H release-input handoff in `docs/migration/phase-11g-rollback-release-handoff.md`. That handoff is documentation completion only. It does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live. Final 11H must implement, explicitly accept, or defer with written risk acceptance the P1 security findings above.
+
 ## What Not To Implement Yet
 
 - Do not create Docker Compose yet.

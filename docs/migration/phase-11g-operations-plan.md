@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.5 security posture review is recorded in `docs/migration/phase-11g-security-review.md`. Phase 11G.4 bounded LAN smoke is PASS after 11G.4a and 11G.4b human retest, Phase 11G.3 backup/restore drill evidence is PASS for the bounded drill, and Phase 11G.2a clean preview performance evidence is recorded. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
+Status: Phase 11G.6 rollback/release handoff is prepared in `docs/migration/phase-11g-rollback-release-handoff.md`. Phase 11G.5 security posture review is recorded in `docs/migration/phase-11g-security-review.md`. Phase 11G.4 bounded LAN smoke is PASS after 11G.4a and 11G.4b human retest, Phase 11G.3 backup/restore drill evidence is PASS for the bounded drill, and Phase 11G.2a clean preview performance evidence is recorded. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -234,7 +234,22 @@ Review checklist:
 
 ### 11G.6 Rollback And 11H Handoff
 
-Output should consolidate:
+Dedicated handoff:
+
+- `docs/migration/phase-11g-rollback-release-handoff.md`
+
+Current 11G.6 status:
+
+- Handoff documentation is prepared.
+- Evidence inventory links 11G.2a, 11G.3, 11G.4, and 11G.5 without overclaiming what each evidence item proves.
+- Rollback guidance covers app source, PostgreSQL dump restore, storage archive restore, config rollback, LAN deployment rollback, and DB/storage pairing rules.
+- Operator handoff checklist includes branch/commit, backup id, DB dump, storage archive, manifest, restore drill, LAN smoke, security review, P1 acceptance/scheduling, HTTPS decision, `DMS_SESSION_COOKIE_SECURE`, no old Supabase recovery, and no Supabase fallback.
+- 11H release-input checklist separates completed evidence, unresolved P1s, P2/P3 backlog, residual risks, and explicit human decisions.
+- 11G.5 P1 security items remain P1 before 11H/wider rollout and are not implicitly accepted by documentation completion.
+- Supabase retirement handoff distinguishes active runtime/package retirement from historical docs references.
+- Decision classification is `complete` for docs handoff only.
+
+The handoff consolidates:
 
 - App rollback procedure.
 - Database restore rollback procedure.
@@ -245,7 +260,7 @@ Output should consolidate:
 - Evidence inventory for 11H.
 - Explicit blockers or deferred items.
 
-11G.6 does not approve deployment by itself. Phase 11H remains a human-controlled final decision.
+11G.6 does not approve deployment by itself. Phase 11H remains a human-controlled final decision and must address or explicitly accept the P1 security findings.
 
 ## Priority Classification
 
@@ -277,7 +292,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-11G.6 - Operations Rollback And Release Handoff
+Phase 11H - Final Release Readiness Gate
 ```
 
-Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, and 11G.5 has documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes. 11G.6 should consolidate rollback, operator handoff, evidence inventory, and the P1/P2 security follow-ups for the human-controlled 11H decision. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment.
+Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, 11G.5 documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes, and 11G.6 has consolidated rollback, operator handoff, evidence inventory, and P1/P2 security follow-ups. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment. Phase 11H is human-controlled and is not automatically approved by 11G.6.
