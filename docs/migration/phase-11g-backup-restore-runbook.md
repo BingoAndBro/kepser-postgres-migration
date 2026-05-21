@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: docs/runbook plus 11G.3 evidence handoff. This file provides templates for a human-run drill and now links to the dedicated 11G.3 evidence log. It does not execute PostgreSQL backup, PostgreSQL restore, local storage backup, local storage restore, LAN binding, firewall changes, deployment, tests, build, preview, migrations, seeds, or cleanup.
+Status: docs/runbook plus recorded 11G.3 evidence handoff. This file provides templates for human-run drills and links to the dedicated 11G.3 evidence log. The 2026-05-21 human-run drill is recorded as PASS in that evidence log. This document does not execute PostgreSQL backup, PostgreSQL restore, local storage backup, local storage restore, LAN binding, firewall changes, deployment, tests, build, preview, migrations, seeds, or cleanup.
 
 ## Purpose And Scope
 
@@ -307,7 +307,7 @@ Dedicated 11G.3 evidence log:
 
 - `docs/migration/phase-11g-backup-restore-evidence.md`
 
-Current evidence status: pending. No human backup/restore drill output has been provided yet, so the evidence log is a template plus missing-evidence checklist and the decision remains `PARTIAL`.
+Current evidence status: recorded. Human-provided manual notes and summarized terminal output for backup id `dms-local-2026-05-21-110000` are recorded in the evidence log, with decision classification `PASS` for this bounded backup/restore drill.
 
 | Date/time | Operator | Source commit | Backup id | Backup result | Restore target | Restore result | Login result | Document list result | Preview/download result | DIMUSNAHKAN blocking result | Storage diagnostics result | Blockers | Decision |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -331,14 +331,14 @@ Evidence rules:
 - Archive scheduler replacement remains a separate open migration decision.
 - App containerization remains deferred.
 
-## Handoff To 11G.3
+## Handoff To 11G.4
 
 Next recommended phase:
 
 ```text
-11G.3 follow-up - complete backup/restore evidence
+Phase 11G.4 - LAN Binding And Client Smoke Evidence
 ```
 
-Rationale: Phase 11G.2a clean preview Lighthouse evidence is already recorded. Phase 11G.3 now has a dedicated evidence log, but no human backup/restore drill evidence has been provided yet.
+Rationale: Phase 11G.2a clean preview Lighthouse evidence is recorded, and Phase 11G.3 human backup/restore drill evidence is now recorded as PASS for the bounded drill.
 
-The human executes the selected templates, then Codex records evidence from the human-provided results without running backup/restore commands itself. Do not proceed to 11G.4 until 11G.3 evidence is complete enough to classify as PASS.
+11G.4 remains a separate human-controlled LAN binding/client smoke phase. A passed backup/restore drill does not imply LAN readiness, production readiness, release readiness, or go-live approval.

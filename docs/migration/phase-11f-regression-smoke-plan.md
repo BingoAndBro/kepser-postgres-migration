@@ -1214,7 +1214,7 @@ Phase 11G should now be split into:
 - 11G.1 Operational Readiness Runbook And Backup/Restore Plan.
 - 11G.2 Preview Performance Baseline And Asset Hygiene Planning.
 - 11G.2a Human Clean Preview Performance Baseline Evidence, now recorded with accepted clean preview Lighthouse evidence after the 11G.2 plan.
-- 11G.3 Human-Run Backup/Restore Drill Evidence.
+- 11G.3 Human-Run Backup/Restore Drill Evidence, now recorded as PASS for the bounded human-run backup/restore drill.
 - 11G.4 LAN Binding And Client Smoke Evidence.
 - 11G.5 Cookie Auth, CSRF, Rate-Limit Security Review.
 - 11G.6 Operations Rollback And Release Handoff.

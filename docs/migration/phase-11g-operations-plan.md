@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.3 evidence template pending human data. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 now has a dedicated backup/restore evidence log with missing evidence classified as pending. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, cleanup, or release decision is performed by this document.
+Status: Phase 11G.3 human backup/restore evidence recorded. Phase 11G.0 created the subphase breakdown, Phase 11G.1 added the backup/restore runbook link, Phase 11G.2 added the clean preview performance baseline and asset hygiene plan, Phase 11G.2a recorded the human-provided clean Lighthouse baseline, and Phase 11G.3 now records human-provided backup/restore drill evidence as PASS for the bounded drill. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -112,12 +112,12 @@ Dedicated evidence log:
 
 Current 11G.3 status:
 
-- Evidence source: no terminal output, screenshots, manual operator notes, or summarized operator reporting has been provided yet.
-- Backup evidence: pending.
-- Restore evidence: pending.
-- DB/storage alignment evidence: pending.
-- Decision classification: `PARTIAL`, because missing restore validation prevents PASS.
-- Next recommendation: `11G.3 follow-up - complete backup/restore evidence`.
+- Evidence source: human manual notes and summarized terminal output.
+- Backup evidence: PostgreSQL dump created, `pg_restore -l` validation passed, storage backup created, manifest created, package metadata reference recorded, non-secret config key names recorded, backup location operator-held/redacted.
+- Restore evidence: clean local target, clean DB before restore, PostgreSQL restore completed, storage restore completed, app pointed to restored target without printing values, app started in dev mode, login/list/preview/download checks passed, diagnostics and cleanup dry-run reviewed, destructive cleanup avoided.
+- DB/storage alignment evidence: selected `dokumen_transaksi.lampiran_urls` align, cleanup dry-run did not list referenced files as orphan, missing referenced files were classified carefully and not auto-cleaned.
+- Decision classification: `PASS` for the bounded backup/restore drill.
+- Next recommendation: `Phase 11G.4 - LAN Binding And Client Smoke Evidence`.
 
 Evidence template:
 
@@ -221,7 +221,7 @@ Output should consolidate:
 ## Next Recommended Phase
 
 ```text
-11G.3 follow-up - complete backup/restore evidence
+Phase 11G.4 - LAN Binding And Client Smoke Evidence
 ```
 
-Rationale: the clean preview baseline is recorded, but no human backup/restore drill evidence has been provided yet. Missing backup, restore, validation, `DIMUSNAHKAN`, diagnostics, and DB/storage alignment evidence prevents PASS and blocks 11G.4.
+Rationale: the clean preview baseline is recorded and the human-run backup/restore drill is recorded as PASS for the bounded operational recovery validation. LAN binding and client smoke remain untested and must be handled as a separate human-controlled 11G.4 phase without broad PostgreSQL exposure by default.
