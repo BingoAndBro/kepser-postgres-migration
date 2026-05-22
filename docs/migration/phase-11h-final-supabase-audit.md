@@ -239,17 +239,17 @@ Unrelated P1 gates remain unresolved and are not downgraded:
 - destructive admin cleanup hardening;
 - raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`.
 
-Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as decision framework recorded, decisions pending. This does not change the 11H.1 Supabase retirement classification and does not accept or resolve the P1 security gates.
+Forward status: Phase 11H.3 is now recorded in `docs/migration/phase-11h-final-release-classification.md`. This does not change the 11H.1 Supabase retirement classification: active runtime/package Supabase dependency is retired, while historical docs/tests/comments/env-example references and the retained `supabase/` folder remain traceability or cleanup backlog. This is not full Supabase removal from the repository.
 
 ## Next Phase Recommendation
 
-Because active runtime and package Supabase blockers were not found and 11H.2 recorded only the decision framework without explicit human dispositions, the recommended next phase is:
+Because active runtime and package Supabase blockers were not found and 11H.3 recorded the bounded final handoff classification, the recommended next state is:
 
 ```text
-Phase 11H.2 Decision Follow-up - Human disposition for P1 gates
+Human-controlled maintenance/backlog governance
 ```
 
-If the human instead wants repository hygiene first, open a separate cleanup phase for source comments, env examples, stale tests, docs wording, and `supabase/` retention policy. Do not mix that cleanup with the P1 security gate decision unless explicitly approved.
+If the human wants repository hygiene, open a separate cleanup phase for source comments, env examples, stale tests, docs wording, and `supabase/` retention policy. Do not mix that cleanup with runtime changes unless explicitly approved.
 
 ## What Is Not Claimed
 

@@ -2,7 +2,7 @@
 
 Date: 2026-05-21.
 
-Status: handoff documentation prepared. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, or commit was changed or run by this phase.
+Status: handoff documentation prepared, with 11H.3 final bounded classification now recorded in `docs/migration/phase-11h-final-release-classification.md`. No runtime source, tests, package files, env files, DB migrations, seeds, route generation, backup/restore command, LAN/firewall/network command, cleanup command, deployment command, or commit was changed or run by this phase.
 
 This document consolidates rollback guidance, operator handoff, evidence inventory, Supabase retirement handoff, security decision gates, and Phase 11H release-input checklist for the clean local DMS target:
 
@@ -11,7 +11,7 @@ This document consolidates rollback guidance, operator handoff, evidence invento
 - local filesystem storage;
 - no active Supabase runtime fallback.
 
-11G.6 does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live. Phase 11H remains human-controlled and is not automatically approved by this handoff.
+11G.6 does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live. Phase 11H.3 records only a partial / bounded release handoff for human-controlled internal/local/LAN use.
 
 ## Evidence Inventory
 
@@ -175,12 +175,12 @@ Use this before Phase 11H or before any rollback rehearsal.
 
 These are not implicitly accepted by 11G.6 documentation.
 
-- CSRF/origin strategy for cookie-authenticated state-changing routes. Phase 11H.2a is implemented pending human retest.
-- Login rate-limit/brute-force foundation. Phase 11H.2b is implemented pending human retest.
-- Destructive admin cleanup hardening. Phase 11H.2c is implemented pending human retest.
-- Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`. Phase 11H.2d is implemented pending human retest.
+- CSRF/origin strategy for cookie-authenticated state-changing routes. Phase 11H.2a is implemented and human-smoked.
+- Login rate-limit/brute-force foundation. Phase 11H.2b is implemented and human-smoked.
+- Destructive admin cleanup hardening. Phase 11H.2c is implemented and human-smoked.
+- Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`. Phase 11H.2d is implemented and human-smoked.
 
-11H cannot honestly claim final readiness unless these P1 items are implemented, explicitly accepted with bounded deployment constraints, or deferred with written risk acceptance.
+11H.3 classifies handoff as partial / bounded because these P1 items are implemented and human-smoked, while deployment posture and residual limitations remain bounded to human-controlled internal/local/LAN use.
 
 ### P2/P3 Backlog
 
@@ -219,14 +219,14 @@ Carry-forward P1 items from 11G.5:
 
 | P1 item | Current state | 11H gate |
 |---|---|---|
-| CSRF/origin strategy | Phase 11H.2a implemented centralized same-origin unsafe-method protection pending human retest | Review human retest before final classification; this is a bounded foundation, not browser-security certification. |
-| Login rate-limit/brute-force foundation | Phase 11H.2b implemented an in-memory local-process limiter pending human retest | Review human retest before final classification; consider reverse-proxy or persistent/distributed limits later if final topology requires them. |
-| Destructive admin cleanup hardening | Phase 11H.2c implemented POST-only destructive cleanup pending human retest | Review human retest before final classification; do not treat this as app-wide CSRF/origin completion. |
-| Raw logical-path file-access narrowing/status revalidation | Phase 11H.2d implemented status-aware raw logical-path access pending human retest | Review human retest before final classification; stale raw tokens must remain blocked after `DIMUSNAHKAN`. |
+| CSRF/origin strategy | Phase 11H.2a implemented centralized same-origin unsafe-method protection and is human-smoked | Bounded foundation, not browser-security certification or a full CSRF token framework. |
+| Login rate-limit/brute-force foundation | Phase 11H.2b implemented an in-memory local-process limiter and is human-smoked | Consider reverse-proxy or persistent/distributed limits later if final topology requires them. |
+| Destructive admin cleanup hardening | Phase 11H.2c implemented POST-only destructive cleanup and is human-smoked | Do not treat this alone as app-wide CSRF/origin completion. |
+| Raw logical-path file-access narrowing/status revalidation | Phase 11H.2d implemented status-aware raw logical-path access and is human-smoked | Stale raw tokens must remain blocked after `DIMUSNAHKAN`. |
 
 P1 findings must not be downgraded to P2/P3 merely because rollback documentation is complete.
 
-Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. The human selected incremental implementation: Phase 11H.2a CSRF/origin protection, Phase 11H.2b login rate-limit/brute-force protection, Phase 11H.2c destructive admin cleanup hardening, and Phase 11H.2d raw logical-path file-access hardening are implemented pending human retest. No P1 item was accepted as bounded risk, downgraded, or used to make a final readiness decision.
+Forward status: Phase 11H.3 is now recorded in `docs/migration/phase-11h-final-release-classification.md`. The human selected incremental implementation: Phase 11H.2a CSRF/origin protection, Phase 11H.2b login rate-limit/brute-force protection, Phase 11H.2c destructive admin cleanup hardening, and Phase 11H.2d raw logical-path file-access hardening are implemented and human-smoked. The final classification is partial / bounded release handoff for human-controlled internal/local/LAN use only.
 
 ## Supabase Retirement Handoff
 
@@ -284,12 +284,10 @@ Classify as `partial` later if evidence is found incomplete or P1 decisions are 
 ## Next Phase
 
 ```text
-Phase 11H.3 - Final Release Handoff Classification
+Human-controlled maintenance/backlog governance
 ```
 
-after human retest of 11H.2a/11H.2b/11H.2c/11H.2d and an explicit final classification request.
-
-11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2/11H.2a/11H.2b/11H.2c/11H.2d is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as CSRF/origin protection, login rate-limit/brute-force protection, destructive cleanup, and raw logical-path file-access hardening implemented pending retest. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H classification must review the retests and record the bounded deployment constraints explicitly.
+after the 11H.3 bounded final classification. 11H.0 remains planning and matrix creation only; 11H.3 is the explicit bounded governance classification and not a public production/go-live approval.
 
 ## Evidence Handling Rules
 

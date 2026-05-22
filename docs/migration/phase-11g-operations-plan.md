@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: Phase 11G.6 rollback/release handoff is prepared in `docs/migration/phase-11g-rollback-release-handoff.md`. Phase 11G.5 security posture review is recorded in `docs/migration/phase-11g-security-review.md`. Phase 11G.4 bounded LAN smoke is PASS after 11G.4a and 11G.4b human retest, Phase 11G.3 backup/restore drill evidence is PASS for the bounded drill, and Phase 11G.2a clean preview performance evidence is recorded. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
+Status: Phase 11G.6 rollback/release handoff is prepared in `docs/migration/phase-11g-rollback-release-handoff.md`, and Phase 11H.3 final bounded handoff classification is recorded in `docs/migration/phase-11h-final-release-classification.md`. Phase 11G.5 security posture review is recorded in `docs/migration/phase-11g-security-review.md`. Phase 11G.4 bounded LAN smoke is PASS after 11G.4a and 11G.4b human retest, Phase 11G.3 backup/restore drill evidence is PASS for the bounded drill, and Phase 11G.2a clean preview performance evidence is recorded. No backup, restore, LAN binding, firewall change, security implementation, performance implementation, package change, DB command, route generation, deployment command, Lighthouse run, build, preview, broad test, cleanup, or release decision is performed by this document.
 
 This plan breaks Phase 11G into small reviewable subphases before any operational drill or LAN exposure. The local target remains local PostgreSQL plus Drizzle, local `dms_session` auth, and local filesystem storage. Old Supabase data and old Supabase Storage files are not recovered, copied, downloaded, backfilled, synced, or used as fallback.
 
@@ -20,7 +20,7 @@ This plan breaks Phase 11G into small reviewable subphases before any operationa
 | 11G.4b | LAN HTTP Browser API Compatibility Fix | Narrow client-side temporary ID fallback for additional kelengkapan over HTTP LAN. | Ajukan/Revisi additional kelengkapan no longer depends directly on `crypto.randomUUID()` in HTTP LAN browser contexts. |
 | 11G.5 | Cookie Auth, CSRF, Rate-Limit Security Review | Review-only first pass over cookie-auth and state-changing routes. | Review complete in `phase-11g-security-review.md`; P1/P2 hardening items are carried to 11G.6/11H handoff. |
 | 11G.6 | Operations Rollback And Release Handoff | Consolidate rollback plan, operator checklist, known accepted risks, and 11H inputs. | Phase 11H has evidence, open blockers, and accepted risks to review. |
-| 11H | Final Release Readiness Gate And Supabase Retirement Decision | Human go/no-go decision. | Human records the final decision; no automatic certification. |
+| 11H | Final Release Readiness Gate And Supabase Retirement Decision | Human go/no-go decision. | 11H.3 records a partial / bounded internal/local/LAN handoff; no automatic certification. |
 
 The structure above preserves the existing 11G direction but splits operational work before execution. This is safer than combining planning, backup/restore, LAN exposure, firewall changes, and security implementation in one phase.
 
@@ -292,7 +292,7 @@ The handoff consolidates:
 ## Next Recommended Phase
 
 ```text
-Phase 11H.0 - Final Readiness Gate Planning And Decision Matrix
+Human-controlled maintenance/backlog governance
 ```
 
-Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, 11G.5 documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture without runtime security changes, and 11G.6 has consolidated rollback, operator handoff, evidence inventory, and P1/P2 security follow-ups. 11H.0 records the final gate sequence and decision matrix in `docs/migration/phase-11h-final-readiness-plan.md`; it does not make a final release decision. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment. Phase 11H is human-controlled and is not automatically approved by 11G.6 or 11H.0.
+Rationale: the clean preview baseline is recorded, the human-run backup/restore drill is recorded as PASS for bounded operational recovery validation, final human LAN smoke after 11G.4a/11G.4b is recorded as PASS for the bounded LAN smoke gate, 11G.5 documented cookie-auth, CSRF, rate-limit, sensitive-route, and residual-risk posture, 11G.6 consolidated rollback/operator handoff, and 11H.3 records a partial / bounded release handoff for human-controlled internal/local/LAN use. HTTP blob download warnings over insecure LAN remain an expected limitation of trusted HTTP mode and reinforce the recommendation for HTTPS plus secure cookies in serious/final deployment.

@@ -12,7 +12,7 @@ Current active area after Phase 10F is Phase 11 global cleanup, regression, and 
 
 Phase 11G.5 status update: the current recommended phase is now `11G.6 - Operations Rollback And Release Handoff`. Phase 11G.5 is recorded in `docs/migration/phase-11g-security-review.md` and supersedes the stale 11G.4 follow-up note in the long current-area recap above.
 
-Phase 11H.2a status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records that the human selected incremental P1 implementation and Phase 11H.2a CSRF/Origin Protection Follow-up, Phase 11H.2b Login Rate-Limit/Brute-Force Follow-up, Phase 11H.2c Destructive Admin Cleanup Hardening, and Phase 11H.2d Raw Logical-Path File Access Hardening were implemented pending human retest. Unsafe API methods now use centralized Origin/Referer same-origin protection, login has an in-memory local-process limiter with 5 failed attempts per normalized identifier/IP key in 10 minutes and a 15-minute cooldown, GET cleanup is dry-run/report-only and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`, and raw logical-path preview/download plus `/api/files/access` revalidate current document/archive references and block `DIMUSNAHKAN` at token-use time. The next recommended phase is `Phase 11H.3 - Final Release Handoff Classification` only after human retest and an explicit final classification request.
+Phase 11H.3 status update: `docs/migration/phase-11h-final-release-classification.md` records the final classification as partial / bounded release handoff for human-controlled internal/local/LAN use. The P1 follow-ups in 11H.2a CSRF/Origin Protection, 11H.2b Login Rate-Limit/Brute-Force, 11H.2c Destructive Admin Cleanup Hardening, and 11H.2d Raw Logical-Path File Access Hardening are implemented and human-smoked. Unsafe API methods use centralized Origin/Referer same-origin protection, login has an in-memory local-process limiter with 5 failed attempts per normalized identifier/IP key in 10 minutes and a 15-minute cooldown, GET cleanup is dry-run/report-only and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`, and raw logical-path preview/download plus `/api/files/access` revalidate current document/archive references and block `DIMUSNAHKAN` at token-use time. The next recommended state is human-controlled maintenance/backlog governance, not public production or go-live approval.
 
 Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. Phase 11F.5d.2 is inserted after 11F.5d.1 for admin storage orphan cleanup diagnostics hardening. These inserted storage items do not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and do not claim those later subphases are complete.
 
@@ -4932,7 +4932,7 @@ Subphase sequence:
 | 11H.2b | Login Rate-Limit/Brute-Force Follow-up | Optional implementation if chosen by the human. | Login brute-force foundation is implemented and verified. |
 | 11H.2c | Destructive Admin Cleanup Hardening | Implemented pending human retest. | Destructive cleanup is POST-only; GET remains dry-run/report-only. |
 | 11H.2d | Raw Logical-Path File Access Hardening | Optional implementation if chosen by the human. | Raw logical-path access cannot bypass `DIMUSNAHKAN` policy. |
-| 11H.3 | Final Release Handoff Classification | Final human classification. | Complete, partial, blocked, or deferred classification is recorded without overclaiming. |
+| 11H.3 | Final Release Handoff Classification | Final human classification. | Partial / bounded release handoff is recorded without overclaiming. |
 
 #### Phase 11H.0: Final Readiness Gate Planning And Decision Matrix
 
@@ -5046,15 +5046,15 @@ Current human decision status:
 
 Release classification impact:
 
-- final release handoff classification remains unresolved;
-- 11H.3 should not proceed as a final readiness approval step while 11H.2a/11H.2b/11H.2c/11H.2d human retests remain unreviewed or final classification decisions are not explicit;
+- final release handoff classification is partial / bounded;
+- 11H.3 is a bounded governance handoff, not final readiness approval for public production;
 - trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
 
 Next recommended phase:
 
 ```text
-Phase 11H.3 - Final Release Handoff Classification
+Human-controlled maintenance/backlog governance
 ```
 
 ## Validation Gates

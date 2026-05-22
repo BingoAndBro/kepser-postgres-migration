@@ -4,7 +4,7 @@ Date: 2026-05-21.
 
 Status: review complete for the bounded 11G.5 scope. No runtime source, tests, package files, env files, DB migrations, seeds, firewall/network settings, backup/restore commands, route generation, or commits were changed or run by this phase.
 
-This review covers the clean local DMS target:
+This review covers the clean local DMS target. Phase 11H.3 later records that the P1 follow-ups from this review are implemented and human-smoked, and classifies the final handoff as partial / bounded for human-controlled internal/local/LAN use.
 
 - local PostgreSQL plus Drizzle;
 - local `dms_session` cookie auth;
@@ -73,7 +73,7 @@ Authorization boundary:
 
 ## CSRF Review
 
-Overall finding: state-changing routes previously relied on `SameSite=Lax`, method selection, JSON/form-data parsing, Zod/schema validation, server-side session revalidation, ownership/status checks, and RBAC. Phase 11H.2a now adds centralized explicit `Origin`/`Referer` same-origin validation for unsafe API methods pending human retest. `SameSite=Lax` remains helpful but is not the only CSRF protection.
+Overall finding: state-changing routes previously relied on `SameSite=Lax`, method selection, JSON/form-data parsing, Zod/schema validation, server-side session revalidation, ownership/status checks, and RBAC. Phase 11H.2a now adds centralized explicit `Origin`/`Referer` same-origin validation for unsafe API methods and is recorded as human-smoked in 11H.3. `SameSite=Lax` remains helpful but is not the only CSRF protection.
 
 | Category | Cookie-auth state change | Current mitigation | Residual risk | Recommendation |
 |---|---:|---|---|---|
@@ -103,11 +103,11 @@ Recommended CSRF strategy before 11H or wider rollout:
 
 ## Rate-Limit And Brute-Force Review
 
-Overall finding: the original 11G.5 audit did not find an active app-layer throttling/rate-limit mechanism in current `src` runtime routes. Phase 11H.2b now adds a minimal app-layer login rate-limit/brute-force foundation. Reverse proxy, firewall, Docker, and LAN controls can reduce exposure, but they should not be the only app-layer story for final/wider deployment.
+Overall finding: the original 11G.5 audit did not find an active app-layer throttling/rate-limit mechanism in current `src` runtime routes. Phase 11H.2b now adds a minimal app-layer login rate-limit/brute-force foundation and is recorded as human-smoked in 11H.3. Reverse proxy, firewall, Docker, and LAN controls can reduce exposure, but they should not be the only app-layer story for final/wider deployment.
 
 | Surface | Current status | Existing mitigation | Risk | Recommended follow-up |
 |---|---|---|---|---|
-| Login brute force | Implemented pending human retest in 11H.2b | Generic invalid credential message; Argon2id password verification; in-memory local-process limiter keyed by normalized identifier plus IP when available | Reduced for local single-process target; still not distributed or persistent | Human retest the app-layer limiter; consider reverse-proxy and/or persistent/distributed limits if final topology needs them. |
+| Login brute force | Implemented and human-smoked in 11H.2b/11H.3 | Generic invalid credential message; Argon2id password verification; in-memory local-process limiter keyed by normalized identifier plus IP when available | Reduced for local single-process target; still not distributed or persistent | Consider reverse-proxy and/or persistent/distributed limits if final topology needs them. |
 | Password change | Absent | Requires authenticated session and current password; revokes all sessions on success | Medium | Per-user/session throttle and audit failed attempts. |
 | Admin reset password/create user | Absent | ADMIN role required; password length validation; session/RBAC | Medium to High | Admin mutation throttling/audit logging; consider re-auth for destructive admin actions later. |
 | Upload | Absent | Auth required, file type/size checks, owner/path validation | Medium to High | Per-user upload rate-limit, daily/rolling quota, storage usage audit. |
@@ -131,10 +131,10 @@ Positive findings:
 
 Findings and caveats:
 
-- Phase 11H.2c converted destructive admin cleanup to POST-only semantics pending human retest. `GET /api/admin/cleanup-orphan-files` is now dry-run/report-only, including when destructive query flags are supplied.
-- Phase 11H.2d now hardens raw logical-path preview/download compatibility pending human retest. `/api/dokumen/preview-url`, `/api/dokumen/download-url`, and `/api/files/access` revalidate current document/archive references for raw logical paths, block `DIMUSNAHKAN` at token-use time, keep pending paths owner-scoped, and preserve `{ signedUrl }` compatibility.
-- Phase 11H.2b now adds an in-memory login rate-limit/brute-force foundation pending human retest. It allows 5 failed attempts per normalized identifier/IP key in 10 minutes, then applies a 15-minute cooldown with `429` and `Retry-After`.
-- Phase 11H.2a now adds centralized explicit origin/referer same-origin enforcement for state-changing unsafe API routes pending human retest.
+- Phase 11H.2c converted destructive admin cleanup to POST-only semantics and is recorded as human-smoked in 11H.3. `GET /api/admin/cleanup-orphan-files` is now dry-run/report-only, including when destructive query flags are supplied.
+- Phase 11H.2d now hardens raw logical-path preview/download compatibility and is recorded as human-smoked in 11H.3. `/api/dokumen/preview-url`, `/api/dokumen/download-url`, and `/api/files/access` revalidate current document/archive references for raw logical paths, block `DIMUSNAHKAN` at token-use time, keep pending paths owner-scoped, and preserve `{ signedUrl }` compatibility.
+- Phase 11H.2b now adds an in-memory login rate-limit/brute-force foundation and is recorded as human-smoked in 11H.3. It allows 5 failed attempts per normalized identifier/IP key in 10 minutes, then applies a 15-minute cooldown with `429` and `Retry-After`.
+- Phase 11H.2a now adds centralized explicit origin/referer same-origin enforcement for state-changing unsafe API routes and is recorded as human-smoked in 11H.3.
 - No broader app-layer throttling/rate-limit mechanism was found for password change, upload, workflow, archive, admin mutations, or file-token issuance.
 - Some high-impact reads and token issuance routes are GET by design; this is acceptable for read-only behavior only if they remain non-mutating and authorization is revalidated.
 - Error logging reviewed generally avoids printing secrets, tokens, password hashes, DB URLs, storage roots, and physical paths. Several logs include route params or logical identifiers; keep this acceptable only if future changes avoid physical path/token/env output.
@@ -143,10 +143,10 @@ Findings and caveats:
 
 | Classification | Finding | Recommendation |
 |---|---|---|
-| P1 before 11H/wider rollout | Destructive admin cleanup could be triggered by GET query flags and has no explicit app-wide CSRF/origin protection. | Phase 11H.2c makes destructive cleanup POST-only pending human retest. Separate CSRF/origin strategy remains unresolved. |
-| P1 before 11H/wider rollout | Raw logical-path preview/download routes did not revalidate archive status and could bypass the stronger `DIMUSNAHKAN` block used by document-token routes if a valid role knew a path. | Phase 11H.2d implements status-aware raw-path revalidation pending human retest. |
-| P1 before 11H/wider rollout | No explicit CSRF/origin strategy for cookie-authenticated state-changing routes was present in 11G.5. | Phase 11H.2a implements centralized same-origin validation pending human retest; stronger token or proxy-aware strategy can remain future hardening if final topology requires it. |
-| P1 before 11H/wider rollout | No login brute-force throttling. | Phase 11H.2b implements a minimal in-memory app-layer login limiter pending human retest; use reverse-proxy or persistent limits later if needed by final topology. |
+| P1 before 11H/wider rollout | Destructive admin cleanup could be triggered by GET query flags and had no explicit app-wide CSRF/origin protection. | Phase 11H.2c makes destructive cleanup POST-only and is human-smoked. Separate same-origin protection is implemented in 11H.2a; a full CSRF token framework remains future hardening if deployment expands. |
+| P1 before 11H/wider rollout | Raw logical-path preview/download routes did not revalidate archive status and could bypass the stronger `DIMUSNAHKAN` block used by document-token routes if a valid role knew a path. | Phase 11H.2d implements status-aware raw-path revalidation and is human-smoked. |
+| P1 before 11H/wider rollout | No explicit CSRF/origin strategy for cookie-authenticated state-changing routes was present in 11G.5. | Phase 11H.2a implements centralized same-origin validation and is human-smoked; stronger token or proxy-aware strategy can remain future hardening if final topology requires it. |
+| P1 before 11H/wider rollout | No login brute-force throttling. | Phase 11H.2b implements a minimal in-memory app-layer login limiter and is human-smoked; use reverse-proxy or persistent limits later if needed by final topology. |
 | P2 before final release | Upload, file-token issuance, workflow, archive, and admin mutations have no app-layer throttling. | Add scoped per-user/session/IP limits and audit events by risk surface. |
 | P2 before final release | High-impact admin/account changes do not require re-authentication or step-up confirmation. | Consider re-auth/confirm flows after CSRF/rate-limit foundation. |
 | P3 backlog | Remember-me request shape is not visibly wired in the reviewed login route. | Confirm UI/API contract later; do not change in 11G.5. |
@@ -162,25 +162,25 @@ Accepted for 11G.5/11G.6 handoff:
 
 Deferred before 11H/wider rollout:
 
-- CSRF/origin enforcement strategy implemented pending human retest in 11H.2a.
-- Login app-layer rate-limit foundation implemented pending human retest in 11H.2b; sensitive-route app-layer rate limits remain deferred.
+- CSRF/origin enforcement strategy implemented and human-smoked in 11H.2a/11H.3.
+- Login app-layer rate-limit foundation implemented and human-smoked in 11H.2b/11H.3; sensitive-route app-layer rate limits remain deferred.
 - POST-only or strongly guarded destructive admin cleanup.
-- Raw logical-path preview/download narrowing or status-aware revalidation. Phase 11H.2d is implemented pending human retest.
+- Raw logical-path preview/download narrowing or status-aware revalidation. Phase 11H.2d is implemented and human-smoked.
 - Final HTTPS/`Secure` cookie deployment decision.
 
-Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2a implements CSRF/origin protection pending human retest, Phase 11H.2b implements login rate-limit/brute-force protection pending human retest, Phase 11H.2c implements destructive admin cleanup hardening pending human retest, and Phase 11H.2d implements raw logical-path file-access hardening pending human retest. These implementations do not make a final readiness decision.
+Forward status: Phase 11H.3 is now recorded in `docs/migration/phase-11h-final-release-classification.md`. Phase 11H.2a implements CSRF/origin protection, Phase 11H.2b implements login rate-limit/brute-force protection, Phase 11H.2c implements destructive admin cleanup hardening, and Phase 11H.2d implements raw logical-path file-access hardening; all four are recorded as human-smoked. The final classification is partial / bounded release handoff, not public production readiness or go-live approval.
 
 ## Next Phase Recommendation
 
 If no new runtime blocker is reported by the human, the current recommended phase after the 11H.2 framework record is:
 
 ```text
-Phase 11H.3 - Final Release Handoff Classification
+Human-controlled maintenance/backlog governance
 ```
 
-after human retest of 11H.2a/11H.2b/11H.2c/11H.2d and an explicit final classification request.
+after the bounded 11H.3 final classification.
 
-11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`, and 11H.0 records the final gate sequence in `docs/migration/phase-11h-final-readiness-plan.md`. Neither document approves production, release, operational certification, or go-live by itself. Later 11H classification remains human-controlled and must review the 11H.2a/11H.2b/11H.2c/11H.2d human retests before any honest final readiness claim.
+11G.6 has carried the P1/P2 security findings into `docs/migration/phase-11g-rollback-release-handoff.md`, 11H.0 records the final gate sequence in `docs/migration/phase-11h-final-readiness-plan.md`, and 11H.3 records the bounded final handoff classification in `docs/migration/phase-11h-final-release-classification.md`. These documents do not approve production, release, operational certification, or go-live.
 
 If the human wants to harden before 11G.6 instead of recording the handoff first, use narrow follow-up phases:
 

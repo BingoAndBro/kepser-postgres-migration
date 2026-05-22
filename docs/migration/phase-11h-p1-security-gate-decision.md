@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: decision framework recorded; CSRF/origin protection implemented pending human retest; login rate-limit/brute-force foundation implemented pending human retest; destructive admin cleanup hardening implemented pending human retest; raw logical-path file-access hardening implemented pending human retest.
+Status: decision framework recorded; CSRF/origin protection implemented and human-smoked; login rate-limit/brute-force foundation implemented and human-smoked; destructive admin cleanup hardening implemented and human-smoked; raw logical-path file-access hardening implemented and human-smoked.
 
 This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2a now implements the selected CSRF/origin protection foundation, Phase 11H.2b implements the selected login rate-limit/brute-force foundation, Phase 11H.2c implements the selected destructive admin cleanup hardening, and Phase 11H.2d implements the selected raw logical-path file-access hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
 
@@ -45,19 +45,19 @@ Phase 11H.2 initially recorded no explicit human disposition for the four P1 ite
 The CSRF/origin, login rate-limit, destructive admin cleanup, and raw logical-path file-access items are now:
 
 ```text
-implementation selected and implemented pending human retest
+implementation selected, implemented, and human-smoked
 ```
 
-This preserves final release ambiguity until human retest is reviewed and final 11H classification is explicitly requested. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
+11H.3 uses this human-smoked status as bounded operational evidence for a partial / bounded release handoff. It is not temporary public approval and does not authorize production readiness, operational certification, broad LAN readiness, or go-live.
 
 ## P1 Decision Matrix
 
 | P1 item | Current human decision | Required next phase if implementation is selected | Release classification impact |
 |---|---|---|---|
-| CSRF/origin strategy | implementation selected and implemented pending human retest | Phase 11H.2a - CSRF/Origin Protection Follow-up | Implementation is present but final readiness remains unresolved until human retest is reviewed and final classification decisions are explicit. |
-| Login rate-limit/brute-force foundation | implementation selected and implemented pending human retest | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
-| Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Phase 11H.2c - Destructive Admin Cleanup Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
-| Raw logical-path file-access hardening | implementation selected and implemented pending human retest | Phase 11H.2d - Raw Logical-Path File Access Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
+| CSRF/origin strategy | implementation selected, implemented, and human-smoked | Phase 11H.2a - CSRF/Origin Protection Follow-up | Supports bounded internal/local/LAN handoff; not a full CSRF token framework. |
+| Login rate-limit/brute-force foundation | implementation selected, implemented, and human-smoked | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Supports bounded local single-process handoff; persistent/distributed limits remain future hardening. |
+| Destructive admin cleanup hardening | implementation selected, implemented, and human-smoked | Phase 11H.2c - Destructive Admin Cleanup Hardening | Supports bounded handoff; destructive cleanup remains operator-controlled. |
+| Raw logical-path file-access hardening | implementation selected, implemented, and human-smoked | Phase 11H.2d - Raw Logical-Path File Access Hardening | Supports bounded handoff; `DIMUSNAHKAN` revalidation remains the access authority. |
 
 ## 1. CSRF/Origin Strategy
 
@@ -112,7 +112,7 @@ Decision options:
 Current human decision:
 
 ```text
-implementation selected and implemented pending human retest
+implementation selected, implemented, and human-smoked
 ```
 
 Required next phase if implementation is selected:
@@ -123,8 +123,8 @@ Phase 11H.2a - CSRF/Origin Protection Follow-up
 
 Release classification impact:
 
-- This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification until 11H.2a/11H.2b/11H.2c/11H.2d human retests are reviewed or explicitly classified.
+- This P1 item is no longer decision-pending and is recorded as human-smoked for bounded 11H.3 classification.
+- 11H.3 may use this as bounded operational evidence, not as comprehensive browser-security certification.
 - This is a bounded same-origin foundation, not comprehensive browser-security certification.
 
 ## 2. Login Rate-Limit/Brute-Force Foundation
@@ -172,7 +172,7 @@ Decision options:
 Current human decision:
 
 ```text
-implementation selected and implemented pending human retest
+implementation selected, implemented, and human-smoked
 ```
 
 Implementation phase:
@@ -183,8 +183,8 @@ Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 
 Release classification impact:
 
-- This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification while 11H.2a/11H.2b/11H.2c/11H.2d retests remain unreviewed.
+- This P1 item is no longer decision-pending and is recorded as human-smoked for bounded 11H.3 classification.
+- The in-memory limiter remains local-process only and is not persistent or distributed.
 - The in-memory limiter is sufficient as a local single-process foundation for the current local/LAN target, but stronger reverse-proxy and/or persistent distributed throttling may be required later depending on final deployment topology.
 
 ## 3. Destructive Admin Cleanup Hardening
@@ -233,7 +233,7 @@ Decision options:
 Current human decision:
 
 ```text
-implementation selected and implemented pending human retest
+implementation selected, implemented, and human-smoked
 ```
 
 Implementation phase:
@@ -244,8 +244,8 @@ Phase 11H.2c - Destructive Admin Cleanup Hardening
 
 Release classification impact:
 
-- This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification while other P1 decisions remain pending or while 11H.2c retest remains unreviewed.
+- This P1 item is no longer decision-pending and is recorded as human-smoked for bounded 11H.3 classification.
+- This implementation remains separate from the app-wide same-origin guard and does not by itself prove complete CSRF coverage.
 - This implementation does not add the separate app-wide CSRF/origin strategy and does not resolve the raw logical-path file-access P1.
 
 ## 4. Raw Logical-Path File-Access Hardening
@@ -297,7 +297,7 @@ Decision options:
 Current human decision:
 
 ```text
-implementation selected and implemented pending human retest
+implementation selected, implemented, and human-smoked
 ```
 
 Implementation phase:
@@ -308,26 +308,26 @@ Phase 11H.2d - Raw Logical-Path File Access Hardening
 
 Release classification impact:
 
-- This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification while 11H.2a/11H.2b/11H.2c/11H.2d retests remain unreviewed.
+- This P1 item is no longer decision-pending and is recorded as human-smoked for bounded 11H.3 classification.
+- This implementation remains separate from the 11H.2a same-origin guard.
 - This implementation remains separate from the 11H.2a same-origin guard.
 
 ## Current 11H.2 Classification
 
 ```text
-decision framework recorded, 11H.2a/11H.2b/11H.2c/11H.2d implemented pending human retest
+decision framework recorded, 11H.2a/11H.2b/11H.2c/11H.2d implemented and human-smoked
 ```
 
-Rationale: the P1 matrix is recorded, and the human selected incremental implementation. The CSRF/origin foundation, login rate-limit/brute-force foundation, destructive admin cleanup, and raw logical-path file-access runtime changes are implemented, but human retest is still pending.
+Rationale: the P1 matrix is recorded, the human selected incremental implementation, and the CSRF/origin foundation, login rate-limit/brute-force foundation, destructive admin cleanup, and raw logical-path file-access runtime changes are implemented and human-smoked.
 
 ## Release Classification Impact
 
 No final readiness decision is made by this phase.
 
-Remaining P1 gates mean:
+11H.3 classification impact:
 
-- final release handoff classification remains unresolved;
-- 11H.3 should not be used as a final readiness approval step until 11H.2a/11H.2b/11H.2c/11H.2d retests are reviewed and final classification decisions are explicit;
+- final release handoff classification is partial / bounded;
+- 11H.3 may proceed only as a bounded governance handoff, not final readiness approval for public production;
 - trusted HTTP LAN evidence remains bounded smoke input only;
 - trusted HTTP LAN is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
@@ -335,14 +335,10 @@ Remaining P1 gates mean:
 ## Next Recommended Phase
 
 ```text
-Phase 11H.3 - Final Release Handoff Classification
+Human-controlled maintenance/backlog governance
 ```
 
-only after human retest of 11H.2a/11H.2b/11H.2c/11H.2d and an explicit final classification request.
-
-If the human later reviews 11H.2a/11H.2b/11H.2c/11H.2d retests, 11H.3 may proceed only as an explicit handoff classification candidate, not broad release approval.
-
-If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or schedule targeted implementation.
+after the 11H.3 final classification in `docs/migration/phase-11h-final-release-classification.md`.
 
 ## What Is Not Claimed
 

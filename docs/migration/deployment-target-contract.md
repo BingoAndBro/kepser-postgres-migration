@@ -156,7 +156,16 @@ Phase 11G.5 records these constraints for any serious/final browser-accessible d
 - Raw logical-path preview/download compatibility must be narrowed or status-aware before final rollout so archive `DIMUSNAHKAN` access blocking remains authoritative.
 - HTTPS plus `Secure` session cookies is the preferred final posture.
 
-Phase 11G.6 records the rollback and 11H release-input handoff in `docs/migration/phase-11g-rollback-release-handoff.md`. That handoff is documentation completion only. It does not approve production readiness, LAN readiness, release readiness, operational certification, or go-live. Final 11H must implement, explicitly accept, or defer with written risk acceptance the P1 security findings above.
+Phase 11G.6 records the rollback and 11H release-input handoff in `docs/migration/phase-11g-rollback-release-handoff.md`. Phase 11H.3 records the final classification in `docs/migration/phase-11h-final-release-classification.md` as partial / bounded release handoff for human-controlled internal/local/LAN use. This does not approve public production readiness, broad LAN readiness, operational certification, compliance validation, or go-live.
+
+11H.3 posture:
+
+- 11H.2a same-origin unsafe-method protection is implemented and human-smoked, but it is not a full CSRF token framework.
+- 11H.2b login rate-limit/brute-force foundation is implemented and human-smoked, but it is in-memory/local-process only.
+- 11H.2c destructive admin cleanup hardening is implemented and human-smoked.
+- 11H.2d raw logical-path file-access and `DIMUSNAHKAN` hardening is implemented and human-smoked.
+- HTTPS plus `Secure` `dms_session` remains the preferred final posture.
+- Trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` remains bounded/internal only.
 
 ## What Not To Implement Yet
 

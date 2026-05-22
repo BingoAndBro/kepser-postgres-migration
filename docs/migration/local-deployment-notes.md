@@ -133,10 +133,18 @@ Before wider browser-accessible rollout, deployment planning must include:
 Phase 11G.6 handoff note:
 
 - Rollback and release-input handoff is recorded in `docs/migration/phase-11g-rollback-release-handoff.md`.
+- Phase 11H.3 final classification is recorded in `docs/migration/phase-11h-final-release-classification.md` as partial / bounded release handoff for human-controlled internal/local/LAN use.
 - Preferred final posture remains HTTPS with `Secure` `dms_session` cookies.
 - Trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` is bounded, temporary, and internal/trusted only.
 - If LAN smoke or deployment settings are rolled back, stop the app serving process, close any temporary app-port firewall exception if one was added, and confirm PostgreSQL remains not broadly exposed.
 - DB and storage rollback must use a matched backup pair unless a human explicitly accepts the mismatch and post-backup divergence risk.
+
+11H.3 handoff note:
+
+- The local/LAN target is ready only for human-controlled internal handoff under trusted assumptions.
+- This is not public production readiness, broad LAN readiness, operational certification, or go-live approval.
+- Trusted LAN assumptions must not be reused for public internet deployment without a new deployment/security review.
+- Historical Supabase artifacts remain traceability or cleanup backlog and are separate from active runtime dependency status.
 
 ## What Not To Implement Yet
 
