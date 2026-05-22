@@ -16,7 +16,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 ```
 
 ## Role Static (MVP)
-`PEGAWAI` | `PPK` | `BENDAHARA` | `ARSIPARIS` | `ADMIN` | `PENANGGUNG_JAWAB_KINERJA`
+`PEGAWAI` | `PPK` | `BENDAHARA` | `KEPALA_SUB_BAGIAN_UMUM` | `ADMIN` | `PENANGGUNG_JAWAB_KINERJA`
 
 ## Role Switcher
 - Semua user BARU otomatis punya role PEGAWAI (role default)
@@ -35,11 +35,11 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 02 | Master Data Management | `docs/specs/02-master-data/spec.md` | ✅ Done |
 | 03 | Submit Flow (Pegawai) | `docs/specs/03-submit-flow/spec.md` | ✅ Done |
 | 04 | Approval Flow (PPK→Bendahara) | `docs/specs/04-approval-flow/spec.md` | ✅ Done |
-| 05 | Arsip Flow (Arsiparis) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
+| 05 | Arsip Flow (Kepala Sub Bagian Umum) | `docs/specs/05-arsip-flow/spec.md` | ✅ Done |
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
 | 07 | Chairman Assignment | `docs/specs/07-chairman-assignment/spec.md` | 📋 Planning |
 | 08A | Nominal Realisasi Foundation | `docs/specs/08A-nominal-realisasi/spec.md` | ✅ Done |
-| 08B | Penambahan Arsip (Arsiparis) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Planning |
+| 08B | Penambahan Arsip (Kepala Sub Bagian Umum) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Planning |
 | 08D | Export Excel & Agregasi | `docs/specs/08D-export-excel/spec.md` | 📋 Planning |
 | 08E | Penanggung Jawab Kinerja (Role) | `docs/specs/08E-penanggung-jawab-kinerja/spec.md` | 📋 Planning |
 
@@ -57,7 +57,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - 06: User Management (admin + self-service)
 - 07: Chairman Assignment (ketua tim per kegiatan)
 - **08A: Fondasi nominal_realisasi (WAJIB selesai duluan)**
-- 08B: Arsip manual oleh Arsiparis
+- 08B: Arsip manual oleh Kepala Sub Bagian Umum
 - 08C: Dokumen Non-Material
 - 08D: Export Excel + Agregasi
 - 08E: Role Penanggung Jawab Kinerja
@@ -95,10 +95,10 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Bendahara Approve / Reject (catatan wajib)
 - Audit trail log_aktivitas
 
-### 05 — Arsip Flow (Arsiparis)
-- Arsiparis Inbox (COMPLETED, belum diarsipkan)
-- Arsiparis Archive (metadata: nomor surat, klasifikasi, retensi)
-- Arsiparis Skip
+### 05 — Arsip Flow (Kepala Sub Bagian Umum)
+- Kepala Sub Bagian Umum Inbox (COMPLETED, belum diarsipkan)
+- Kepala Sub Bagian Umum Archive (metadata: nomor surat, klasifikasi, retensi)
+- Kepala Sub Bagian Umum Skip
 - Pencarian arsip (semua user)
 - Download arsip (semua user)
 
@@ -134,7 +134,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Update API submit untuk validasi nominal WAJIB untuk Material
 - Fondasi untuk seluruh fitur 08B-08E
 
-### 08B — Penambahan Arsip (Arsiparis)
+### 08B — Penambahan Arsip (Kepala Sub Bagian Umum)
 - CRUD master kategori dokumen arsip (Pemeliharaan, Pengadaan, dll)
 - Form tambah arsip manual (kategori, nama, tanggal, keterangan WAJIB, nominal WAJIB, bukti opsional, klasifikasi)
 - Arsip langsung AKTIF tanpa approval

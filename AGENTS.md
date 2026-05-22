@@ -123,7 +123,7 @@ Rules:
 - `dms_active_role` is UX-only state and is not authorization proof.
 - Server/API RBAC is authoritative.
 - Client-side role hiding is a UX hint only.
-- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, or `ARSIPARIS`.
+- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, or `KEPALA_SUB_BAGIAN_UMUM`.
 - Passwords use Argon2id.
 - Logout and password-change/reset session revocation behavior must remain server-authoritative.
 
@@ -171,7 +171,7 @@ Rules:
 Role yang dipakai aplikasi:
 
 ```ts
-type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'ARSIPARIS' | 'ADMIN'
+type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'KEPALA_SUB_BAGIAN_UMUM' | 'ADMIN'
 ```
 
 Canonical constants ada di:
@@ -402,8 +402,8 @@ Rules:
 
 After document `COMPLETED`:
 
-- Arsiparis can archive -> document becomes `ARCHIVED`, archive record is created with `status_arsip='AKTIF'`.
-- Arsiparis skip action in FSM keeps document `COMPLETED`.
+- Kepala Sub Bagian Umum can archive -> document becomes `ARCHIVED`, archive record is created with `status_arsip='AKTIF'`.
+- Kepala Sub Bagian Umum skip action in FSM keeps document `COMPLETED`.
 - Archive lifecycle continues on `arsip` table:
 
 ```text
@@ -598,7 +598,9 @@ API utama:
 - `/api/bendahara/dokumen/$id/approve`
 - `/api/bendahara/dokumen/$id/reject`
 
-### Arsiparis
+### Kepala Sub Bagian Umum
+
+Route namespace remains `/arsiparis` for compatibility; the internal role name is `KEPALA_SUB_BAGIAN_UMUM`.
 
 UI utama:
 
