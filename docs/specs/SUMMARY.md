@@ -136,9 +136,10 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 
 ### 08B — Penambahan Arsip (Kepala Sub Bagian Umum)
 - Phase 12G adds separate schema foundation: `arsip.manual_arsip_category`, `arsip.manual_arsip`, and `arsip.manual_arsip_attachment`
+- Phase 12H adds minimal API foundation for category list, manual archive parent list, create without upload, and detail
 - Manual archive is separate from workflow documents and does not depend on `dokumen_transaksi`
 - Category is separate from `master_klasifikasi_arsip`; classification hierarchy remains in `master_klasifikasi_arsip`
-- Form/API/UI remain future work; no runtime upload, preview/download, lifecycle action route, aggregate report, or Excel export is implemented by Phase 12G
+- UI form, attachment upload, preview/download, lifecycle action route, aggregate report, and Excel export remain future work
 - File attachment is optional; schema supports many attachments while later UI may start with one optional file
 - `keterangan` is required; `nominal_realisasi` is nullable in DB, with API/UI requiredness pending business confirmation
 - Manual archive uses archive lifecycle values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`; future file access must block `DIMUSNAHKAN`

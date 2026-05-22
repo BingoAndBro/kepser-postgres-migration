@@ -41,6 +41,7 @@ Referensi utama:
 - `docs/migration/local-deployment-notes.md`
 - `docs/migration/open-decisions.md`
 - `docs/migration/phase-12g-manual-archive-schema.md`
+- `docs/migration/phase-12h-manual-archive-api-foundation.md`
 
 ---
 
@@ -461,6 +462,7 @@ Rules:
 - One `manual_arsip` parent row counts as one report regardless of attachment count.
 - Lifecycle values are `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
 - Phase 12G adds schema/data-model foundation only. Do not add runtime UI/API/upload/preview/download/lifecycle/export behavior unless a future phase explicitly scopes it.
+- Phase 12H adds minimal runtime API foundation for category list, parent list, create-without-upload, and detail. It does not add UI, upload, preview/download, file tokens, lifecycle transitions, aggregate report, Excel export, hard delete, schema changes, migrations, or seed changes.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
 
@@ -699,6 +701,9 @@ API utama:
 - `/api/arsiparis/usul-musnah.$id`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
+- `/api/arsiparis/manual-arsip/categories`
+- `/api/arsiparis/manual-arsip`
+- `/api/arsiparis/manual-arsip/$id`
 
 ### Penanggung Jawab Kinerja
 
