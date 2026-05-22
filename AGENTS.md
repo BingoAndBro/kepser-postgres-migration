@@ -1,42 +1,59 @@
 # AGENTS.md - Project Constitution: DMS (Dynamic Document Workflow Management System)
-> File ini adalah hukum kerja repo. Semua perubahan schema, routing, workflow, dan boundary data harus mengacu ke file ini. Jika realita aplikasi berubah, update file ini dulu, baru update kode.
+> File ini adalah hukum kerja repo. Semua perubahan schema, routing, workflow, security boundary, storage, dan data boundary harus mengacu ke file ini. Jika realita aplikasi berubah, update file ini dulu atau bersamaan dengan kode/dokumen terkait.
 
 ---
 
 ## North Star
+
 > Setiap pegawai tahu persis apa yang harus mereka lakukan hari ini, dan setiap dokumen bisa dilacak statusnya secara real-time oleh pihak yang berwenang.
 
 Tujuan MVP tetap sama: menghapus kebingungan status dokumen, memperjelas inbox per role, dan menjaga jejak audit dari submit sampai arsip atau pemusnahan.
 
 ---
 
-## Runtime Reality Check
+## Current Project Status
 
-Kondisi aplikasi per 2026-05-12:
+Kondisi aplikasi per 2026-05-22:
 
-- Framework tetap `TanStack Start`, tetapi root route saat ini memakai `ssr: false`.
-- Runtime aktual lebih dekat ke SPA client-heavy daripada SSR penuh.
-- Auth bootstrap utama terjadi di `src/components/layout/AppLayout.tsx` melalui Supabase browser client.
-- Enforcement akses tetap harus ada di server route/API, walaupun layout juga melakukan guard client-side.
-- Source of truth schema saat ini tersebar:
-  - `supabase/migrations/` = sumber kebenaran database yang paling lengkap
-  - `src/lib/db/schema.ts` = mirror Drizzle parsial, belum mencakup semua tabel produksi
+- Migrasi besar Supabase-to-local selesai sampai Phase 11H.3.
+- Final classification 11H.3:
 
-Konstitusi ini mengikuti kondisi aktual repo, bukan rencana lama.
+```text
+Partial / bounded release handoff: local/LAN target is ready for human-controlled internal handoff, subject to deployment posture decisions and accepted limitations.
+```
+
+- Ini adalah human-controlled internal/local/LAN handoff yang bounded, bukan public production readiness, bukan go-live approval, bukan operational certification, bukan security certification, dan bukan compliance validation.
+- Active runtime/package Supabase dependency retired untuk clean local target.
+- Historical Supabase docs/tests/comments/.env-example references dan folder `supabase/` tetap ada sebagai traceability atau cleanup backlog.
+- Jangan menulis atau menyimpulkan bahwa Supabase sudah fully removed from repository.
+- No old Supabase data/file recovery, migration, copy, download, backfill, sync, or fallback is expected.
+- Setelah 11H.3, recommended state adalah human-controlled maintenance/backlog governance.
+
+Referensi utama:
+
+- `docs/migration/phase-11h-final-release-classification.md`
+- `docs/migration/phase-11h-final-readiness-plan.md`
+- `docs/migration/phase-11h-final-supabase-audit.md`
+- `docs/migration/phase-11h-p1-security-gate-decision.md`
+- `docs/migration/phase-11g-rollback-release-handoff.md`
+- `docs/migration/phase-11g-security-review.md`
+- `docs/migration/deployment-target-contract.md`
+- `docs/migration/local-deployment-notes.md`
+- `docs/migration/open-decisions.md`
 
 ---
 
-## Tech Stack
+## Active Stack
 
 | Layer | Teknologi | Status |
 |---|---|---|
 | Framework | TanStack Start | aktif |
 | Router | TanStack React Router file-based | aktif |
 | Language | TypeScript | wajib |
-| Database | Supabase PostgreSQL | aktif |
-| Auth | Supabase Auth | aktif |
-| Storage | Supabase Storage | aktif |
-| ORM | Drizzle ORM | parsial untuk mirror schema |
+| Database | local PostgreSQL | aktif |
+| ORM | Drizzle ORM | aktif |
+| Auth | local `dms_session` auth | aktif |
+| Storage | local filesystem storage | aktif |
 | Validation | Zod | wajib di boundary |
 | UI | React 19 + Tailwind CSS v4 + komponen UI lokal | aktif |
 | Testing | Vitest + Playwright | aktif |
@@ -59,8 +76,91 @@ pnpm test
 Aturan:
 
 - jangan gunakan `npm` atau `yarn`
-- commit `pnpm-lock.yaml`
+- commit `pnpm-lock.yaml` hanya jika phase eksplisit mengizinkan package change
 - referensi praktik: `docs/pnpm-best-practices.md`
+
+---
+
+## Supabase Retirement Boundary
+
+Klasifikasi yang benar:
+
+```text
+Active runtime/package Supabase dependency retired.
+Historical Supabase artifacts remain.
+```
+
+Yang retired:
+
+- active runtime/package dependency untuk clean local target
+- active `@supabase/*` package dependency
+- active Supabase Auth/Database/Storage runtime fallback
+- old Supabase data/file recovery expectation
+
+Yang masih ada sebagai historical/cleanup backlog:
+
+- historical migration docs/specs
+- stale test references or expectations
+- source comments/type residue
+- `.env.example` Supabase key-name residue
+- retained `supabase/` folder and legacy artifacts
+
+Rules:
+
+- Do not reintroduce Supabase packages, helpers, runtime clients, storage fallback, or old file/data recovery.
+- Do not delete or modify `supabase/` unless a later human-approved cleanup phase explicitly allows it.
+- Do not claim Supabase is fully removed from repository.
+- Treat historical Supabase references as traceability unless the active runtime/package audit proves otherwise.
+
+---
+
+## Security Posture
+
+### Auth Boundary
+
+- `dms_session` is the auth boundary.
+- `dms_session` is an opaque `HttpOnly` cookie backed by hashed session-token storage.
+- `dms_active_role` is UX-only state and is not authorization proof.
+- Server/API RBAC is authoritative.
+- Client-side role hiding is a UX hint only.
+- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, or `ARSIPARIS`.
+- Passwords use Argon2id.
+- Logout and password-change/reset session revocation behavior must remain server-authoritative.
+
+### Same-Origin And CSRF
+
+- Unsafe API methods are protected by centralized same-origin `Origin`/`Referer` validation.
+- This is a bounded same-origin foundation, not a full CSRF token framework.
+- Safe methods must remain non-mutating.
+- A full CSRF token framework remains future hardening if deployment expands.
+
+### Rate Limit
+
+- Login has an in-memory/local-process brute-force foundation.
+- The limiter is not persistent and not distributed.
+- Persistent/distributed rate-limit and reverse-proxy throttling remain maintenance backlog if topology expands.
+- Broader throttling for upload, workflow, archive, admin, password-change, and file-token routes remains backlog.
+
+### Admin Cleanup
+
+- Destructive admin cleanup requires `POST` with explicit destructive intent.
+- `GET` cleanup is non-destructive dry-run/report-only.
+- Cleanup must protect referenced active document paths and retained archive snapshots.
+- Cleanup responses must not expose physical storage paths or storage roots.
+
+### File Access
+
+- Raw logical-path file access must revalidate current document/archive state.
+- `DIMUSNAHKAN` must block preview/download/file access, including stale token/path access.
+- File access token internals must not be printed.
+- File access must not expose physical storage path/root.
+
+### Deployment Posture
+
+- HTTPS plus `Secure` `dms_session` remains the preferred final deployment posture.
+- Trusted HTTP LAN with `DMS_SESSION_COOKIE_SECURE=false` is bounded/internal only.
+- Trusted HTTP LAN is not public internet approval, broad LAN certification, or production posture.
+- PostgreSQL should not be broadly exposed to LAN clients unless a future explicit operational decision allows it.
 
 ---
 
@@ -79,6 +179,12 @@ Canonical constants ada di:
 - `src/lib/constants/roles.ts`
 - `src/lib/types/auth.ts`
 
+Rules:
+
+- Users can have multiple non-admin roles.
+- `ADMIN` remains dedicated.
+- Server-side role checks are mandatory.
+
 ### Status Dokumen
 
 Status dokumen yang saat ini dikenal kode:
@@ -94,11 +200,11 @@ type StatusDokumen =
   | 'ARCHIVED'
 ```
 
-Catatan penting:
+Catatan:
 
-- `TERSIMPAN` dipakai untuk dokumen Non-Material yang selesai disimpan tanpa masuk alur approval material.
+- `TERSIMPAN` dipakai untuk dokumen Non-Material yang selesai disimpan tanpa approval material.
 - Transisi FSM formal tetap dipusatkan di `src/lib/fsm.ts`.
-- `TERSIMPAN` saat ini dihasilkan oleh handler submit Non-Material, bukan oleh `transition()` FSM umum.
+- `TERSIMPAN` dihasilkan oleh handler submit Non-Material, bukan oleh `transition()` FSM umum.
 
 Canonical constants ada di:
 
@@ -126,138 +232,134 @@ Lifecycle arsip setelah dokumen sudah `ARCHIVED`:
 type StatusArsip = 'AKTIF' | 'INAKTIF' | 'USUL_MUSNAH' | 'DIMUSNAHKAN'
 ```
 
+Alur aktif:
+
+```text
+AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+```
+
 Catatan:
 
 - migrasi lama pernah mengenal `VERIFIKASI_PENYUSUTAN`
 - status itu sudah dihapus oleh migrasi berikutnya
-- kode dan endpoint aktif sekarang bergerak langsung:
-  - `AKTIF -> INAKTIF`
-  - `INAKTIF -> USUL_MUSNAH`
-  - `USUL_MUSNAH -> DIMUSNAHKAN` atau kembali ke `INAKTIF`
+- `DIMUSNAHKAN` must block preview/download/file access
 
 ---
 
 ## Database Source Of Truth
 
-Urutan prioritas saat membaca atau mengubah schema:
+Current post-migration source-of-truth order:
 
-1. `supabase/migrations/`
-2. endpoint dan helper yang memakai tabel tersebut
-3. `src/lib/db/schema.ts`
+1. Drizzle schema and migrations for local PostgreSQL.
+2. Endpoint/helper behavior that uses those tables.
+3. Historical Supabase migrations only as compatibility/provenance reference.
 
-Jangan menganggap `src/lib/db/schema.ts` sudah lengkap. Tabel produksi yang sudah dipakai aplikasi lebih banyak daripada yang dimirror di Drizzle.
+Do not treat `supabase/migrations/` as the active database authority after the local migration. They are retained historical artifacts unless a future cleanup policy changes that.
 
-### Tabel yang Sudah Aktif di Repo
+### Active Table Families
 
-#### RBAC dan User
+Auth/RBAC:
 
-- `roles`
-- `user_roles`
-- `user_status`
+- `auth.users`
+- `auth.roles`
+- `auth.user_roles`
+- `auth.sessions`
 
-#### Master Data Dokumen
+Master Data Dokumen:
 
-- `master_fungsi`
-- `master_kegiatan`
-- `master_kelengkapan_dokumen`
-- `master_jenis_permintaan`
-- `master_kategori_permintaan`
-- `master_detail_permintaan`
-- `master_jenis_dokumen`
-- `ketua_tim_assignments`
+- `master.master_fungsi`
+- `master.master_kegiatan`
+- `master.master_kelengkapan_dokumen`
+- `master.master_jenis_permintaan`
+- `master.master_kategori_permintaan`
+- `master.master_detail_permintaan`
+- `master.master_jenis_dokumen`
+- `master.ketua_tim_assignments`
 
-#### Workflow Dokumen
+Workflow Dokumen:
 
-- `dokumen_transaksi`
-- `log_aktivitas`
+- `dokumen.dokumen_transaksi`
+- `dokumen.log_aktivitas`
 
-#### Arsip
+Arsip:
 
-- `arsip`
-- `master_klasifikasi_arsip`
-- `arsip_usul_musnah`
+- `arsip.arsip`
+- `arsip.master_klasifikasi_arsip`
+- `arsip.arsip_usul_musnah`
 
-### Catatan Schema Penting
+### Schema Rules
 
-- `ketua_tim_assignments` saat ini unik per `kegiatan_id`, bukan unik `(user_id, kegiatan_id)`
-- `dokumen_transaksi` sudah memuat:
-  - `nominal_realisasi`
-  - `is_non_material`
-  - `jenis_dokumen_id`
-  - chain material: `jenis_permintaan_id`, `kategori_permintaan_id`, `detail_permintaan_id`
-- `arsip` sudah memuat metadata retensi dan lifecycle:
-  - `retensi_aktif`
-  - `retensi_inaktif`
-  - `masa_aktif_berakhir`
-  - `masa_inaktif_berakhir`
-  - `status_arsip`
-  - `lampiran_snapshot`
-  - `musnah_at`
-  - `musnah_by`
-  - `musnah_catatan`
-  - `nominal_realisasi`
-- `log_aktivitas` tetap append-only secara kontrak
+- `ketua_tim_assignments` remains unique per `kegiatan_id`, not unique `(user_id, kegiatan_id)`.
+- `dokumen_transaksi` includes `nominal_realisasi`, `is_non_material`, `jenis_dokumen_id`, and material request-chain columns.
+- `nominal_realisasi` is only for Material documents.
+- Non-Material documents do not have `nominal_realisasi`.
+- `arsip.lampiran_snapshot` stores attachment metadata snapshot.
+- `log_aktivitas` is append-only by contract.
 
 ---
 
 ## Architectural Invariants
 
-1. **Schema truth lives in migrations first.**
-   - Ubah `supabase/migrations/` dulu untuk perubahan database.
-   - Setelah itu baru sinkronkan helper, Zod schema, dan mirror Drizzle bila perlu.
+1. **Local PostgreSQL/Drizzle is active.**
+   - New DB work should update Drizzle schema/migrations first.
+   - Historical Supabase migrations are reference only after local migration.
 
-2. **FSM is the only legal source for status transitions.**
-   - Semua transisi `dokumen_transaksi.status` harus memakai `src/lib/fsm.ts`.
-   - Tidak boleh ada update status manual tanpa reasoning yang setara dengan FSM.
-   - Jika ada state baru, update constants, types, tests, dan file ini.
+2. **FSM is the legal source for workflow transitions.**
+   - All normal `dokumen_transaksi.status` transitions must match `src/lib/fsm.ts`.
+   - Do not manually update status without FSM-equivalent reasoning and tests/docs.
+   - If adding a state, update constants, types, FSM, tests, badges/filters, and this file.
 
 3. **Audit trail is sacred.**
    - `log_aktivitas` append-only.
-   - Tidak boleh ada `UPDATE` atau `DELETE` ke tabel ini.
+   - No `UPDATE` or `DELETE` to `log_aktivitas`.
+   - Exception: the accepted scoped non-material `TERSIMPAN` document delete behavior may cascade logs only under the documented narrow conditions. Do not generalize it.
 
 4. **Zod at every boundary.**
-   - Input request, payload mutasi, dan response shape yang penting harus divalidasi oleh schema di `src/lib/schemas/`.
+   - Request input, mutation payloads, and important response shapes should be validated by schema in `src/lib/schemas/` or equivalent local schema modules.
 
 5. **No magic strings.**
-   - Route path gunakan constants di `src/lib/constants/routes.ts`
-   - Role gunakan constants di `src/lib/constants/roles.ts`
-   - Table name gunakan constants di `src/lib/constants/tables.ts` bila menyentuh shared code
+   - Route paths use constants in `src/lib/constants/routes.ts` where shared.
+   - Roles use constants in `src/lib/constants/roles.ts`.
+   - Statuses use constants in `src/lib/constants/document-status.ts`.
+   - Table names use constants in `src/lib/constants/tables.ts` when touching shared code.
 
 6. **Secrets only in env.**
-   - Tidak ada hardcoded secret di `src/`
-   - Gunakan `.env`
+   - No hardcoded secret in `src/`.
+   - Do not print env values, DB URLs, storage roots, password hashes, plaintext passwords, session tokens, cookie values, CSRF tokens, file tokens, signed file tokens, or physical paths.
 
 7. **Server is the authority for RBAC.**
-   - Client boleh menyembunyikan UI.
-   - Keputusan final akses harus diverifikasi di server handler atau helper server.
+   - Client may hide UI.
+   - Server handlers/helpers must make final access decisions.
 
 8. **Prefer server/API boundaries for new work.**
-   - Repo saat ini masih punya beberapa helper browser yang baca/tulis Supabase langsung.
-   - Untuk fitur baru, utamakan API route atau server helper kecuali ada alasan kuat mempertahankan pola lama.
+   - Do not add new browser-direct DB/storage access.
+   - Keep local filesystem access behind authorized API/server helpers.
 
 9. **Update docs before behavior changes.**
-   - Jika SOP atau workflow berubah, update dokumen terkait di `docs/` dan `AGENTS.md` sebelum atau bersamaan dengan kode.
+   - If SOP, workflow, security posture, deployment posture, or storage behavior changes, update related docs and this file before or with code.
 
 ---
 
 ## Behavioral Rules
 
-### 1. Auth dan Active Role
+### 1. Auth And Active Role
 
-- user login lewat Supabase Auth
-- role aktif disimpan di cookie `dms_active_role`
-- helper auth utama:
+- User login uses local auth and `dms_session`.
+- Active role is stored in cookie `dms_active_role`.
+- `dms_active_role` is readable UX state only.
+- Helper auth utama:
   - `src/lib/auth.ts`
   - `src/lib/auth-state.ts`
-- bootstrap auth client-side terjadi di `src/components/layout/AppLayout.tsx`
-- `ADMIN` tetap diperlakukan sebagai akun dedicated
+- `AppLayout` bootstraps client auth state through local session APIs.
+- `ADMIN` tetap diperlakukan sebagai akun dedicated.
 
 ### 2. Role Switcher
 
-- jika user punya lebih dari satu role, role bisa diganti dari header
-- route default per role ditentukan oleh:
+- If user has more than one non-admin role, role can be switched from header.
+- Route default per role is defined by:
   - `src/lib/constants/routes.ts`
   - `src/config/navigation.ts`
+- Role switch must be validated server-side against assigned roles.
 
 ### 3. Workflow Material
 
@@ -271,40 +373,100 @@ DRAFT
 -> ARCHIVED
 ```
 
-Penolakan:
+Rules:
 
-- PPK reject -> `NEED_REVISION` target `USER`
-- Bendahara reject -> `NEED_REVISION` target `PPK`
-- PPK dapat `KEMBALIKAN` dokumen revisi-target-PPK kembali ke Pegawai
+- Material documents may use `nominal_realisasi`.
+- PPK reject -> `NEED_REVISION`, `revision_target='USER'`.
+- Bendahara reject -> `NEED_REVISION`, `revision_target='PPK'`.
+- PPK `KEMBALIKAN` handles PPK-targeted revision back to Pegawai and must not be conflated with ordinary reject.
+- `current_step` is `PPK`, `BENDAHARA`, or `null`.
+- `revision_target` is `USER`, `PPK`, or `null`.
 
 ### 4. Workflow Non-Material
 
-Dokumen Non-Material saat ini mengikuti shortcut:
+Dokumen Non-Material mengikuti shortcut:
 
 ```text
 DRAFT -> TERSIMPAN
 ```
 
-Implikasi:
+Rules:
 
-- tidak masuk approval PPK/Bendahara
-- tetap disimpan sebagai dokumen transaksi
-- tetap bisa tampil di laporan tertentu
+- Does not enter PPK/Bendahara approval.
+- Remains stored as document transaction.
+- Can appear in selected reports.
+- Does not have `nominal_realisasi`.
+- `nominal_realisasi` must remain Material-only.
 
 ### 5. Arsip Flow
 
-Setelah dokumen `COMPLETED`:
+After document `COMPLETED`:
 
-- Arsiparis dapat mengarsipkan -> dokumen menjadi `ARCHIVED`, record `arsip` dibuat dengan `status_arsip='AKTIF'`
-- Arsiparis juga memiliki aksi skip di FSM, tetapi dokumen tetap `COMPLETED`
-- lifecycle lanjutan dikelola pada tabel `arsip`
+- Arsiparis can archive -> document becomes `ARCHIVED`, archive record is created with `status_arsip='AKTIF'`.
+- Arsiparis skip action in FSM keeps document `COMPLETED`.
+- Archive lifecycle continues on `arsip` table:
+
+```text
+AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+```
+
+Rules:
+
+- `arsip.lampiran_snapshot` stores attachment metadata snapshot.
+- `DIMUSNAHKAN` must block preview/download/file access.
+- Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
 ### 6. Ketua Tim
 
-- status ketua tim berasal dari `ketua_tim_assignments`
-- satu kegiatan hanya punya satu ketua tim aktif
-- user bisa menjadi ketua tim untuk banyak kegiatan
-- permission laporan kegiatan dan badge tertentu bergantung pada assignment ini
+- Ketua Tim status comes from `ketua_tim_assignments`.
+- One kegiatan has only one active ketua tim.
+- A user can be ketua tim for many kegiatan.
+- Laporan kegiatan permission and badges depend on this assignment.
+
+---
+
+## Storage And File Rules
+
+Local filesystem storage is active.
+
+Rules:
+
+- No Supabase Storage fallback.
+- No old Supabase data/file migration, copy, download, backfill, sync, or recovery.
+- Missing old files must fail cleanly.
+- Files live outside public/static serving.
+- Preview/download must go through authorized API routes.
+- File access must prevent path traversal and root escape.
+- File access must not expose physical storage path/root.
+- File access token internals must not be printed.
+- Referenced active document/archive files must be protected from cleanup.
+- `DIMUSNAHKAN` must block stale token/path access.
+- Admin diagnostics/cleanup should report logical paths and safe counts only.
+
+Path semantics:
+
+```text
+Pending:
+{userId}/{timestamp}-{random}-{filename.ext}
+
+Formal:
+{userId}/{dokumenId}/{uuid.ext}
+```
+
+Rules:
+
+- File upload may create pending paths.
+- Submit/resubmit/update movement must move pending files to formal paths where scoped.
+- `arsip.lampiran_snapshot` keeps snapshot metadata at archive time.
+- Download/preview must re-check current document/archive state.
+
+Helper sentral:
+
+- `src/lib/dokumen-helpers.ts`
+- `src/lib/storage-client.ts`
+- `src/lib/utils/file.ts`
+- `src/lib/file-helpers.ts`
+- `src/lib/storage/*`
 
 ---
 
@@ -313,99 +475,62 @@ Setelah dokumen `COMPLETED`:
 Struktur aktual repo yang relevan:
 
 ```text
-D:\GitHub\mvp\
-|-- AGENTS.md
-|-- task_plan.md
-|-- findings.md
-|-- progress.md
-|-- REFACTORING_PLAN.md
-|-- README.md
-|-- SETUP.md
-|-- docs/
-|   |-- routing-sop.md
-|   |-- src-architecture-summary.md
-|   |-- ringkasan_arsitektur.md
-|   |-- pnpm-best-practices.md
-|   |-- drizzle-zod-best-practices.md
-|   `-- specs/
-|-- supabase/
-|   |-- migrations/
-|   `-- functions/
-|       `-- arsip-retensi/
-|-- tests/
-|   |-- e2e/
-|   `-- unit/
-|-- src/
-|   |-- router.tsx
-|   |-- routeTree.gen.ts
-|   |-- styles.css
-|   |-- config/
-|   |   `-- navigation.ts
-|   |-- hooks/
-|   |-- components/
-|   |   |-- auth/
-|   |   |-- dashboard/
-|   |   |-- dokumen/
-|   |   |   `-- form/
-|   |   |-- laporan/
-|   |   |-- layout/
-|   |   `-- ui/
-|   |-- lib/
-|   |   |-- api-client.ts
-|   |   |-- api-mutation.ts
-|   |   |-- auth.ts
-|   |   |-- auth-state.ts
-|   |   |-- guards.ts
-|   |   |-- fsm.ts
-|   |   |-- dokumen-helpers.ts
-|   |   |-- storage-client.ts
-|   |   |-- user-helpers.ts
-|   |   |-- master-data.ts
-|   |   |-- master-data/
-|   |   |-- dokumen/
-|   |   |-- constants/
-|   |   |-- db/
-|   |   |-- schemas/
-|   |   |-- types/
-|   |   `-- utils/
-|   `-- routes/
-|       |-- __root.tsx
-|       |-- index.tsx
-|       |-- login.tsx
-|       |-- forbidden.tsx
-|       |-- profile.tsx
-|       |-- dokumen/
-|       |-- pegawai/
-|       |-- ppk/
-|       |-- bendahara/
-|       |-- arsiparis/
-|       |-- admin.tsx
-|       |-- admin.index.tsx
-|       |-- admin.master-data.*.tsx
-|       `-- api/
-|           |-- auth/
-|           |-- dokumen/
-|           |-- ppk/
-|           |-- bendahara/
-|           |-- arsiparis/
-|           |-- users/
-|           |-- ketua-tim/
-|           `-- admin/
-`-- .tmp/
+AGENTS.md
+docs/
+  migration/
+  specs/
+supabase/
+  migrations/
+  functions/
+tests/
+  e2e/
+  unit/
+src/
+  router.tsx
+  routeTree.gen.ts
+  styles.css
+  config/
+  db/
+  hooks/
+  components/
+  lib/
+    auth.ts
+    auth-state.ts
+    fsm.ts
+    constants/
+    db/
+    dokumen/
+    schemas/
+    storage/
+    types/
+    utils/
+  routes/
+    __root.tsx
+    index.tsx
+    login.tsx
+    forbidden.tsx
+    profile.tsx
+    dokumen/
+    pegawai/
+    ppk/
+    bendahara/
+    arsiparis/
+    admin.tsx
+    admin.index.tsx
+    admin.master-data.*.tsx
+    api/
 ```
 
 ### Route Notes
 
-- route root memakai `src/routes/__root.tsx` dengan `ssr: false`
-- `src/routes/dokumen/*` adalah jalur legacy/kompatibilitas menuju flow Pegawai
-- halaman admin memakai pola flat file:
-  - `admin.master-data.user.tsx`
-  - `admin.master-data.fungsi.tsx`
-  - dst
+- root route remains `src/routes/__root.tsx`.
+- `src/routes/dokumen/*` is legacy/compatibility path toward Pegawai flow.
+- admin pages use flat file pattern such as `admin.master-data.user.tsx`.
+- Do not modify `src/routeTree.gen.ts` unless the phase explicitly allows route generation.
 
 ---
 
-## Route and Ownership Map
+## Route And Ownership Map
 
 ### Pegawai
 
@@ -522,6 +647,7 @@ API utama:
 - `/api/master-fungsi*`
 - `/api/master-kegiatan*`
 - `/api/master-jenis*`
+- `/api/master-jenis-dokumen*`
 - `/api/master-kategori*`
 - `/api/master-detail*`
 - `/api/master-kelengkapan*`
@@ -546,106 +672,230 @@ Kalau menyentuh domain inti, baca file-file ini dulu:
 - `src/lib/dokumen/mutations.ts`
 - `src/lib/master-data.ts`
 - `src/lib/user-helpers.ts`
+- `src/lib/security/same-origin.ts`
+- `src/lib/storage/*`
 - `src/routes/api/dokumen/submit.ts`
 - `src/routes/api/dokumen.$id.ts`
 - `src/routes/api/ppk/dokumen/$id/approve.ts`
 - `src/routes/api/bendahara/dokumen/$id/approve.ts`
 - `src/routes/api/arsiparis/dokumen.$id.archive.ts`
+- `src/routes/api/files/access.ts`
+- `src/routes/api/admin/cleanup-orphan-files.ts`
 
 ---
 
-## Storage Patterns
+## Protected Files And Commands
 
-Pola path storage lampiran masih dua tahap:
+Hard rules:
 
-```text
-Pending:
-{userId}/{timestamp}-{random}-{filename.ext}
+- Do not modify `.env` or `.env.migration`.
+- Do not print secrets/env values, DB URLs, storage roots, password hashes, plaintext passwords, session tokens, cookie values, CSRF tokens, file tokens, signed file tokens, or physical paths.
+- Do not modify `src/routeTree.gen.ts` unless the phase explicitly allows route generation.
+- Do not modify `package.json` or `pnpm-lock.yaml` unless the phase explicitly allows package changes.
+- Do not modify DB/drizzle/supabase folders unless the phase explicitly allows it.
+- Do not run broad tests/build/E2E/DB scripts/route generation unless requested by the phase or human.
+- Do not run firewall/network commands.
+- Do not run backup/restore commands unless explicitly requested and scoped.
+- Do not run destructive storage cleanup unless explicitly requested and scoped.
+- Prefer lightweight audits and targeted tests.
+- Use `pnpm` only.
+- In PowerShell examples, quote paths containing `$`, for example `'src/routes/api/dokumen/$id/submit.ts'`.
 
-Formal:
-{userId}/{dokumenId}/{uuid.ext}
+Before documentation/governance edits that must stay isolated, run:
+
+```bash
+git status --short --branch
+git diff --check
+git diff --name-only
 ```
 
-Aturan:
+If unrelated changes exist, stop and report that they must be committed, stashed, reverted, or explicitly approved before continuing.
 
-- file boleh upload ke path pending
-- submit atau resubmit harus memindahkan file ke path formal
-- snapshot lampiran saat arsip disimpan di tabel `arsip.lampiran_snapshot`
-- akses preview/download harus memperhatikan arsip yang sudah `DIMUSNAHKAN`
+---
 
-Helper sentral:
+## Commit And Review Policy
 
-- `src/lib/dokumen-helpers.ts`
-- `src/lib/storage-client.ts`
-- `src/lib/utils/file.ts`
-- `src/lib/file-helpers.ts`
+Rules:
+
+- Do not commit unless the human explicitly asks.
+- Do not approve a commit from Codex summary alone.
+- Avoid `git add -A` unless all changes are confirmed in scope.
+- If changes are too broad or out of scope, suggest stash/revert rather than mixing scopes.
+- Never revert user changes unless explicitly requested.
+
+Minimum review checks before asking for commit approval:
+
+```bash
+git status --short --branch
+git diff --check
+git diff --name-only
+```
+
+Also check:
+
+- protected file diffs
+- relevant targeted diffs/tests
+- package diff if package files changed
+- route generation diff if routes changed
+- docs and constitution alignment if behavior changed
+
+Protected diff checks for migration/governance phases:
+
+```bash
+git diff -- .env .env.migration
+git diff -- src
+git diff -- tests
+git diff -- package.json pnpm-lock.yaml
+git diff -- src/routeTree.gen.ts
+git diff -- db
+git diff -- drizzle
+git diff -- supabase
+```
 
 ---
 
 ## Testing Expectations
 
-Sebelum menganggap perubahan aman:
+Default:
 
-- jalankan unit test yang relevan dengan `pnpm test`
-- untuk perubahan workflow atau auth utama, prioritaskan cek:
-  - `tests/fsm.test.ts`
-  - `tests/e2e/submit-flow.spec.ts`
-  - `tests/e2e/approval-flow.spec.ts`
-  - `tests/e2e/spec-06-user-management.spec.ts`
+- Prefer smallest relevant tests first.
+- For workflow/auth/storage changes, run targeted unit/API checks where available.
+- Do not run broad tests/build/E2E unless the phase or human requests it.
+- If tests are not run, state that explicitly.
 
-Jika tidak sempat menjalankan test, nyatakan secara eksplisit.
+Relevant checks by area:
+
+- FSM/workflow: `tests/fsm.test.ts`
+- submit flow: `tests/e2e/submit-flow.spec.ts` when explicitly requested
+- approval flow: `tests/e2e/approval-flow.spec.ts` when explicitly requested
+- user management: `tests/e2e/spec-06-user-management.spec.ts` when explicitly requested
+- storage/file helpers: targeted unit tests under `tests/unit/storage/`
+
+---
+
+## Wording Policy
+
+Forbidden unless explicitly proven and human-approved:
+
+- `production ready`
+- `go-live approved`
+- `go live approved`
+- `fully secure`
+- `Supabase fully removed from repository`
+- `fully removed from repository`
+- `LAN ready` as an absolute phrase
+
+Preferred wording:
+
+- `partial/bounded release handoff`
+- `human-controlled internal handoff`
+- `active Supabase runtime/package dependency retired`
+- `historical Supabase artifacts remain`
+- `implemented pending human retest`
+- `implemented and human-smoked`
+- `trusted HTTP LAN is bounded/internal only`
+- `HTTPS plus Secure dms_session remains preferred final posture`
+
+When describing 11H.3:
+
+- Say what is allowed: bounded human-controlled internal/local/LAN handoff.
+- Say what is not approved: public production, public internet exposure, go-live, operational certification, security certification, full Supabase repository removal.
 
 ---
 
 ## Practical Rules For Future Changes
 
-1. Jika menambah tabel baru:
-   - buat migration Supabase
-   - update AGENTS ini
-   - update Zod schema/helper yang terdampak
-   - mirror ke Drizzle bila tabel itu memang perlu dipakai dari layer tersebut
+1. If adding/changing DB schema:
+   - Update Drizzle schema/migrations first.
+   - Update docs and this file if behavior/governance changes.
+   - Update Zod schema/helper/API logic.
+   - Keep historical Supabase migrations as reference only unless a phase explicitly says otherwise.
 
-2. Jika menambah status baru:
-   - update `src/lib/constants/document-status.ts`
-   - update `src/lib/fsm.ts`
-   - update test FSM
-   - update page badge/filter yang bergantung pada status
-   - update file ini
+2. If adding/changing status:
+   - Update `src/lib/constants/document-status.ts`.
+   - Update `src/lib/fsm.ts`.
+   - Update FSM tests.
+   - Update badges/filters/pages that depend on status.
+   - Update this file.
 
-3. Jika mengubah route:
-   - update `src/lib/constants/routes.ts`
-   - update `src/config/navigation.ts`
-   - update legacy redirect bila masih perlu backward compatibility
-   - update file ini
+3. If changing routes:
+   - Update `src/lib/constants/routes.ts`.
+   - Update `src/config/navigation.ts`.
+   - Update legacy redirect/compatibility if needed.
+   - Regenerate `src/routeTree.gen.ts` only when phase explicitly allows route generation.
+   - Update this file.
 
-4. Jika mengubah arsip lifecycle:
-   - cek migration dan function `supabase/functions/arsip-retensi/index.ts`
-   - cek endpoint aktif/inaktif/usul-musnah
-   - cek behavior download preview setelah musnah
+4. If changing archive lifecycle:
+   - Check active archive endpoints.
+   - Check file-access behavior after `DIMUSNAHKAN`.
+   - Check `arsip.lampiran_snapshot` preservation/destruction semantics.
+   - Update docs and this file.
 
-5. Jika mengubah auth atau role resolution:
-   - cek `AppLayout`
-   - cek `auth.ts`
-   - cek `user_status`
-   - cek API role checks
+5. If changing auth/role resolution:
+   - Check `AppLayout`.
+   - Check `auth.ts`.
+   - Check local session helpers.
+   - Check server API role checks.
+   - Preserve `dms_session` as auth boundary and `dms_active_role` as UX-only.
+
+6. If changing storage/file access:
+   - Preserve no static public storage serving.
+   - Preserve no Supabase Storage fallback.
+   - Revalidate authorization and current archive state.
+   - Block `DIMUSNAHKAN`.
+   - Avoid physical path/root/token leakage.
+
+---
+
+## Next Workstreams
+
+Allowed future directions, each as separate scoped work:
+
+- New product feature development after the post-migration handoff boundary is respected.
+- Maintenance hardening:
+  - HTTPS plus `Secure` cookie final posture
+  - reverse proxy
+  - persistent/distributed rate-limit
+  - login audit/alerting
+  - full CSRF token framework if deployment expands
+  - broader throttling for upload/workflow/archive/admin/file-token routes
+  - E2E and regression automation
+- Historical Supabase cleanup:
+  - `.env.example` Supabase key names
+  - stale tests
+  - old comments/type residue
+  - docs wording
+  - `supabase/` retention/removal policy
+- Operations:
+  - backup schedule and retention
+  - periodic restore rehearsal
+  - final HTTPS/certificate/reverse-proxy decision
+  - archive scheduler replacement
+
+Do not mix these workstreams unless the human explicitly approves a combined phase.
 
 ---
 
 ## Status
 
-- Last updated: 2026-05-12
-- App mode: Active development
-- Architecture mode: TanStack Start SPA-heavy with Supabase-backed server routes
-- Constitution accuracy target: synced to current repo structure and implemented features
+- Last updated: 2026-05-22
+- App mode: Active development after local migration
+- Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
+- Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
+- Supabase mode: active runtime/package dependency retired; historical artifacts remain
+- Constitution accuracy target: synced to post-11H.3 migration state and implemented features
+
+---
 
 ## graphify
 
 This project may have a Graphify knowledge graph at `graphify-out/`.
 
 Rules:
+
 - If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture/codebase exploration.
 - If `graphify-out/wiki/index.md` exists, use it as the first navigation map before reading many raw source files.
 - For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` when `graphify-out/graph.json` exists.
 - If Graphify output does not exist or is stale, fall back to targeted `git grep`, direct file reads, and the project roadmap/constitution.
 - Do not treat Graphify as the sole authority for security-sensitive work. Verify auth, RBAC, storage, workflow, and file-access behavior directly in source files before making changes.
-- After modifying code files in a Graphify-enabled session, run `graphify update .` when practical to keep the graph current.
+- After modifying code files in a Graphify-enabled session, run `graphify update .` when practical to keep the graph current. Documentation-only changes do not require Graphify update unless the human requests it.
