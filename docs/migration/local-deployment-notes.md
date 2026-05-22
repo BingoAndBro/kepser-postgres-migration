@@ -126,7 +126,7 @@ Phase 11G.5 reviewed the local cookie-auth posture for trusted LAN deployment:
 Before wider browser-accessible rollout, deployment planning must include:
 
 - explicit CSRF/origin strategy for cookie-authenticated state-changing routes;
-- app-layer login brute-force/rate-limit protection, with reverse-proxy limits only as defense in depth;
+- app-layer login brute-force/rate-limit protection is implemented as a local single-process in-memory foundation in Phase 11H.2b; reverse-proxy and/or persistent limits remain future hardening if the final topology needs distributed or restart-persistent throttling;
 - POST-only or strongly guarded destructive admin cleanup;
 - status-aware or narrowed raw logical-path file-access compatibility so `DIMUSNAHKAN` archive access blocking cannot be bypassed.
 

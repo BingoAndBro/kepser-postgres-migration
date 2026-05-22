@@ -2,7 +2,7 @@
 
 Date prepared: 2026-05-21.
 
-Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit recorded in `docs/migration/phase-11h-final-supabase-audit.md` and the 11H.2 P1 security gate decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2c and 11H.2d are implemented pending human retest; CSRF/origin and login rate-limit decisions remain pending. This document does not make a final release decision, does not approve go-live, does not claim production readiness, and does not claim LAN readiness.
+Status: planning complete for 11H.0, with 11H.1 Supabase retirement audit recorded in `docs/migration/phase-11h-final-supabase-audit.md` and the 11H.2 P1 security gate decision framework recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. Phase 11H.2b, 11H.2c, and 11H.2d are implemented pending human retest; CSRF/origin remains pending. This document does not make a final release decision, does not approve go-live, does not claim production readiness, and does not claim LAN readiness.
 
 The local target remains:
 
@@ -110,7 +110,7 @@ No P1 gate is downgraded by 11H.0. If the human accepts bounded risk, the final 
 11H.0 carries forward these 11G.5/11G.6 P1 gates unchanged:
 
 - CSRF/origin strategy for cookie-authenticated state-changing routes.
-- Login rate-limit/brute-force foundation.
+- Login rate-limit/brute-force foundation. 11H.2b is implemented pending human retest with an in-memory local-process limiter.
 - Destructive admin cleanup hardening because destructive cleanup could be GET-triggered by query flags. 11H.2c is implemented pending human retest.
 - Raw logical-path file-access narrowing or status revalidation so `DIMUSNAHKAN` access blocking cannot be bypassed.
 
@@ -151,10 +151,10 @@ This classification means only that gate planning is ready for human review and 
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
+Phase 11H.2a - CSRF/Origin Protection Follow-up
 ```
 
-Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. 11H.2 then recorded the human-controlled P1 security decision framework. The human selected incremental implementation; 11H.2c has implemented destructive admin cleanup hardening pending human retest, and 11H.2d has implemented raw logical-path file-access hardening pending human retest. The next recommended phase is 11H.2b unless a blocker remains in 11H.2c or 11H.2d retest. This is not a release readiness claim.
+Rationale: 11H.1 found no active runtime/package Supabase blocker and classified remaining Supabase references as historical, cleanup backlog, human-controlled env handling, or `supabase/` traceability artifacts. 11H.2 then recorded the human-controlled P1 security decision framework. The human selected incremental implementation; 11H.2b has implemented login rate-limit/brute-force protection pending human retest, 11H.2c has implemented destructive admin cleanup hardening pending human retest, and 11H.2d has implemented raw logical-path file-access hardening pending human retest. The next recommended phase is 11H.2a unless a blocker remains in 11H.2b, 11H.2c, or 11H.2d retest. This is not a release readiness claim.
 
 ## Phase 11H.1 Audit Result
 
@@ -172,10 +172,10 @@ Supabase is retired from active runtime/package dependency; historical docs and 
 
 Remaining cleanup backlog includes source comments/type-only residue, `.env.example` Supabase key names, stale historical docs/spec wording, stale E2E expectations, and the human retention policy for `supabase/` historical artifacts. These are not active runtime/package blockers.
 
-P1 gates remain unresolved except for 11H.2c implementation pending human retest:
+P1 gates remain unresolved except for 11H.2b, 11H.2c, and 11H.2d implementation pending human retest:
 
 - CSRF/origin strategy;
-- login rate-limit/brute-force foundation;
+- login rate-limit/brute-force foundation implemented pending human retest;
 - destructive admin cleanup hardening implemented pending human retest;
 - raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN` implemented pending human retest.
 
@@ -190,7 +190,7 @@ Dedicated decision record:
 11H.2 classification:
 
 ```text
-decision framework recorded, 11H.2c and 11H.2d implemented pending human retest, CSRF/origin and login rate-limit decisions pending
+decision framework recorded, 11H.2b/11H.2c/11H.2d implemented pending human retest, CSRF/origin decision pending
 ```
 
 Current human decision status:
@@ -198,8 +198,8 @@ Current human decision status:
 | P1 gate | Current human decision | Release classification impact |
 |---|---|---|
 | CSRF/origin strategy | decision pending | Final readiness remains unresolved while pending. |
-| Login rate-limit/brute-force foundation | decision pending | Final readiness remains unresolved while pending. |
+| Login rate-limit/brute-force foundation | implementation selected and implemented pending human retest | Final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 | Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 | Raw logical-path file-access hardening | implementation selected and implemented pending human retest | Final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 
-11H.2c implemented runtime hardening only for destructive admin cleanup, and 11H.2d implemented runtime hardening only for raw logical-path file access. 11H.2 did not accept bounded risk, did not downgrade P1 items, and did not make a final readiness decision. The preferred final posture remains HTTPS plus `Secure` `dms_session` cookies. Trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval.
+11H.2b implemented runtime hardening only for login rate-limit/brute-force protection, 11H.2c implemented runtime hardening only for destructive admin cleanup, and 11H.2d implemented runtime hardening only for raw logical-path file access. 11H.2 did not accept bounded risk, did not downgrade P1 items, and did not make a final readiness decision. The preferred final posture remains HTTPS plus `Secure` `dms_session` cookies. Trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval.

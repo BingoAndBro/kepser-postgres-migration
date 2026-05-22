@@ -151,7 +151,7 @@ Implications:
 Phase 11G.5 records these constraints for any serious/final browser-accessible deployment:
 
 - Cookie-authenticated state-changing routes need explicit CSRF/origin protection; `SameSite=Lax` alone is not sufficient as the final story.
-- Login needs app-layer brute-force/rate-limit protection. Reverse proxy, firewall, Docker, and trusted-LAN placement may reduce exposure but must not be the only control for final deployment.
+- Login has a Phase 11H.2b app-layer brute-force/rate-limit foundation using in-memory local-process tracking. Reverse proxy, firewall, Docker, and trusted-LAN placement may reduce exposure, but final deployment should decide whether restart-persistent or distributed throttling is required.
 - Destructive admin cleanup must not rely on GET query flags without strong origin/CSRF protection.
 - Raw logical-path preview/download compatibility must be narrowed or status-aware before final rollout so archive `DIMUSNAHKAN` access blocking remains authoritative.
 - HTTPS plus `Secure` session cookies is the preferred final posture.

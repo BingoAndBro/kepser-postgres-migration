@@ -12,7 +12,7 @@ Current active area after Phase 10F is Phase 11 global cleanup, regression, and 
 
 Phase 11G.5 status update: the current recommended phase is now `11G.6 - Operations Rollback And Release Handoff`. Phase 11G.5 is recorded in `docs/migration/phase-11g-security-review.md` and supersedes the stale 11G.4 follow-up note in the long current-area recap above.
 
-Phase 11H.2d status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records that the human selected incremental P1 implementation and Phase 11H.2c Destructive Admin Cleanup Hardening plus Phase 11H.2d Raw Logical-Path File Access Hardening were implemented pending human retest. GET cleanup is now dry-run/report-only and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`; pending deletion still requires `include_pending=true` and age eligibility. Raw logical-path preview/download and `/api/files/access` now revalidate current document/archive references and block `DIMUSNAHKAN` at token-use time. CSRF/origin and login rate-limit/brute-force P1 decisions remain pending. The next recommended phase is `Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up` unless a blocker remains in 11H.2c/11H.2d retest, not 11H.3.
+Phase 11H.2b status update: `docs/migration/phase-11h-p1-security-gate-decision.md` records that the human selected incremental P1 implementation and Phase 11H.2b Login Rate-Limit/Brute-Force Follow-up, Phase 11H.2c Destructive Admin Cleanup Hardening, and Phase 11H.2d Raw Logical-Path File Access Hardening were implemented pending human retest. Login now has an in-memory local-process limiter with 5 failed attempts per normalized identifier/IP key in 10 minutes and a 15-minute cooldown. GET cleanup is dry-run/report-only and destructive cleanup requires POST body `dry_run=false` plus `confirm=true`; pending deletion still requires `include_pending=true` and age eligibility. Raw logical-path preview/download and `/api/files/access` revalidate current document/archive references and block `DIMUSNAHKAN` at token-use time. CSRF/origin remains pending. The next recommended phase is `Phase 11H.2a - CSRF/Origin Protection Follow-up` unless a blocker remains in 11H.2b/11H.2c/11H.2d retest, not 11H.3.
 
 Phase 11F.5d.1 is inserted as the follow-up storage stabilization item after 11F.5d. Phase 11F.5d.2 is inserted after 11F.5d.1 for admin storage orphan cleanup diagnostics hardening. These inserted storage items do not renumber the already shifted 11F.5e/11F.5f/11F.5g backlog and do not claim those later subphases are complete.
 
@@ -5038,23 +5038,23 @@ Current human decision status:
 | P1 gate | Current human decision | Implementation phase if selected |
 |---|---|---|
 | CSRF/origin strategy | decision pending | 11H.2a |
-| Login rate-limit/brute-force foundation | decision pending | 11H.2b |
+| Login rate-limit/brute-force foundation | implementation selected and implemented pending human retest | 11H.2b |
 | Destructive admin cleanup hardening | implementation selected and implemented pending human retest | 11H.2c |
 | Raw logical-path file-access hardening | implementation selected and implemented pending human retest | 11H.2d |
 
-11H.2c implements runtime hardening only for destructive admin cleanup, and 11H.2d implements runtime hardening only for raw logical-path file access. 11H.2 does not accept bounded risk, does not downgrade P1 items, and does not make a final readiness decision. Decision pending for the remaining CSRF/origin and login rate-limit P1 items is not temporary approval.
+11H.2b implements runtime hardening only for login rate-limit/brute-force protection, 11H.2c implements runtime hardening only for destructive admin cleanup, and 11H.2d implements runtime hardening only for raw logical-path file access. 11H.2 does not accept bounded risk, does not downgrade P1 items, and does not make a final readiness decision. Decision pending for the remaining CSRF/origin P1 item is not temporary approval.
 
 Release classification impact:
 
 - final release handoff classification remains unresolved;
-- 11H.3 should not proceed as a final readiness approval step while P1 decisions remain pending or 11H.2c/11H.2d human retests remain unreviewed;
+- 11H.3 should not proceed as a final readiness approval step while P1 decisions remain pending or 11H.2b/11H.2c/11H.2d human retests remain unreviewed;
 - trusted HTTP LAN remains bounded/internal only and is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
 
 Next recommended phase:
 
 ```text
-Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
+Phase 11H.2a - CSRF/Origin Protection Follow-up
 ```
 
 ## Validation Gates

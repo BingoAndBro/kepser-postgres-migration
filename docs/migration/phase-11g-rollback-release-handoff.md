@@ -176,7 +176,7 @@ Use this before Phase 11H or before any rollback rehearsal.
 These are not implicitly accepted by 11G.6 documentation.
 
 - CSRF/origin strategy for cookie-authenticated state-changing routes.
-- Login rate-limit/brute-force foundation.
+- Login rate-limit/brute-force foundation. Phase 11H.2b is implemented pending human retest.
 - Destructive admin cleanup hardening. Phase 11H.2c is implemented pending human retest.
 - Raw logical-path file-access narrowing or status revalidation for `DIMUSNAHKAN`. Phase 11H.2d is implemented pending human retest.
 
@@ -220,13 +220,13 @@ Carry-forward P1 items from 11G.5:
 | P1 item | Current state | 11H gate |
 |---|---|---|
 | CSRF/origin strategy | Not implemented in 11G.5/11G.6 | Implement, explicitly accept trusted bounded constraints, or defer with written risk acceptance. |
-| Login rate-limit/brute-force foundation | Not implemented in 11G.5/11G.6 | Implement app-layer protection or document why constrained deployment accepts the risk. |
+| Login rate-limit/brute-force foundation | Phase 11H.2b implemented an in-memory local-process limiter pending human retest | Review human retest before final classification; consider reverse-proxy or persistent/distributed limits later if final topology requires them. |
 | Destructive admin cleanup hardening | Phase 11H.2c implemented POST-only destructive cleanup pending human retest | Review human retest before final classification; do not treat this as app-wide CSRF/origin completion. |
 | Raw logical-path file-access narrowing/status revalidation | Phase 11H.2d implemented status-aware raw logical-path access pending human retest | Review human retest before final classification; stale raw tokens must remain blocked after `DIMUSNAHKAN`. |
 
 P1 findings must not be downgraded to P2/P3 merely because rollback documentation is complete.
 
-Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. The human selected Phase 11H.2c for implementation, and destructive admin cleanup hardening is implemented pending human retest. No P1 item was accepted as bounded risk, downgraded, or used to make a final readiness decision.
+Forward status: Phase 11H.2 is now recorded in `docs/migration/phase-11h-p1-security-gate-decision.md`. The human selected incremental implementation: Phase 11H.2b login rate-limit/brute-force protection, Phase 11H.2c destructive admin cleanup hardening, and Phase 11H.2d raw logical-path file-access hardening are implemented pending human retest. No P1 item was accepted as bounded risk, downgraded, or used to make a final readiness decision.
 
 ## Supabase Retirement Handoff
 
@@ -284,12 +284,12 @@ Classify as `partial` later if evidence is found incomplete or P1 decisions are 
 ## Next Phase
 
 ```text
-Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
+Phase 11H.2a - CSRF/Origin Protection Follow-up
 ```
 
-unless a blocker remains in 11H.2c or 11H.2d human retest.
+unless a blocker remains in 11H.2b, 11H.2c, or 11H.2d human retest.
 
-11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2/11H.2c/11H.2d is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as destructive cleanup and raw logical-path file-access hardening implemented pending retest with CSRF/origin and login rate-limit decisions pending. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the remaining P1 security findings with bounded deployment constraints and written risk acceptance.
+11H remains human-controlled. 11H.0 is recorded in `docs/migration/phase-11h-final-readiness-plan.md` as planning and matrix creation only, and 11H.2/11H.2b/11H.2c/11H.2d is recorded in `docs/migration/phase-11h-p1-security-gate-decision.md` as login rate-limit/brute-force protection, destructive cleanup, and raw logical-path file-access hardening implemented pending retest with CSRF/origin still pending. Neither phase is automatically approved by 11G.6, and neither makes the final release decision. Later 11H phases must address, explicitly accept, defer, or block on the remaining P1 security findings with bounded deployment constraints and written risk acceptance.
 
 ## Evidence Handling Rules
 
