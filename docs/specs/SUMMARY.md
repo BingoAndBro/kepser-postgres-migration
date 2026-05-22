@@ -39,7 +39,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 | 06 | User Management | `docs/specs/06-user-management/spec.md` | 🔄 Draft |
 | 07 | Chairman Assignment | `docs/specs/07-chairman-assignment/spec.md` | 📋 Planning |
 | 08A | Nominal Realisasi Foundation | `docs/specs/08A-nominal-realisasi/spec.md` | ✅ Done |
-| 08B | Penambahan Arsip (Kepala Sub Bagian Umum) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Planning |
+| 08B | Penambahan Arsip (Kepala Sub Bagian Umum) | `docs/specs/08B-penambahan-arsip/spec.md` | 📋 Schema foundation added in Phase 12G |
 | 08D | Export Excel & Agregasi | `docs/specs/08D-export-excel/spec.md` | 📋 Planning |
 | 08E | Penanggung Jawab Kinerja (Role) | `docs/specs/08E-penanggung-jawab-kinerja/spec.md` | 📋 Planning |
 
@@ -135,10 +135,14 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Fondasi untuk seluruh fitur 08B-08E
 
 ### 08B — Penambahan Arsip (Kepala Sub Bagian Umum)
-- CRUD master kategori dokumen arsip (Pemeliharaan, Pengadaan, dll)
-- Form tambah arsip manual (kategori, nama, tanggal, keterangan WAJIB, nominal WAJIB, bukti opsional, klasifikasi)
-- Arsip langsung AKTIF tanpa approval
-- Update tabel `arsip` dengan `kategori_id` dan `is_manual_entry`
+- Phase 12G adds separate schema foundation: `arsip.manual_arsip_category`, `arsip.manual_arsip`, and `arsip.manual_arsip_attachment`
+- Manual archive is separate from workflow documents and does not depend on `dokumen_transaksi`
+- Category is separate from `master_klasifikasi_arsip`; classification hierarchy remains in `master_klasifikasi_arsip`
+- Form/API/UI remain future work; no runtime upload, preview/download, lifecycle action route, aggregate report, or Excel export is implemented by Phase 12G
+- File attachment is optional; schema supports many attachments while later UI may start with one optional file
+- `keterangan` is required; `nominal_realisasi` is nullable in DB, with API/UI requiredness pending business confirmation
+- Manual archive uses archive lifecycle values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`; future file access must block `DIMUSNAHKAN`
+- Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 
 ### 08D — Export Excel & Agregasi

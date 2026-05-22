@@ -40,6 +40,7 @@ Referensi utama:
 - `docs/migration/deployment-target-contract.md`
 - `docs/migration/local-deployment-notes.md`
 - `docs/migration/open-decisions.md`
+- `docs/migration/phase-12g-manual-archive-schema.md`
 
 ---
 
@@ -301,6 +302,9 @@ Arsip:
 - `arsip.arsip`
 - `arsip.master_klasifikasi_arsip`
 - `arsip.arsip_usul_musnah`
+- `arsip.manual_arsip_category`
+- `arsip.manual_arsip`
+- `arsip.manual_arsip_attachment`
 
 ### Schema Rules
 
@@ -310,6 +314,12 @@ Arsip:
 - Non-Material documents do not have `nominal_realisasi`.
 - `arsip.lampiran_snapshot` stores attachment metadata snapshot.
 - `log_aktivitas` is append-only by contract.
+- Manual archive for Penambahan Arsip uses separate tables and must not be forced into `dokumen_transaksi`.
+- `manual_arsip_category` is separate from `master_klasifikasi_arsip`; `master_klasifikasi_arsip` remains the archival classification hierarchy.
+- One `manual_arsip` parent row represents one report/archive record. `manual_arsip_attachment` child rows must not be counted as additional reports in future aggregates.
+- Manual archive attachments are optional, and the schema supports many attachments per parent row.
+- `manual_arsip.nominal_realisasi` is nullable at the DB layer; future API/UI may enforce requiredness only after business confirmation.
+- Manual archive file paths are logical storage paths only, never physical filesystem paths or storage roots.
 
 ---
 
@@ -431,6 +441,29 @@ Rules:
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
+### 5A. Manual Archive / Penambahan Arsip
+
+Manual archive uses separate tables:
+
+- `arsip.manual_arsip_category`
+- `arsip.manual_arsip`
+- `arsip.manual_arsip_attachment`
+
+Rules:
+
+- Manual archive does not depend on `dokumen_transaksi`.
+- Manual archive does not extend workflow-coupled `arsip.arsip` as its primary model.
+- Manual archive category is separate from `master_klasifikasi_arsip`.
+- Initial canonical categories are `Pemeliharaan`, `Pengadaan`, and `Lain-lain`.
+- `keterangan` is required.
+- `nominal_realisasi` is nullable in the database for flexibility; API/UI requiredness remains a future business-rule decision.
+- File attachment is optional, and one parent row may have many attachment child rows.
+- One `manual_arsip` parent row counts as one report regardless of attachment count.
+- Lifecycle values are `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
+- Phase 12G adds schema/data-model foundation only. Do not add runtime UI/API/upload/preview/download/lifecycle/export behavior unless a future phase explicitly scopes it.
+- Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
+- Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
+
 ### 6. Ketua Tim
 
 - Ketua Tim status comes from `ketua_tim_assignments`.
@@ -492,6 +525,14 @@ Helper sentral:
 - `src/lib/file-helpers.ts`
 - `src/lib/storage/*`
 
+Manual archive attachments:
+
+- Store logical storage paths in `arsip.manual_arsip_attachment.logical_path`.
+- Do not store physical storage paths or roots.
+- Do not add public/static serving.
+- Do not add Supabase Storage fallback or old file/data recovery.
+- Future preview/download must re-check authorization and current manual archive lifecycle state.
+
 ---
 
 ## Canonical File Structure
@@ -545,6 +586,11 @@ src/
     admin.master-data.*.tsx
     api/
 ```
+
+Manual archive schema files:
+
+- `src/db/schema/arsip/manual-arsip.ts`
+- `drizzle/0003_manual_archive_schema.sql`
 
 ### Route Notes
 
