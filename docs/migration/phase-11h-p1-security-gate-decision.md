@@ -2,9 +2,9 @@
 
 Date prepared: 2026-05-21.
 
-Status: decision framework recorded; login rate-limit/brute-force foundation implemented pending human retest; destructive admin cleanup hardening implemented pending human retest; raw logical-path file-access hardening implemented pending human retest; CSRF/origin decision pending.
+Status: decision framework recorded; CSRF/origin protection implemented pending human retest; login rate-limit/brute-force foundation implemented pending human retest; destructive admin cleanup hardening implemented pending human retest; raw logical-path file-access hardening implemented pending human retest.
 
-This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2b now implements the selected login rate-limit/brute-force foundation, Phase 11H.2c implements the selected destructive admin cleanup hardening, and Phase 11H.2d implements the selected raw logical-path file-access hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
+This phase records the human-controlled decision framework for unresolved P1 security gates carried from Phase 11G.5 and Phase 11G.6. Phase 11H.2a now implements the selected CSRF/origin protection foundation, Phase 11H.2b implements the selected login rate-limit/brute-force foundation, Phase 11H.2c implements the selected destructive admin cleanup hardening, and Phase 11H.2d implements the selected raw logical-path file-access hardening. This document still does not accept any P1 risk by omission, does not downgrade any P1 item, and does not make a final release handoff decision.
 
 The local target remains:
 
@@ -32,7 +32,7 @@ Not allowed in the original framework-only 11H.2 record:
 - no runtime source, test, package, env, DB, Drizzle, Supabase folder, route-generation, firewall/network, backup/restore, storage cleanup, or commit changes;
 - no final readiness, production readiness, LAN readiness, release readiness, operational certification, or go-live approval claim.
 
-Phase 11H.2b, Phase 11H.2c, and Phase 11H.2d are the human-selected runtime follow-up exceptions for login rate-limit/brute-force protection, destructive admin cleanup hardening, and raw logical-path file-access hardening. They do not authorize unrelated runtime changes or the remaining CSRF/origin P1 implementation.
+Phase 11H.2a, Phase 11H.2b, Phase 11H.2c, and Phase 11H.2d are the human-selected runtime follow-up exceptions for CSRF/origin protection, login rate-limit/brute-force protection, destructive admin cleanup hardening, and raw logical-path file-access hardening. They do not authorize unrelated runtime changes.
 
 ## Decision Policy
 
@@ -40,37 +40,44 @@ Accepted bounded risk requires explicit human-reviewed operational risk acceptan
 
 If a P1 item is accepted as bounded risk, the exact deployment boundary must be stated. Trusted HTTP LAN means internal trusted clients only, no public internet exposure, no broader rollout approval, and no reuse as a public deployment posture. Preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
 
-Phase 11H.2 initially recorded no explicit human disposition for the four P1 items. On 2026-05-21, the human selected incremental P1 implementation and chose Phase 11H.2c Destructive Admin Cleanup Hardening as the first follow-up, then selected Phase 11H.2d Raw Logical-Path File Access Hardening, then selected Phase 11H.2b Login Rate-Limit/Brute-Force Follow-up.
+Phase 11H.2 initially recorded no explicit human disposition for the four P1 items. On 2026-05-21, the human selected incremental P1 implementation and chose Phase 11H.2c Destructive Admin Cleanup Hardening as the first follow-up, then selected Phase 11H.2d Raw Logical-Path File Access Hardening, then selected Phase 11H.2b Login Rate-Limit/Brute-Force Follow-up. On 2026-05-22, the human selected Phase 11H.2a CSRF/Origin Protection Follow-up.
 
-The unresolved CSRF/origin P1 item stays:
-
-```text
-decision pending
-```
-
-The login rate-limit, destructive admin cleanup, and raw logical-path file-access items are now:
+The CSRF/origin, login rate-limit, destructive admin cleanup, and raw logical-path file-access items are now:
 
 ```text
 implementation selected and implemented pending human retest
 ```
 
-Decision pending preserves release ambiguity for the remaining CSRF/origin P1 item. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
+This preserves final release ambiguity until human retest is reviewed and final 11H classification is explicitly requested. It is not temporary approval and does not authorize 11H.3 as a final handoff classification.
 
 ## P1 Decision Matrix
 
 | P1 item | Current human decision | Required next phase if implementation is selected | Release classification impact |
 |---|---|---|---|
-| CSRF/origin strategy | decision pending | Phase 11H.2a - CSRF/Origin Protection Follow-up | Final readiness remains unresolved while pending. |
+| CSRF/origin strategy | implementation selected and implemented pending human retest | Phase 11H.2a - CSRF/Origin Protection Follow-up | Implementation is present but final readiness remains unresolved until human retest is reviewed and final classification decisions are explicit. |
 | Login rate-limit/brute-force foundation | implementation selected and implemented pending human retest | Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 | Destructive admin cleanup hardening | implementation selected and implemented pending human retest | Phase 11H.2c - Destructive Admin Cleanup Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 | Raw logical-path file-access hardening | implementation selected and implemented pending human retest | Phase 11H.2d - Raw Logical-Path File Access Hardening | Implementation is present but final readiness remains unresolved until human retest is reviewed and remaining P1 gates are resolved or explicitly accepted/deferred. |
 
 ## 1. CSRF/Origin Strategy
 
-Current issue:
+Previous issue:
 
 - No app-wide CSRF token or explicit `Origin`/`Referer` validation was found in 11G.5.
-- Cookie-authenticated state-changing routes rely on `SameSite=Lax`, method restrictions, validation, session/RBAC revalidation, and status/owner checks.
+- Cookie-authenticated state-changing routes relied on `SameSite=Lax`, method restrictions, validation, session/RBAC revalidation, and status/owner checks.
+
+11H.2a implementation status:
+
+- `src/lib/security/same-origin.ts` adds a centralized server-only unsafe-method guard.
+- Unsafe methods are `POST`, `PUT`, `PATCH`, and `DELETE`.
+- Safe methods `GET`, `HEAD`, and `OPTIONS` are not blocked only because `Origin` is absent; this assumes those routes remain non-mutating.
+- For unsafe requests, `Origin` must match an allowed same-origin expectation. Allowed origins are derived from `request.url`, valid server-side `APP_URL` when configured, `X-Forwarded-Host` plus `X-Forwarded-Proto` when present, and `Host` with the request URL protocol.
+- If `Origin` is absent, `Referer` is accepted only when it parses to one of the allowed origins.
+- Unsafe requests with cross-origin `Origin`, invalid `Origin`, cross-origin `Referer`, or missing both `Origin` and `Referer` return generic `403 { "error": "Permintaan tidak diizinkan" }`.
+- The guard is applied to all currently inventoried unsafe handlers under `src/routes/api/**`, including login, logout, role switch, password change, document mutations, upload/pending cleanup, PPK/Bendahara workflow mutations, Arsiparis archive/lifecycle/destructive mutations, admin/master-data/user/Ketua Tim mutations, and admin cleanup.
+- `POST /api/auth/login` is protected because it creates a session and can otherwise support login-CSRF/session-confusion abuse.
+- No CSRF token framework, package dependency, DB schema change, route generation, Supabase fallback, or auth/RBAC redesign was added.
+- Strict missing-header rejection is a deliberate foundation choice. Some non-browser tools or privacy configurations that omit both `Origin` and `Referer` must send a same-origin `Origin` header or use an allowed same-origin `Referer`.
 
 Risk summary:
 
@@ -88,11 +95,11 @@ Affected surfaces:
 - Upload and pending cleanup routes.
 - Destructive admin cleanup when armed.
 
-Current mitigation:
+Current mitigation after 11H.2a:
 
 - `dms_session` is `HttpOnly`.
 - `SameSite=Lax` is set.
-- State-changing routes generally use non-GET methods, except the destructive admin cleanup concern below.
+- State-changing routes use unsafe methods and now have explicit same-origin protection.
 - Server routes revalidate session, assigned roles, ownership, document/archive status, and request payloads where applicable.
 
 Decision options:
@@ -105,7 +112,7 @@ Decision options:
 Current human decision:
 
 ```text
-decision pending
+implementation selected and implemented pending human retest
 ```
 
 Required next phase if implementation is selected:
@@ -116,8 +123,9 @@ Phase 11H.2a - CSRF/Origin Protection Follow-up
 
 Release classification impact:
 
-- 11H.3 should not proceed as a final release handoff classification while this decision remains pending.
-- If accepted as bounded risk later, the written boundary must stay trusted-LAN/internal only and must not be reused for wider or public deployment.
+- This P1 item is no longer decision-pending, but it remains pending human retest.
+- 11H.3 should not proceed as a final release handoff classification until 11H.2a/11H.2b/11H.2c/11H.2d human retests are reviewed or explicitly classified.
+- This is a bounded same-origin foundation, not comprehensive browser-security certification.
 
 ## 2. Login Rate-Limit/Brute-Force Foundation
 
@@ -176,7 +184,7 @@ Phase 11H.2b - Login Rate-Limit/Brute-Force Follow-up
 Release classification impact:
 
 - This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification while CSRF/origin remains pending or while 11H.2b/11H.2c/11H.2d retests remain unreviewed.
+- 11H.3 should not proceed as a final release handoff classification while 11H.2a/11H.2b/11H.2c/11H.2d retests remain unreviewed.
 - The in-memory limiter is sufficient as a local single-process foundation for the current local/LAN target, but stronger reverse-proxy and/or persistent distributed throttling may be required later depending on final deployment topology.
 
 ## 3. Destructive Admin Cleanup Hardening
@@ -301,16 +309,16 @@ Phase 11H.2d - Raw Logical-Path File Access Hardening
 Release classification impact:
 
 - This P1 item is no longer decision-pending, but it remains pending human retest.
-- 11H.3 should not proceed as a final release handoff classification while CSRF/origin remains pending or while 11H.2b/11H.2c/11H.2d retests remain unreviewed.
-- This implementation does not add app-wide CSRF/origin enforcement.
+- 11H.3 should not proceed as a final release handoff classification while 11H.2a/11H.2b/11H.2c/11H.2d retests remain unreviewed.
+- This implementation remains separate from the 11H.2a same-origin guard.
 
 ## Current 11H.2 Classification
 
 ```text
-decision framework recorded, 11H.2b/11H.2c/11H.2d implemented pending human retest, CSRF/origin decision pending
+decision framework recorded, 11H.2a/11H.2b/11H.2c/11H.2d implemented pending human retest
 ```
 
-Rationale: the P1 matrix is recorded, and the human selected incremental implementation. The login rate-limit/brute-force foundation, destructive admin cleanup, and raw logical-path file-access runtime changes are implemented, but human retest is still pending. CSRF/origin remains unresolved.
+Rationale: the P1 matrix is recorded, and the human selected incremental implementation. The CSRF/origin foundation, login rate-limit/brute-force foundation, destructive admin cleanup, and raw logical-path file-access runtime changes are implemented, but human retest is still pending.
 
 ## Release Classification Impact
 
@@ -319,7 +327,7 @@ No final readiness decision is made by this phase.
 Remaining P1 gates mean:
 
 - final release handoff classification remains unresolved;
-- 11H.3 should not be used as a final readiness approval step until remaining P1 decisions are explicitly resolved and 11H.2b/11H.2c/11H.2d retests are reviewed;
+- 11H.3 should not be used as a final readiness approval step until 11H.2a/11H.2b/11H.2c/11H.2d retests are reviewed and final classification decisions are explicit;
 - trusted HTTP LAN evidence remains bounded smoke input only;
 - trusted HTTP LAN is not public or wider rollout approval;
 - preferred final posture remains HTTPS plus `Secure` `dms_session` cookies.
@@ -327,18 +335,12 @@ Remaining P1 gates mean:
 ## Next Recommended Phase
 
 ```text
-Phase 11H.2a - CSRF/Origin Protection Follow-up
+Phase 11H.3 - Final Release Handoff Classification
 ```
 
-unless a blocker remains in 11H.2b, 11H.2c, or 11H.2d human retest. This follows the remaining unresolved P1 gate after implementing the login rate-limit foundation.
+only after human retest of 11H.2a/11H.2b/11H.2c/11H.2d and an explicit final classification request.
 
-Other unresolved P1 follow-ups remain:
-
-```text
-Phase 11H.2a - CSRF/Origin Protection Follow-up
-```
-
-If the human later explicitly accepts remaining P1 risks with written trusted-LAN-only constraints and reviews 11H.2b/11H.2c/11H.2d retests, 11H.3 may proceed only as a bounded/partial final handoff classification candidate, not broad release approval.
+If the human later reviews 11H.2a/11H.2b/11H.2c/11H.2d retests, 11H.3 may proceed only as an explicit handoff classification candidate, not broad release approval.
 
 If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or schedule targeted implementation.
 
@@ -353,4 +355,4 @@ If any P1 is marked blocked, do not proceed to 11H.3; record the blocker or sche
 - Not operational certification.
 - Not go-live approval.
 - Not acceptance of bounded risk.
-- Not final implementation of CSRF/origin hardening.
+- Not comprehensive CSRF/security certification.
