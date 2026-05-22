@@ -123,7 +123,7 @@ Rules:
 - `dms_active_role` is UX-only state and is not authorization proof.
 - Server/API RBAC is authoritative.
 - Client-side role hiding is a UX hint only.
-- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, or `KEPALA_SUB_BAGIAN_UMUM`.
+- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
 - Passwords use Argon2id.
 - Logout and password-change/reset session revocation behavior must remain server-authoritative.
 
@@ -174,6 +174,20 @@ Role yang dipakai aplikasi:
 type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'KEPALA_SUB_BAGIAN_UMUM' | 'ADMIN'
 ```
 
+After Phase 12E.1 this is extended to:
+
+```ts
+type Role =
+  | 'PEGAWAI'
+  | 'PPK'
+  | 'BENDAHARA'
+  | 'KEPALA_SUB_BAGIAN_UMUM'
+  | 'PENANGGUNG_JAWAB_KINERJA'
+  | 'ADMIN'
+```
+
+Display label tambahan: `Penanggung Jawab Kinerja`.
+
 Canonical constants ada di:
 
 - `src/lib/constants/roles.ts`
@@ -183,6 +197,7 @@ Rules:
 
 - Users can have multiple non-admin roles.
 - `ADMIN` remains dedicated.
+- `PENANGGUNG_JAWAB_KINERJA` has metadata-only access to Laporan Kinerja and is not inherited by `ADMIN`.
 - Server-side role checks are mandatory.
 
 ### Status Dokumen
@@ -423,6 +438,15 @@ Rules:
 - A user can be ketua tim for many kegiatan.
 - Laporan kegiatan permission and badges depend on this assignment.
 
+### 7. Penanggung Jawab Kinerja
+
+- `PENANGGUNG_JAWAB_KINERJA` has one main menu/page: Laporan Kinerja.
+- Laporan Kinerja is metadata-only and includes final document statuses `COMPLETED`, `TERSIMPAN`, and `ARCHIVED`.
+- Laporan Kinerja excludes `DRAFT`, `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, and `NEED_REVISION`.
+- Laporan Kinerja does not provide preview, download, signed URL, file URL, attachment content, export, or detail actions by default.
+- Server/API RBAC must require assigned `PENANGGUNG_JAWAB_KINERJA`; `dms_active_role` is not authorization proof.
+- `ADMIN` remains dedicated and is not automatically treated as `PENANGGUNG_JAWAB_KINERJA`.
+
 ---
 
 ## Storage And File Rules
@@ -515,6 +539,7 @@ src/
     ppk/
     bendahara/
     arsiparis/
+    penanggung-jawab-kinerja/
     admin.tsx
     admin.index.tsx
     admin.master-data.*.tsx
@@ -628,6 +653,24 @@ API utama:
 - `/api/arsiparis/usul-musnah.$id`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
+
+### Penanggung Jawab Kinerja
+
+UI utama:
+
+- `/penanggung-jawab-kinerja`
+- `/penanggung-jawab-kinerja/laporan-kinerja`
+
+API utama:
+
+- `/api/laporan/kinerja`
+
+Rules:
+
+- `/penanggung-jawab-kinerja/laporan-kinerja` is the default route for `PENANGGUNG_JAWAB_KINERJA`.
+- The role has only the Laporan Kinerja navigation item.
+- The API returns safe final-document metadata only, with a conservative default limit.
+- The API must not expose physical paths, storage roots, signed token internals, file URLs, attachment contents, SQL, or secrets.
 
 ### Admin
 

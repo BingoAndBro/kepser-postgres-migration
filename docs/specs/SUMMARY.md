@@ -151,6 +151,10 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 ### 08E — Penanggung Jawab Kinerja (Role)
 - Role baru: PENANGGUNG_JAWAB_KINERJA
 - Menu tunggal: "Laporan Kinerja"
+- Fondasi Phase 12E.1: halaman dan API metadata-only untuk dokumen final
+- Status final yang masuk laporan: COMPLETED, TERSIMPAN, ARCHIVED
+- Tidak ada preview/download/file URL/detail action/export pada fondasi ini
+- ADMIN tetap dedicated dan tidak otomatis mewarisi PENANGGUNG_JAWAB_KINERJA
 - Hierarki: Fungsi → Kegiatan → Detail Dokumen
 - Agregasi nominal per Fungsi dan Kegiatan
 - Filter: Fungsi, Kegiatan, Jenis, Detail, Tahun, Tanggal, Pengaju, Kategori
