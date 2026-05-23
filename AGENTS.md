@@ -319,6 +319,7 @@ Arsip:
 - `manual_arsip_category` is separate from `master_klasifikasi_arsip`; `master_klasifikasi_arsip` remains the archival classification hierarchy.
 - One `manual_arsip` parent row represents one report/archive record. `manual_arsip_attachment` child rows must not be counted as additional reports in future aggregates.
 - Manual archive attachments are optional, and the schema supports many attachments per parent row.
+- `manual_arsip_attachment.judul_lampiran` is the official attachment title column; existing rows are backfilled from `original_filename` by Phase 12J.2a.
 - `manual_arsip.nominal_realisasi` is nullable at the DB layer; future API/UI may enforce requiredness only after business confirmation.
 - Manual archive file paths are logical storage paths only, never physical filesystem paths or storage roots.
 
@@ -460,6 +461,8 @@ Rules:
 - `keterangan` is required.
 - `nominal_realisasi` is nullable in the database for flexibility; API/UI requiredness remains a future business-rule decision.
 - File attachment is optional, and one parent row may have many attachment child rows.
+- Each manual archive attachment has official title column `judul_lampiran`; Phase 12J.2a backfills existing values from `original_filename`.
+- Until Phase 12J.2b adds explicit upload-row title input, upload API compatibility may set `judul_lampiran` from `original_filename`.
 - One `manual_arsip` parent row counts as one report regardless of attachment count.
 - Lifecycle values are `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
 - Phase 12G adds schema/data-model foundation only. Do not add runtime UI/API/upload/preview/download/lifecycle/export behavior unless a future phase explicitly scopes it.
@@ -531,6 +534,7 @@ Helper sentral:
 Manual archive attachments:
 
 - Store logical storage paths in `arsip.manual_arsip_attachment.logical_path`.
+- Store official attachment titles in `arsip.manual_arsip_attachment.judul_lampiran`; do not rely on metadata JSON as the only title source.
 - Do not store physical storage paths or roots.
 - Do not add public/static serving.
 - Do not add Supabase Storage fallback or old file/data recovery.
@@ -975,7 +979,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-22
+- Last updated: 2026-05-23
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use

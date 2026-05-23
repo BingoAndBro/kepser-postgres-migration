@@ -73,6 +73,8 @@ Only `logical_path` is stored in `arsip.manual_arsip_attachment`. Physical files
 
 One attachment row is inserted per accepted file. `created_by` comes from the server session user id.
 
+Phase 12J.2a adds official attachment title column `judul_lampiran` to `arsip.manual_arsip_attachment`. Existing rows are backfilled from `original_filename`, with `Lampiran` as a fallback if an existing filename is blank. Until Phase 12J.2b adds explicit upload-row title input, this upload API may set `judul_lampiran` from `original_filename` for compatibility.
+
 The DB metadata insert uses a transaction, but filesystem writes and DB insert are not fully atomic together. If a file write succeeds and a later file write or DB insert fails, an orphan local file may remain because no existing narrowly scoped cleanup helper currently covers this new manual archive path.
 
 ## Response Shape
