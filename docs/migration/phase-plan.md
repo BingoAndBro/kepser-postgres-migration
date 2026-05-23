@@ -608,7 +608,7 @@ Migrated in the first Phase 8B runtime pass:
 Skipped or deferred in this pass:
 
 - `DELETE /api/dokumen/$id` remains deferred to Phase 9 because the legacy handler combines DB row deletion with Supabase Storage file removal, and a safe local delete policy needs the storage cleanup/orphan strategy.
-- `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is cross-role (`creator`, `ARSIPARIS`, `ADMIN`) rather than purely Pegawai-owned Phase 8B behavior.
+- `PATCH /api/dokumen/$id/nominal` remained deferred because the legacy route was cross-role (`creator`, `ARSIPARIS`, `ADMIN`) rather than purely Pegawai-owned Phase 8B behavior. As of Phase 12I.3, ADMIN access is removed; the active boundary is non-admin creator plus `KEPALA_SUB_BAGIAN_UMUM`.
 - `POST /api/dokumen` old draft-create remains skipped because current audited Pegawai create UI uses `POST /api/dokumen/submit`; the old draft-create route is ambiguous/redundant and still overlaps legacy Supabase helper behavior.
 
 Runtime scope:
@@ -718,7 +718,7 @@ Migrated in this pass:
 
 Skipped or deferred in this pass:
 
-- `PATCH /api/dokumen/$id/nominal` remains deferred because the legacy route is central/cross-role (`creator`, `ARSIPARIS`, `ADMIN`/legacy `SUPERADMIN`) rather than Bendahara-owned. It should be migrated in a later cross-role/admin-compatible phase without silently narrowing role semantics.
+- `PATCH /api/dokumen/$id/nominal` remained deferred because the legacy route was central/cross-role (`creator`, `ARSIPARIS`, `ADMIN`/legacy `SUPERADMIN`) rather than Bendahara-owned. As of Phase 12I.3, ADMIN access is intentionally removed; the active boundary is non-admin creator plus `KEPALA_SUB_BAGIAN_UMUM`.
 - Bendahara preview/download routes remain deferred to Phase 9 storage/file-access work.
 
 Runtime scope:
@@ -3145,7 +3145,7 @@ Active API route classification:
 |---|---|---|---|---|---|
 | `GET /api/dokumen` in `src/routes/api/dokumen/index.ts` | None after 11D.2a. | Yes. | Local replacement remains active for the Pegawai list used by `src/routes/pegawai/dokumen/index.tsx`. | Low for `GET`; do not regress list behavior while touching the file. | 11D.2a left GET behavior unchanged. |
 | `POST /api/dokumen` in `src/routes/api/dokumen/index.ts` | None after 11D.2a. | Yes, compatibility draft-create route path. | Local Drizzle draft creation with local `dms_session` and assigned `PEGAWAI` role check. | Medium. Do not accidentally duplicate `/api/dokumen/submit` orchestration or add file movement/audit behavior. | 11D.2a complete. |
-| `PATCH /api/dokumen/$id/nominal` in `src/routes/api/dokumen/$id.nominal.ts` | None after 11D.2b. | Yes. Route tree registers `/api/dokumen/$id/nominal`. | Local Drizzle lookup/update plus local append-only audit transaction with creator/ARSIPARIS/ADMIN compatibility. | High. It is cross-role and audit-sensitive; do not narrow or broaden role behavior casually. | 11D.2b complete. |
+| `PATCH /api/dokumen/$id/nominal` in `src/routes/api/dokumen/$id.nominal.ts` | None after 11D.2b. | Yes. Route tree registers `/api/dokumen/$id/nominal`. | Local Drizzle lookup/update plus local append-only audit transaction with non-admin creator and `KEPALA_SUB_BAGIAN_UMUM` compatibility after Phase 12I.3. | High. It is cross-role and audit-sensitive; do not narrow or broaden role behavior casually. | 11D.2b complete; Phase 12I.3 removes ADMIN access. |
 | `POST /api/dokumen/rename-pending` in `src/routes/api/dokumen/rename-pending.ts` | None after 11D.2c. | Yes. Route tree registers `/api/dokumen/rename-pending`; focused tests cover it. | Auth, ownership lookup, and storage movement are local-backed through `getLocalServerSession`, a narrow Drizzle `dokumen_transaksi` lookup, and `local-pending-move`. | Low to medium. Future changes remain storage-adjacent and must not change response/error shape or local move ordering. | 11D.2c complete. Keep behavior unchanged unless a later storage compatibility phase explicitly scopes it. |
 
 Auth/user helper classification:
@@ -3187,7 +3187,7 @@ Not safe to remove now:
 Recommended next sequence:
 
 1. 11D.2a: Resolve `POST /api/dokumen` mixed-route debt. Prefer proving it is inactive and explicitly retiring it only if approved; otherwise migrate it narrowly to local `dms_session` and local Drizzle draft creation while leaving `GET /api/dokumen` unchanged.
-2. 11D.2b: Migrate `PATCH /api/dokumen/$id/nominal` as its own cross-role nominal compatibility slice. Preserve creator/ARSIPARIS/ADMIN access, `ARCHIVED` blocking, material nominal validation, update response shape, and append-only audit logging.
+2. 11D.2b: Migrate `PATCH /api/dokumen/$id/nominal` as its own cross-role nominal compatibility slice. Preserve creator/ARSIPARIS/ADMIN access, `ARCHIVED` blocking, material nominal validation, update response shape, and append-only audit logging. Phase 12I.3 later removes ADMIN access; active access is non-admin creator plus `KEPALA_SUB_BAGIAN_UMUM`.
 3. 11D.2c: Complete as of 2026-05-19. Migrated only the `rename-pending` document lookup from Supabase admin/helper to a local Drizzle/local query while preserving local pending movement behavior and focused tests.
 4. 11D.3: Helper import cleanup/dead-code removal after active callers are gone. Re-audit `src/lib/auth.ts`, `src/lib/user-helpers.ts`, `src/lib/supabase-server.ts`, `src/lib/supabase-admin.ts`, `src/lib/supabase-browser.ts`, `src/lib/supabase.ts`, `src/lib/dokumen/*`, and `src/lib/master-data/*`; split pure/type helpers before deleting mixed files.
 5. 11D.4: Final grep/audit and handoff into 11E. Confirm no active runtime Supabase source dependency remains before any package/env cleanup.
