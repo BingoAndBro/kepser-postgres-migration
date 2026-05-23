@@ -33,7 +33,7 @@ The route namespace uses the existing `/arsiparis` compatibility namespace for t
 
 All routes require local `dms_session` resolution. Authorization is server-side and checks assigned roles, not only `dms_active_role`.
 
-Manual archive APIs allow assigned `KEPALA_SUB_BAGIAN_UMUM` and `ADMIN`. This follows the existing arsiparis classification API convention where ADMIN is allowed for comparable archive master-data API operations. It does not change the dedicated ADMIN account model and does not broaden ADMIN into workflow approval semantics.
+Manual archive operational APIs require assigned `KEPALA_SUB_BAGIAN_UMUM`. `ADMIN` is a dedicated system/admin role and is not automatically allowed to access Penambahan Arsip operational APIs. Future admin audit visibility should be designed as separate metadata-only audit endpoints.
 
 Unsafe `POST` uses the centralized same-origin guard.
 
