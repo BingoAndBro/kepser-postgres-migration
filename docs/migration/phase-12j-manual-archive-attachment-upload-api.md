@@ -4,7 +4,7 @@ Date: 2026-05-23
 
 Status: implemented pending human retest. Phase 12J.2b updates this endpoint to require explicit attachment titles.
 
-Scope: backend/API upload foundation only for Penambahan Arsip manual archive attachments. This phase does not implement UI changes, preview/download, signed file tokens, lifecycle transitions, aggregate reports, Excel export, schema changes, migrations, or Supabase runtime behavior.
+Scope: backend/API upload foundation only for Penambahan Arsip manual archive attachments. This phase does not implement UI changes, preview/download, signed file tokens, lifecycle transitions, aggregate reports, Excel export, schema changes, migrations, or Supabase runtime behavior. Preview/download is added separately by Phase 12K.1 without changing this upload behavior.
 
 ## Endpoint
 
@@ -111,3 +111,12 @@ Responses do not return:
 - file contents
 - SQL details
 - environment values or secrets
+
+## Later Preview/Download Boundary
+
+Phase 12K.1 adds direct authorized API responses for:
+
+- `GET /api/arsiparis/manual-arsip/$id/attachments/$attachmentId/preview`
+- `GET /api/arsiparis/manual-arsip/$id/attachments/$attachmentId/download`
+
+Those routes revalidate assigned `KEPALA_SUB_BAGIAN_UMUM`, parent-child attachment ownership, current manual archive lifecycle, allowed stored content type, and local storage path containment before serving file bytes. They do not introduce signed URLs, file tokens, UI buttons, upload behavior changes, lifecycle mutations, aggregate/export behavior, or public/static serving.

@@ -43,6 +43,7 @@ Referensi utama:
 - `docs/migration/phase-12g-manual-archive-schema.md`
 - `docs/migration/phase-12h-manual-archive-api-foundation.md`
 - `docs/migration/phase-12j2d-manual-archive-required-nominal.md`
+- `docs/migration/phase-12k-manual-archive-preview-download.md`
 
 ---
 
@@ -468,6 +469,7 @@ Rules:
 - Lifecycle values are `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
 - Phase 12G adds schema/data-model foundation only. Do not add runtime UI/API/upload/preview/download/lifecycle/export behavior unless a future phase explicitly scopes it.
 - Phase 12H adds minimal runtime API foundation for category list, parent list, create-without-upload, and detail. It does not add UI, upload, preview/download, file tokens, lifecycle transitions, aggregate report, Excel export, hard delete, schema changes, migrations, or seed changes.
+- Phase 12K.1 adds direct authorized preview/download API responses for manual archive attachments only. It does not add UI buttons, file tokens, signed URLs, lifecycle transitions, aggregate report, Excel export, attachment delete, schema changes, migrations, upload changes, or public/static serving.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
 
@@ -710,6 +712,8 @@ API utama:
 - `/api/arsiparis/manual-arsip/categories`
 - `/api/arsiparis/manual-arsip`
 - `/api/arsiparis/manual-arsip/$id`
+- `/api/arsiparis/manual-arsip/$id/attachments/$attachmentId/preview`
+- `/api/arsiparis/manual-arsip/$id/attachments/$attachmentId/download`
 
 ### Penanggung Jawab Kinerja
 

@@ -140,7 +140,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12H adds minimal API foundation for category list, manual archive parent list, create without upload, and detail
 - Manual archive is separate from workflow documents and does not depend on `dokumen_transaksi`
 - Category is separate from `master_klasifikasi_arsip`; classification hierarchy remains in `master_klasifikasi_arsip`
-- Initial UI form and optional attachment upload exist after Phase 12J.1/12J.2; preview/download, lifecycle action route, aggregate report, and Excel export remain future work
+- Initial UI form and optional attachment upload exist after Phase 12J.1/12J.2; Phase 12K.1 adds API-only authorized preview/download for attachments; UI buttons, lifecycle action route, aggregate report, and Excel export remain future work
 - File attachment is optional; schema supports many attachments while later UI may start with one optional file
 - Phase 12J.2a adds official attachment title column `manual_arsip_attachment.judul_lampiran`; existing rows are backfilled from `original_filename`, and Phase 12J.2b requires explicit upload API titles aligned with uploaded files
 - `keterangan` is required; `nominal_realisasi` remains nullable in DB for compatibility, while create API/UI require a positive integer value greater than 0 after Phase 12J.2d
