@@ -143,7 +143,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Initial UI form and optional attachment upload exist after Phase 12J.1/12J.2; preview/download, lifecycle action route, aggregate report, and Excel export remain future work
 - File attachment is optional; schema supports many attachments while later UI may start with one optional file
 - Phase 12J.2a adds official attachment title column `manual_arsip_attachment.judul_lampiran`; existing rows are backfilled from `original_filename`, and Phase 12J.2b requires explicit upload API titles aligned with uploaded files
-- `keterangan` is required; `nominal_realisasi` is nullable in DB, with API/UI requiredness pending business confirmation
+- `keterangan` is required; `nominal_realisasi` remains nullable in DB for compatibility, while create API/UI require a positive integer value greater than 0 after Phase 12J.2d
 - Manual archive uses archive lifecycle values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`; future file access must block `DIMUSNAHKAN`
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)

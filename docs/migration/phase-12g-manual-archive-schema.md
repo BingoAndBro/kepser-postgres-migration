@@ -50,7 +50,7 @@ Report-critical fields are explicit columns:
 
 `keterangan` is required.
 
-`nominal_realisasi` is nullable at the database layer for flexibility. A later API/UI phase may make it required if the business rule is confirmed. That API/UI rule must not be confused with the current database nullability.
+`nominal_realisasi` is nullable at the database layer for compatibility. As of Phase 12J.2d, Manual Archive creation through API/UI requires a positive integer `nominal_realisasi` greater than 0. That API/UI business rule must not be confused with the current database nullability.
 
 `metadata` is available only for supplemental data. Report-critical fields must not be stored only in metadata JSONB.
 
@@ -99,4 +99,3 @@ Migration created:
 The migration creates the three manual archive tables, indexes, constraints, foreign keys, and idempotent seed data for the initial categories.
 
 The migration was not executed in this phase.
-

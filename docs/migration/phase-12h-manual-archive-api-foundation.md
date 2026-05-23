@@ -46,7 +46,7 @@ Create request fields:
 - `keterangan`, required non-empty string;
 - `category_id`, required active manual archive category UUID;
 - `klasifikasi_id`, optional active classification UUID;
-- `nominal_realisasi`, optional/nullable non-negative number;
+- `nominal_realisasi`, required positive integer greater than 0 as of Phase 12J.2d; the DB column may remain nullable for compatibility;
 - `metadata`, optional safe JSON object.
 
 `metadata` is supplemental only. It is rejected when it contains explicit core fields or file-access/path fields such as logical paths, physical paths, storage roots, file URLs, signed URLs, or token-like fields.

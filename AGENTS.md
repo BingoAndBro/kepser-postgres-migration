@@ -42,6 +42,7 @@ Referensi utama:
 - `docs/migration/open-decisions.md`
 - `docs/migration/phase-12g-manual-archive-schema.md`
 - `docs/migration/phase-12h-manual-archive-api-foundation.md`
+- `docs/migration/phase-12j2d-manual-archive-required-nominal.md`
 
 ---
 
@@ -320,7 +321,7 @@ Arsip:
 - One `manual_arsip` parent row represents one report/archive record. `manual_arsip_attachment` child rows must not be counted as additional reports in future aggregates.
 - Manual archive attachments are optional, and the schema supports many attachments per parent row.
 - `manual_arsip_attachment.judul_lampiran` is the official attachment title column; existing rows are backfilled from `original_filename` by Phase 12J.2a.
-- `manual_arsip.nominal_realisasi` is nullable at the DB layer; future API/UI may enforce requiredness only after business confirmation.
+- `manual_arsip.nominal_realisasi` remains nullable at the DB layer for compatibility, but Manual Archive create API/UI require a positive integer `nominal_realisasi` greater than 0.
 - Manual archive file paths are logical storage paths only, never physical filesystem paths or storage roots.
 
 ---
@@ -459,7 +460,7 @@ Rules:
 - Manual archive category is separate from `master_klasifikasi_arsip`.
 - Initial canonical categories are `Pemeliharaan`, `Pengadaan`, and `Lain-lain`.
 - `keterangan` is required.
-- `nominal_realisasi` is nullable in the database for flexibility; API/UI requiredness remains a future business-rule decision.
+- `nominal_realisasi` remains nullable in the database for compatibility; Manual Archive creation through API/UI requires a positive integer value greater than 0.
 - File attachment is optional, and one parent row may have many attachment child rows.
 - Each manual archive attachment has official title column `judul_lampiran`; Phase 12J.2a backfills existing values from `original_filename`.
 - After Phase 12J.2b, the manual archive attachment upload API requires one explicit `judul_lampiran` title per uploaded file and must not fall back from `original_filename`.
