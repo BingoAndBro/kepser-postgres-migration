@@ -87,7 +87,7 @@
 - `arsip`: SELECT = all authenticated users. INSERT = ARSIPARIS/ADMIN only.
 - `arsip_verifikasi_penyusutan`: SELECT/UPDATE = ARSIPARIS/ADMIN only.
 - `arsip_usul_musnah`: SELECT/UPDATE = ARSIPARIS/ADMIN only.
-- `master_klasifikasi_arsip`: SELECT = all. INSERT/UPDATE/DELETE = ADMIN/ARSIPARIS.
+- `master_klasifikasi_arsip`: SELECT = all. INSERT/UPDATE/DELETE = Kepala Sub Bagian Umum.
 
 ---
 

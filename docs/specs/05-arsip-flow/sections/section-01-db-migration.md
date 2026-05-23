@@ -128,7 +128,7 @@ CREATE POLICY "arsip_insert_arsiparis_admin" ON arsip
     EXISTS (
       SELECT 1 FROM user_roles ur
       JOIN roles r ON ur.role_id = r.id
-      WHERE ur.user_id = auth.uid() AND r.nama IN ('ARSIPARIS', 'ADMIN')
+      WHERE ur.user_id = auth.uid() AND r.nama = 'KEPALA_SUB_BAGIAN_UMUM'
     )
   );
 
@@ -216,8 +216,8 @@ CREATE POLICY "musnah_delete_arsiparis_admin" ON arsip_usul_musnah
 CREATE POLICY "klasifikasi_select_all_authenticated" ON master_klasifikasi_arsip
   FOR SELECT USING (auth.role() = 'authenticated');
 
--- master_klasifikasi_arsip: ADMIN dan ARSIPARIS bisa INSERT/UPDATE/DELETE
-CREATE POLICY "klasifikasi_manage_arsiparis_admin" ON master_klasifikasi_arsip
+-- master_klasifikasi_arsip: Kepala Sub Bagian Umum bisa INSERT/UPDATE/DELETE
+CREATE POLICY "klasifikasi_manage_kepala_sub_bagian_umum" ON master_klasifikasi_arsip
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM user_roles ur

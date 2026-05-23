@@ -751,7 +751,7 @@ Fix summary:
 - Modal open state now resets stale error/loading state, so retries and same-parent second-child additions start from a clean form state.
 - Successful saves now await the tree refresh before closing the modal, and the refreshed tree is used when preserving the current selection.
 - Classification API database validation/write paths now return controlled JSON for duplicate, invalid parent, missing node, unauthorized, and server-error paths instead of allowing pre-write database errors to escape.
-- Endpoint paths, request payloads, normal success shapes, duplicate/validation error shapes, and ADMIN/ARSIPARIS authorization semantics are preserved.
+- Endpoint paths, request payloads, normal success shapes, and duplicate/validation error shapes are preserved. Phase 12I.4 changes Klasifikasi mutation authorization to Kepala Sub Bagian Umum only.
 
 Manual retest checklist:
 

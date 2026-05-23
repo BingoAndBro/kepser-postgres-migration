@@ -150,13 +150,13 @@ Arsip INAKTIF ──[auto: pg_cron / manual: Pindahkan Sekarang]──→ USUL_M
 
 **What:** CRUD untuk master klasifikasi arsip.
 
-**Why:** Klasifikasi arsip harus bisa di-manage oleh ADMIN atau ARSIPARIS.
+**Why:** Klasifikasi arsip harus bisa di-manage oleh Kepala Sub Bagian Umum sebagai pemilik domain arsip.
 
 **How:**
 - `GET /api/arsiparis/klasifikasi` — list semua (public access, seperti master fungsi)
-- `POST /api/arsiparis/klasifikasi` — create (ADMIN only)
-- `PATCH /api/arsiparis/klasifikasi/[id]` — update (ADMIN only)
-- `DELETE /api/arsiparis/klasifikasi/[id]` — soft delete (ADMIN only)
+- `POST /api/arsiparis/klasifikasi` — create (Kepala Sub Bagian Umum only)
+- `PATCH /api/arsiparis/klasifikasi/[id]` — update (Kepala Sub Bagian Umum only)
+- `DELETE /api/arsiparis/klasifikasi/[id]` — soft delete (Kepala Sub Bagian Umum only)
 
 Pattern sama dengan `master-fungsi.ts`.
 
@@ -236,7 +236,7 @@ Pattern sama dengan `master-fungsi.ts`.
 
 **What:** Halaman master klasifikasi + halaman pencarian arsip untuk semua user.
 
-**Why:** ADMIN/ARSIPARIS perlu bisa manage klasifikasi. Semua user perlu bisa search arsip.
+**Why:** Kepala Sub Bagian Umum perlu bisa manage klasifikasi. Semua user perlu bisa search arsip.
 
 **How:**
 - `/arsiparis/klasifikasi` — CRUD table. Kolom: nama klasifikasi, deskripsi, aksi (edit, hapus). Tambah tombol [+ Tambah]. Modal untuk form tambah/edit. Gunakan Dialog component.

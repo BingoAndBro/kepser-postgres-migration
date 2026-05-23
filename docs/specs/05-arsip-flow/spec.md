@@ -47,7 +47,7 @@ Sebagai shortcut, Arsiparis bisa memicu pemindahan manual ("Pindahkan Sekarang")
 - **Verifikasi Penyusutan:** list arsip aktif yang sudah dipindahkan ke tahap verifikasi (otomatis berdasarkan masa retensi aktif, atau dipindahkan manual oleh Arsiparis). Arsiparis approve → masuk inaktif, tolak → kembali ke aktif
 - **Daftar Arsip Inaktif:** list arsip yang sudah disetujui Arsiparis masuk ke inaktif (masa retensi aktif habis)
 - **Usul Musnah:** list arsip yang sudah masa retensi inaktif habis (atau dipindahkan manual oleh Arsiparis), siap diusul dimusnahkan → Arsiparis bisa approve/hapus
-- **Master Klasifikasi Arsip:** CRUD klasifikasi arsip (ADMIN atau ARSIPARIS bisa edit)
+- **Master Klasifikasi Arsip:** CRUD klasifikasi arsip (Kepala Sub Bagian Umum bisa edit; ADMIN tidak memiliki akses mutasi operasional)
 - **Arsip Search:** halaman pencarian arsip dengan filter (fungsi, kegiatan, tahun, kata kunci)
 - **Arsip Detail:** view metadata arsip + preview + download lampiran
 - **Download arsip:** semua user bisa download dokumen arsip
@@ -380,13 +380,13 @@ Notes:
 
 // POST /api/arsiparis/klasifikasi
 //   Body: { nama, deskripsi? }
-//   → create klasifikasi (ADMIN only)
+//   → create klasifikasi (Kepala Sub Bagian Umum only)
 
 // PATCH /api/arsiparis/klasifikasi/[id]
-//   → update klasifikasi (ADMIN only)
+//   → update klasifikasi (Kepala Sub Bagian Umum only)
 
 // DELETE /api/arsiparis/klasifikasi/[id]
-//   → soft delete klasifikasi (ADMIN only)
+//   → soft delete klasifikasi (Kepala Sub Bagian Umum only)
 
 // src/routes/api/arsip/index.ts
 // GET /api/arsip

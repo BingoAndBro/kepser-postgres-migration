@@ -19,7 +19,7 @@ Membuat CRUD API untuk master klasifikasi arsip: GET list, POST create, PATCH up
 - Return: `{ klasifikasi: [{ id, nama, deskripsi }] }`
 
 **POST** — create klasifikasi baru
-- Auth: ADMIN only
+- Auth: Kepala Sub Bagian Umum only
 - Body: `{ nama: string, deskripsi?: string }`
 - Validate: nama unique, tidak kosong
 - Return: created row
@@ -27,12 +27,12 @@ Membuat CRUD API untuk master klasifikasi arsip: GET list, POST create, PATCH up
 ### 2. Buat `src/routes/api/arsiparis/klasifikasi/[id].ts`
 
 **PATCH** — update klasifikasi
-- Auth: ADMIN only
+- Auth: Kepala Sub Bagian Umum only
 - Body: `{ nama?: string, deskripsi?: string }`
 - Validate: nama unique jika di-update
 
 **DELETE** — soft delete
-- Auth: ADMIN only
+- Auth: Kepala Sub Bagian Umum only
 - Update `is_active = false` (soft delete)
 
 ## Files to Create
@@ -43,15 +43,15 @@ Membuat CRUD API untuk master klasifikasi arsip: GET list, POST create, PATCH up
 ## Test Stubs
 
 - [ ] GET mengembalikan semua klasifikasi aktif
-- [ ] POST membuat klasifikasi baru (ADMIN only)
-- [ ] PATCH update klasifikasi (ADMIN only)
-- [ ] DELETE soft delete (ADMIN only)
+- [ ] POST membuat klasifikasi baru (Kepala Sub Bagian Umum only)
+- [ ] PATCH update klasifikasi (Kepala Sub Bagian Umum only)
+- [ ] DELETE soft delete (Kepala Sub Bagian Umum only)
 - [ ] GET bisa diakses tanpa role check (public dropdown)
-- [ ] POST/PATCH/DELETE returns 403 jika bukan ADMIN
+- [ ] POST/PATCH/DELETE returns 403 jika bukan Kepala Sub Bagian Umum
 
 ## Definition of Done
 
 - [ ] CRUD berfungsi dengan benar
 - [ ] Soft delete diterapkan
-- [ ] Role check diterapkan (GET public, mutation ADMIN only)
+- [ ] Role check diterapkan (GET public, mutation Kepala Sub Bagian Umum only)
 - [ ] Test stubs pass

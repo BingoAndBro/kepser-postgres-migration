@@ -31,7 +31,7 @@ Aplikasi DMS (Document Management System) sudah memiliki alur approval dokumen (
 5. **RLS:**
    - `arsip`: SELECT = all authenticated, INSERT = ARSIPARIS/ADMIN
    - `arsip_verifikasi_penyusutan` & `arsip_usul_musnah`: SELECT/UPDATE = ARSIPARIS/ADMIN
-   - `master_klasifikasi_arsip`: SELECT = all, INSERT/UPDATE/DELETE = ADMIN/ARSIPARIS
+   - `master_klasifikasi_arsip`: SELECT = all, INSERT/UPDATE/DELETE = Kepala Sub Bagian Umum
 6. **Tidak bisa cancel dari VERIFIKASI_PENYUSUTAN** — harus tunggu decide
 7. **Nomor surat uniqueness**: warning only, no DB constraint
 
