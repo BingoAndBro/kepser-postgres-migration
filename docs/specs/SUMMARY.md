@@ -132,6 +132,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Tambah kolom `nominal_realisasi` ke tabel `arsip`
 - Tambah kolom `is_non_material` ke tabel `dokumen_transaksi`
 - Update API submit untuk validasi nominal WAJIB untuk Material
+- Metadata dokumen workflow Material, termasuk `nominal_realisasi`, terkunci setelah status `COMPLETED`
 - Fondasi untuk seluruh fitur 08B-08E
 
 ### 08B — Penambahan Arsip (Kepala Sub Bagian Umum)

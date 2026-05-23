@@ -402,6 +402,7 @@ DRAFT
 Rules:
 
 - Material documents may use `nominal_realisasi`.
+- For material workflow documents, report metadata including `nominal_realisasi` is locked once status is `COMPLETED`.
 - PPK reject -> `NEED_REVISION`, `revision_target='USER'`.
 - Bendahara reject -> `NEED_REVISION`, `revision_target='PPK'`.
 - PPK `KEMBALIKAN` handles PPK-targeted revision back to Pegawai and must not be conflated with ordinary reject.
