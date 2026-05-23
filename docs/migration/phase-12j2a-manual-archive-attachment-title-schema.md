@@ -36,9 +36,11 @@ The migration was not executed in this phase.
 
 ## Runtime Compatibility
 
-Existing upload behavior stays compatible for Phase 12J.1/12J.2. The attachment upload API does not require an explicit title yet and temporarily writes `judul_lampiran` from `original_filename`.
+Existing upload behavior stayed compatible for Phase 12J.1/12J.2. The attachment upload API did not require an explicit title yet and temporarily wrote `judul_lampiran` from `original_filename`.
 
 Phase 12J.2b should add explicit upload rows where each row has one `judul_lampiran` value and exactly one file, following the intended Non-Material document upload pattern.
+
+Phase 12J.2b changes the backend upload API to require explicit repeated multipart `titles` values aligned with repeated `files` values by index. Runtime compatibility fallback from `original_filename` to `judul_lampiran` is removed in that phase.
 
 ## Out Of Scope
 

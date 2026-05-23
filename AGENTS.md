@@ -462,7 +462,7 @@ Rules:
 - `nominal_realisasi` is nullable in the database for flexibility; API/UI requiredness remains a future business-rule decision.
 - File attachment is optional, and one parent row may have many attachment child rows.
 - Each manual archive attachment has official title column `judul_lampiran`; Phase 12J.2a backfills existing values from `original_filename`.
-- Until Phase 12J.2b adds explicit upload-row title input, upload API compatibility may set `judul_lampiran` from `original_filename`.
+- After Phase 12J.2b, the manual archive attachment upload API requires one explicit `judul_lampiran` title per uploaded file and must not fall back from `original_filename`.
 - One `manual_arsip` parent row counts as one report regardless of attachment count.
 - Lifecycle values are `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`.
 - Phase 12G adds schema/data-model foundation only. Do not add runtime UI/API/upload/preview/download/lifecycle/export behavior unless a future phase explicitly scopes it.
