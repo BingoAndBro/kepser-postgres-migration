@@ -2,7 +2,7 @@
 
 Date: 2026-05-23
 
-Status: Phase 12K.1 implemented pending human retest; Phase 12K.2 filename policy alignment implemented pending human retest; Phase 12K.3 UI button integration implemented pending human retest.
+Status: Phase 12K.1 implemented pending human retest; Phase 12K.2 filename policy alignment implemented pending human retest; Phase 12K.3 UI button integration implemented pending human retest; Phase 12K.3a preview modal and novice-friendly attachment display implemented pending human retest.
 
 Scope: API/file-access foundation plus UI-only preview/download button integration for Penambahan Arsip manual archive attachments. This phase does not add signed URLs, file tokens, lifecycle transitions, aggregate reports, Excel export, attachment delete, schema changes, migrations, upload behavior changes, or Supabase runtime behavior.
 
@@ -85,16 +85,29 @@ The `/arsiparis/penambahan-arsip` page now exposes preview and download buttons 
 The UI renders safe attachment metadata only:
 
 - `judul_lampiran`
-- `original_filename`
 - `content_type`
 - `size_bytes`
+
+Phase 12K.3a keeps `judul_lampiran` as the primary visible label and displays a novice-friendly derived label below it:
+
+```text
+{friendly_document_type} • {formatted_size}
+```
+
+Examples:
+
+- `PDF • 245 KB`
+- `Gambar PNG • 1.2 MB`
+- `Gambar JPEG • 900 KB`
+
+The raw `original_filename` is not rendered in the attachment row.
 
 The UI builds preview/download links only from `manual_arsip.id` and `manual_arsip_attachment.id`:
 
 - `/api/arsiparis/manual-arsip/{id}/attachments/{attachmentId}/preview`
 - `/api/arsiparis/manual-arsip/{id}/attachments/{attachmentId}/download`
 
-Preview opens in a new tab with `rel="noopener noreferrer"`. Download uses direct browser navigation to the authorized API endpoint. No signed URL, token, public/static serving, object URL, file byte parsing, or client-side file cache is introduced.
+Preview opens in an in-page modal/popup using an iframe pointed directly at the authorized preview API endpoint. Download uses direct browser navigation to the authorized API endpoint. No signed URL, token, public/static serving, object URL, file byte parsing, or client-side file cache is introduced.
 
 If the UI-visible parent/detail lifecycle state is `DIMUSNAHKAN`, file buttons are not rendered and the UI shows:
 
