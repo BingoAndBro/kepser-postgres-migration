@@ -161,6 +161,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.19 adds an internal dependency-injected one-row dry-run helper for human-approved Manual Archive rows; it returns safe preview metadata only, does not call the 12L.18 mutation helper, and does not insert, update, delete, transact, run live reports, or add routes/UI/CLI/scheduler behavior
 - Phase 12M.1 adds an internal read-only unified archive query service for canonical `arsip.arsip` rows only; it excludes unlinked legacy `manual_arsip` rows, defers broad text search, and does not add routes/UI, mutate rows, backfill, cleanup, run live reports, or change attachment/file behavior
 - Phase 12M.2 wires existing Arsip Aktif, Arsip Inaktif, and Usul Musnah list pages to the unified canonical archive query service behind server-side `KEPALA_SUB_BAGIAN_UMUM` API authorization; it is read-only/list-only and keeps unified detail, lifecycle mutation, preview/download, search, export, cleanup, backfill, migrations, and route generation out of scope
+- Phase 12M.3 defines a planning-only unified archive detail policy and recommends future canonical detail route `/arsiparis/arsip/$id`; it does not add routes/UI, route generation, preview/download actions, lifecycle changes, cleanup, backfill, migrations, schema changes, or source-link mutation
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

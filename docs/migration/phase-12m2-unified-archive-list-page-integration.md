@@ -151,11 +151,18 @@ Requires the local app running.
 
 ## Next Phase Recommendation
 
-Recommended next phase:
+Follow-up after Phase 12M.3: the unified archive detail policy now recommends a future canonical detail route:
 
 ```text
-Phase 12M.3 - Unified Archive Detail Policy And Read-Only Detail Planning
+/arsiparis/arsip/$id
 ```
 
-That phase should decide whether existing workflow-specific detail pages remain source-specific or are replaced with a canonical read-only detail experience. Lifecycle mutation, preview/download, search, aggregate/export, cleanup, backfill, and `DIMUSNAHKAN` policy should remain separately scoped unless explicitly approved.
+The id should be canonical `arsip.arsip.id`. Existing status-specific detail routes should remain temporarily until the read-only unified detail service and page are implemented and reviewed.
 
+Recommended next implementation phase:
+
+```text
+Phase 12M.4 - Unified Archive Detail Read Service
+```
+
+That phase should add an internal read-only canonical detail service only. Lifecycle mutation, preview/download, search, aggregate/export, cleanup, backfill, route generation, and UI integration should remain separately scoped unless explicitly approved.
