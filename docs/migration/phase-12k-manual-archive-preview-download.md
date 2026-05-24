@@ -1,8 +1,8 @@
-# Phase 12K.1 - Manual Archive Attachment Preview/Download API
+# Phase 12K - Manual Archive Attachment Preview/Download API
 
 Date: 2026-05-23
 
-Status: implemented pending human retest.
+Status: Phase 12K.1 implemented pending human retest; Phase 12K.2 filename policy alignment implemented pending human retest.
 
 Scope: API/file-access foundation only for Penambahan Arsip manual archive attachments. This phase does not add UI buttons, signed URLs, file tokens, lifecycle transitions, aggregate reports, Excel export, attachment delete, schema changes, migrations, upload behavior changes, or Supabase runtime behavior.
 
@@ -50,3 +50,30 @@ Preview responses use inline `Content-Disposition` where practical. Download res
 Responses and logs must not expose logical paths, physical filesystem paths, storage roots, signed token internals, file contents in JSON, SQL details, environment values, or secrets.
 
 Missing local files return a safe `404`.
+
+## Phase 12K.2 Filename Policy
+
+Manual Archive preview/download responses now build the display/download filename from safe metadata only:
+
+```text
+{judul_lampiran}_{nama_arsip}_{kategori}_{tanggal}.{ext}
+```
+
+Example:
+
+```text
+Bukti_Kegiatan_Pemeliharaan_AC_Pemeliharaan_2026-05-23.pdf
+```
+
+The filename is for `Content-Disposition` only. Phase 12K.2 does not change `logical_path`, physical storage layout, uploaded rows, pending-to-formal movement, UI buttons, lifecycle actions, retention fields, edit routes, aggregate reports, exports, signed URLs, or file-token behavior.
+
+Filename construction rules:
+
+- `judul_lampiran` comes from `manual_arsip_attachment.judul_lampiran`.
+- `nama_arsip` comes from `manual_arsip.nama`.
+- `kategori` comes from `manual_arsip_category.nama`.
+- `tanggal` is formatted as deterministic `YYYY-MM-DD`, not a locale-dependent value.
+- Extension is derived safely from `original_filename` only when it is compatible with the validated `content_type`; otherwise the validated content type mapping is used.
+- Unsafe or empty filename segments fall back to safe labels such as `Lampiran`, `Arsip`, `Kategori`, or `Tanggal`.
+- Long filenames are truncated while preserving the extension.
+- The filename must not include `logical_path`, physical path, storage root, token, signed URL, SQL, environment values, or secrets.
