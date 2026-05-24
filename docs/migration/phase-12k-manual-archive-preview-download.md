@@ -2,9 +2,9 @@
 
 Date: 2026-05-23
 
-Status: Phase 12K.1 implemented pending human retest; Phase 12K.2 filename policy alignment implemented pending human retest.
+Status: Phase 12K.1 implemented pending human retest; Phase 12K.2 filename policy alignment implemented pending human retest; Phase 12K.3 UI button integration implemented pending human retest.
 
-Scope: API/file-access foundation only for Penambahan Arsip manual archive attachments. This phase does not add UI buttons, signed URLs, file tokens, lifecycle transitions, aggregate reports, Excel export, attachment delete, schema changes, migrations, upload behavior changes, or Supabase runtime behavior.
+Scope: API/file-access foundation plus UI-only preview/download button integration for Penambahan Arsip manual archive attachments. This phase does not add signed URLs, file tokens, lifecycle transitions, aggregate reports, Excel export, attachment delete, schema changes, migrations, upload behavior changes, or Supabase runtime behavior.
 
 ## Endpoints
 
@@ -77,3 +77,29 @@ Filename construction rules:
 - Unsafe or empty filename segments fall back to safe labels such as `Lampiran`, `Arsip`, `Kategori`, or `Tanggal`.
 - Long filenames are truncated while preserving the extension.
 - The filename must not include `logical_path`, physical path, storage root, token, signed URL, SQL, environment values, or secrets.
+
+## Phase 12K.3 UI Button Integration
+
+The `/arsiparis/penambahan-arsip` page now exposes preview and download buttons for Manual Archive attachments after a user expands a specific manual archive row. The list endpoint is not expanded to include attachments; the UI fetches the existing detail endpoint for one selected manual archive item at a time.
+
+The UI renders safe attachment metadata only:
+
+- `judul_lampiran`
+- `original_filename`
+- `content_type`
+- `size_bytes`
+
+The UI builds preview/download links only from `manual_arsip.id` and `manual_arsip_attachment.id`:
+
+- `/api/arsiparis/manual-arsip/{id}/attachments/{attachmentId}/preview`
+- `/api/arsiparis/manual-arsip/{id}/attachments/{attachmentId}/download`
+
+Preview opens in a new tab with `rel="noopener noreferrer"`. Download uses direct browser navigation to the authorized API endpoint. No signed URL, token, public/static serving, object URL, file byte parsing, or client-side file cache is introduced.
+
+If the UI-visible parent/detail lifecycle state is `DIMUSNAHKAN`, file buttons are not rendered and the UI shows:
+
+```text
+File tidak tersedia - arsip telah dimusnahkan
+```
+
+The API remains authoritative for authentication, assigned `KEPALA_SUB_BAGIAN_UMUM` authorization, attachment ownership, lifecycle blocking, content type validation, and file response safety. Phase 12K.3 does not add lifecycle actions, edit/PATCH behavior, retention fields, aggregate reports, exports, attachment deletion, schema changes, migrations, or upload behavior changes.
