@@ -4,6 +4,8 @@ Date: 2026-05-24
 
 Status: planned. This phase is documentation and planning only. It does not implement a unified detail route, add routes, regenerate route files, change preview/download behavior, change lifecycle behavior, run reports, backfill data, cleanup rows/files, create migrations, or modify schema.
 
+Implementation note after Phase 12M.4: the internal dependency-injected unified archive detail read service now exists in `src/lib/archive/unified-archive-detail.ts` with mocked unit tests. Route/page integration, source-aware attachment metadata display, preview/download actions, lifecycle mutation, cleanup, backfill, migrations, schema changes, and route generation remain deferred to later phases.
+
 ## Scope And Boundary
 
 Phase 12M.3 defines the policy for a future read-only unified archive detail experience after Phase 12M.1 added the internal canonical list query service and Phase 12M.2 wired the Arsip Aktif, Arsip Inaktif, and Usul Musnah list pages to canonical `arsip.arsip` rows.

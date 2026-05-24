@@ -62,6 +62,7 @@ Referensi utama:
 - `docs/migration/phase-12m1-unified-archive-query-service.md`
 - `docs/migration/phase-12m2-unified-archive-list-page-integration.md`
 - `docs/migration/phase-12m3-unified-archive-detail-policy.md`
+- `docs/migration/phase-12m4-unified-archive-detail-read-service.md`
 
 ---
 
@@ -511,6 +512,7 @@ Rules:
 - Phase 12M.1 adds an internal read-only unified archive query service for canonical `arsip.arsip` rows only. It does not include unlinked legacy `manual_arsip` rows, add routes/UI, mutate rows, backfill, cleanup, run live reports, or change attachment/file behavior.
 - Phase 12M.2 wires existing Arsip Aktif, Arsip Inaktif, and Usul Musnah list pages to the unified canonical archive query service behind server-side `KEPALA_SUB_BAGIAN_UMUM` API authorization. It is read-only/list-only and does not add unified detail pages, lifecycle mutation, preview/download, search, export, cleanup, backfill, migrations, or route generation.
 - Phase 12M.3 defines a planning-only unified archive detail policy and recommends future canonical detail route `/arsiparis/arsip/$id`. It does not add routes/UI, route generation, preview/download actions, lifecycle changes, search, export, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
+- Phase 12M.4 adds an internal dependency-injected read-only unified archive detail service for one canonical `arsip.arsip.id`. It does not add routes/UI, route generation, preview/download actions, attachment metadata display, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
