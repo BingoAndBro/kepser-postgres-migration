@@ -47,6 +47,8 @@ Referensi utama:
 - `docs/migration/phase-12l-manual-archive-edit-aktif-only.md`
 - `docs/migration/phase-12l2-canonical-archive-schema-foundation.md`
 - `docs/migration/phase-12l3-compatibility-read-backfill-plan.md`
+- `docs/migration/phase-12l4-report-only-db-compatibility-reader.md`
+- `docs/migration/phase-12l5-remediation-policy-for-compatibility-gaps.md`
 
 ---
 
@@ -481,6 +483,7 @@ Rules:
 - Manual Archive create and edit APIs require a positive integer `nominal_realisasi` greater than 0 even though the database column remains nullable for compatibility.
 - Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.3 adds transitional compatibility/report DTO mapping and report-first backfill planning only. It does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
+- Phase 12L.4 adds an internal read-only compatibility report reader only. Phase 12L.5 adds human-reviewed remediation policy only. Neither phase changes runtime writes, adds routes/UI, mutates rows, creates migrations, performs backfill, deletes rows/files, or performs cleanup.
 - The canonical archive parent target uses `source_type` values `WORKFLOW` and `MANUAL`; attachment models remain separate temporarily.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.

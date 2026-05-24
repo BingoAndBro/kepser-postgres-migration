@@ -143,3 +143,5 @@ Phase 12L.5 - Human-reviewed remediation policy for compatibility report gaps
 ```
 
 Do not proceed to workflow write alignment, Manual Archive write alignment, lifecycle unification, retention backfill, aggregate/export, UI integration, cleanup, table deletion, or destructive storage work until a human has reviewed the report output and approved a remediation policy for missing `nama_arsip`, `nomor_surat`, classification gaps, retention gaps, Manual Archive canonical parent creation, and attachment preservation.
+
+Implementation note as of 2026-05-24: Phase 12L.5 adds a policy-only remediation document for the compatibility report gaps. It does not run the live reader, add routes/UI, mutate rows, create migrations, align writes, backfill data, or perform cleanup.
