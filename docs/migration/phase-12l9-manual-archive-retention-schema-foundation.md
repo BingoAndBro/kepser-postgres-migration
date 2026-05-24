@@ -133,6 +133,8 @@ Future phases should remain separate:
 4. Existing Manual Archive data remediation/backfill, report-first and human-reviewed.
 5. Later stricter database constraints after reports prove rows are complete.
 
+Implementation note as of Phase 12L.10: Manual Archive create/edit APIs now require the new source metadata fields for future rows, calculate Manual Archive retention end dates server-side, derive classification snapshots from active `master_klasifikasi_arsip`, set `archived_by` on create, and keep `canonical_arsip_id` null. This does not execute the Phase 12L.9 migration, update UI, create canonical `MANUAL` rows, backfill existing rows, or change attachment/lifecycle behavior.
+
 ## Migration Review Instructions
 
 Human review is required before commit and before migration execution.
