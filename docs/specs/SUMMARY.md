@@ -146,6 +146,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - `keterangan` is required; `nominal_realisasi` remains nullable in DB for compatibility, while create/edit API boundaries and create UI require a positive integer value greater than 0 after Phase 12J.2d/12L.1
 - Phase 12L.1 adds API-only parent metadata edit for Manual Archive through `PATCH /api/arsiparis/manual-arsip/$id`, limited to `status_arsip='AKTIF'`; `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN` are locked for metadata edit
 - Manual archive uses archive lifecycle values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`; future file access must block `DIMUSNAHKAN`
+- Phase 12L.2 adds the canonical archive parent schema foundation by extending `arsip.arsip` with `source_type: WORKFLOW | MANUAL` and transitional canonical metadata fields; it does not change runtime writes, migrate `manual_arsip` rows, delete old tables/files, or consolidate attachments
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

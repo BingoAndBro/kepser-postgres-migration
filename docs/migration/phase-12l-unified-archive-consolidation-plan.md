@@ -160,6 +160,8 @@ Create a narrow schema/migration design for the canonical archive parent. Define
 
 This phase should not change runtime writes, UI pages, lifecycle behavior, file access, cleanup, export, route generation, or old table deletion.
 
+Implementation note as of 2026-05-24: Phase 12L.2 extends existing `arsip.arsip` as the canonical parent foundation instead of creating a new table. The migration draft adds `source_type`, loosens `dokumen_id` nullability for future Manual Archive rows, adds canonical name/classification/snapshot/metadata/audit scaffolding, and keeps Manual Archive rows in `arsip.manual_arsip` until a later controlled migration/backfill phase.
+
 ### Phase 12L.3 - Compatibility Read Service And Backfill Plan
 
 Design and implement compatibility read services or database views that can read existing workflow archive rows and Manual Archive rows into one safe archive DTO before old tables are removed.

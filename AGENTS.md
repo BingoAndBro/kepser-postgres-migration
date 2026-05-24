@@ -45,6 +45,7 @@ Referensi utama:
 - `docs/migration/phase-12j2d-manual-archive-required-nominal.md`
 - `docs/migration/phase-12k-manual-archive-preview-download.md`
 - `docs/migration/phase-12l-manual-archive-edit-aktif-only.md`
+- `docs/migration/phase-12l2-canonical-archive-schema-foundation.md`
 
 ---
 
@@ -319,6 +320,9 @@ Arsip:
 - `arsip.lampiran_snapshot` stores attachment metadata snapshot.
 - `log_aktivitas` is append-only by contract.
 - Manual archive for Penambahan Arsip uses separate tables and must not be forced into `dokumen_transaksi`.
+- Phase 12L.2 extends `arsip.arsip` as the transitional canonical archive parent foundation with `source_type: 'WORKFLOW' | 'MANUAL'`; existing Manual Archive rows are not migrated into it yet.
+- `arsip.arsip.dokumen_id` is nullable overall after Phase 12L.2 so future canonical `MANUAL` rows do not require `dokumen_transaksi`; current workflow archive writes still provide it.
+- Strict `WORKFLOW`/`MANUAL` relationship checks for `dokumen_id` are future constraints after report-first backfill and write alignment.
 - `manual_arsip_category` is separate from `master_klasifikasi_arsip`; `master_klasifikasi_arsip` remains the archival classification hierarchy.
 - One `manual_arsip` parent row represents one report/archive record. `manual_arsip_attachment` child rows must not be counted as additional reports in future aggregates.
 - Manual archive attachments are optional, and the schema supports many attachments per parent row.
@@ -444,6 +448,7 @@ AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
 Rules:
 
 - `arsip.lampiran_snapshot` stores attachment metadata snapshot.
+- After Phase 12L.2, `arsip.arsip` is the transitional canonical archive parent foundation and uses `source_type='WORKFLOW'` for current workflow archive rows. Future `source_type='MANUAL'` rows are not created until a later write-alignment phase.
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
@@ -473,6 +478,8 @@ Rules:
 - Phase 12K.1 adds direct authorized preview/download API responses for manual archive attachments only. It does not add UI buttons, file tokens, signed URLs, lifecycle transitions, aggregate report, Excel export, attachment delete, schema changes, migrations, upload changes, or public/static serving.
 - Phase 12L.1 adds parent metadata edit through `PATCH /api/arsiparis/manual-arsip/$id` only while `status_arsip='AKTIF'`. It does not add UI edit behavior, attachment edit/delete, lifecycle transitions, retention fields, aggregate report, Excel export, schema changes, migrations, preview/download changes, upload changes, or public/static serving.
 - Manual Archive create and edit APIs require a positive integer `nominal_realisasi` greater than 0 even though the database column remains nullable for compatibility.
+- Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
+- The canonical archive parent target uses `source_type` values `WORKFLOW` and `MANUAL`; attachment models remain separate temporarily.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
@@ -605,6 +612,7 @@ Manual archive schema files:
 
 - `src/db/schema/arsip/manual-arsip.ts`
 - `drizzle/0003_manual_archive_schema.sql`
+- `drizzle/0005_canonical_archive_schema_foundation.sql`
 
 ### Route Notes
 
