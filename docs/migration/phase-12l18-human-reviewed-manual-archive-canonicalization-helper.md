@@ -172,3 +172,5 @@ Phase 12L.19 - Human-Reviewed Dry-Run Harness For One Manual Archive READY Row
 ```
 
 That phase should still avoid broad backfill. It should define the human approval artifact, load exactly one approved row, provide a dry-run mode first, and only then consider a separately approved live execution path with server-side authorization, durable audit, and operator-visible rollback expectations.
+
+Implementation note as of Phase 12L.19: an internal dependency-injected dry-run helper now exists for exactly one human-approved Manual Archive row. It reloads the current row, reuses the 12L.17 classifier and canonical write planner for safe preview output, requires `approvedByUserId` before DB work, and does not call the 12L.18 mutation helper, `insert`, `update`, `delete`, or `transaction`.
