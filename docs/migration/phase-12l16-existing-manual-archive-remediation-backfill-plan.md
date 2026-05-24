@@ -348,3 +348,5 @@ Phase 12L.17 - Read-Only Existing Manual Archive Remediation Report Helper
 ```
 
 That phase should implement only a safe internal report helper that classifies existing Manual Archive rows into controlled buckets. It should not run live reports by default, add routes/UI, mutate rows, create canonical rows, backfill data, change schemas, touch attachments, run migrations, or perform cleanup.
+
+Implementation note as of Phase 12L.17: the internal read-only Manual Archive remediation report helper now exists in `src/lib/archive/manual-archive-remediation-report.ts` with controlled bucket labels, safe DTO output, bounded select-only reader support, and mocked unit tests. It does not run a live DB report, mutate rows, create canonical rows, update source links, add API/UI, change schema, touch attachments, execute migrations, or perform cleanup.
