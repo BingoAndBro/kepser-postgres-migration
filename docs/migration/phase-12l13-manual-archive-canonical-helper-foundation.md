@@ -155,6 +155,8 @@ That phase should wire the helper into Manual Archive POST create using the Phas
 
 Attachment upload should remain a separate post-parent action. Existing data backfill, lifecycle unification, unified list/detail UI, aggregate/export, attachment consolidation, and cleanup must remain separate phases.
 
+Implementation note as of Phase 12L.14: Manual Archive `POST /api/arsiparis/manual-arsip` now uses the Phase 12L.13 helper in the selected Phase 12L.12 Option 2 transaction. New creates insert the source row, create a canonical `arsip.arsip` `MANUAL` row, and update `manual_arsip.canonical_arsip_id` in one DB transaction. Attachment upload and PATCH/edit canonical sync remain separate future work.
+
 ## Risks And Open Decisions
 
 Risks:

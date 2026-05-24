@@ -153,6 +153,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.9 adds nullable Manual Archive source schema fields for future `nomor_surat`, `tanggal_diarsipkan`, retention labels/end dates, `klasifikasi_kode_snapshot`, `archived_by`, and `canonical_arsip_id`; it does not update Manual Archive API/UI, create canonical `MANUAL` rows, backfill rows, or change lifecycle/file behavior
 - Phase 12L.10 updates Manual Archive create/edit API validation and server-side writes for required future-canonical metadata, server-calculated retention dates, and server-derived classification snapshots; it keeps UI, canonical `MANUAL` rows, backfill, lifecycle, attachments, migrations, and cleanup out of scope
 - Phase 12L.11 updates `/arsiparis/penambahan-arsip` create UI to collect and submit the required Phase 12L.10 Manual Archive metadata; it keeps edit UI, APIs, canonical `MANUAL` rows, backfill, lifecycle, attachments, migrations, and cleanup out of scope
+- Phase 12L.14 updates Manual Archive POST create runtime behavior so new source rows create a linked canonical `arsip.arsip` row with `source_type='MANUAL'` in the same DB transaction; PATCH/edit sync, existing-row backfill, lifecycle, attachment behavior, UI, migrations, and cleanup remain out of scope
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 
