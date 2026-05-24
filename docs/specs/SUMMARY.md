@@ -150,6 +150,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.3 adds a transitional compatibility/report DTO mapper and report-first backfill plan only; it does not add UI integration, routes, lifecycle unification, runtime write changes, data backfill, table cleanup, or attachment consolidation
 - Phase 12L.4 adds an internal read-only DB compatibility report reader only, and Phase 12L.5 adds human-reviewed remediation policy for report gaps only; neither phase adds UI/routes, mutates rows, creates migrations, aligns writes, performs backfill, or performs cleanup
 - Phase 12L.7 aligns new workflow archive writes only: workflow archive creation now writes canonical `WORKFLOW` fields on `arsip.arsip`, derives `nama_arsip` from workflow document metadata, validates `klasifikasi_id`, derives classification snapshots server-side, and keeps Manual Archive unchanged
+- Phase 12L.9 adds nullable Manual Archive source schema fields for future `nomor_surat`, `tanggal_diarsipkan`, retention labels/end dates, `klasifikasi_kode_snapshot`, `archived_by`, and `canonical_arsip_id`; it does not update Manual Archive API/UI, create canonical `MANUAL` rows, backfill rows, or change lifecycle/file behavior
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

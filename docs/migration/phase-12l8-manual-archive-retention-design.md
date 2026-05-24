@@ -351,3 +351,5 @@ Manual Archive retention schema foundation
 ```
 
 This next phase should add only the source/schema foundation needed to store future Manual Archive retention metadata and canonical-link/idempotency support if approved. It should not update APIs, UI, runtime writes, canonical `MANUAL` row creation, backfill, lifecycle, attachment behavior, aggregate/export, cleanup, route generation, packages, `db/`, `supabase/`, or broad tests.
+
+Implementation note as of 2026-05-24: Phase 12L.9 implements this recommendation as a schema/migration/docs-only foundation on `arsip.manual_arsip`. The added fields are nullable transitional source fields only; Manual Archive APIs/UI, canonical `MANUAL` writes, retention calculation, existing-data backfill, lifecycle behavior, preview/download, upload, cleanup, and migration execution remain out of scope.
