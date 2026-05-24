@@ -197,13 +197,15 @@ Do not run broad build/E2E, DB migrations/seeds, route generation, live reports,
 
 ## Next Phase Recommendation
 
-Recommended immediate next phase:
+Follow-up note after Phase 12M.2: existing Arsip Aktif/Inaktif/Usul Musnah list pages are now wired to this unified query service as read-only canonical list views.
+
+Recommended next phase after list integration:
 
 ```text
-Phase 12M.2 - Unified Archive List Page Integration
+Phase 12M.3 - Unified Archive Detail Policy And Read-Only Detail Planning
 ```
 
-That phase should wire Arsip Aktif/Inaktif/Usul Musnah pages to the unified query service behind server-side `KEPALA_SUB_BAGIAN_UMUM` authorization. It should keep file access, lifecycle mutation, aggregate/export, attachment consolidation, legacy cleanup, migrations, and live backfill separate unless explicitly approved.
+That phase should decide the canonical detail strategy while keeping file access, lifecycle mutation, aggregate/export, attachment consolidation, legacy cleanup, migrations, and live backfill separate unless explicitly approved.
 
 ## Risks And Open Decisions
 
