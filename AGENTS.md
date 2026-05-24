@@ -52,6 +52,7 @@ Referensi utama:
 - `docs/migration/phase-12l7-workflow-archive-canonical-write-alignment.md`
 - `docs/migration/phase-12l9-manual-archive-retention-schema-foundation.md`
 - `docs/migration/phase-12l10-manual-archive-api-retention-validation.md`
+- `docs/migration/phase-12l11-manual-archive-ui-required-metadata.md`
 
 ---
 
@@ -491,6 +492,7 @@ Rules:
 - The canonical archive parent target uses `source_type` values `WORKFLOW` and `MANUAL`; attachment models remain separate temporarily.
 - Phase 12L.9 adds nullable Manual Archive source fields for future `nomor_surat`, archive date, retention, classification code snapshot, archive actor, and canonical parent link/idempotency support. It does not update APIs/UI, create canonical `MANUAL` rows, calculate retention, backfill rows, or change lifecycle/file behavior.
 - Phase 12L.10 updates Manual Archive create/edit API validation and server-side writes for `nomor_surat`, required `klasifikasi_id`, `tanggal_diarsipkan`, retention labels, server-calculated retention dates, server-derived classification snapshots, and `archived_by` on create. It does not update UI, create canonical `MANUAL` rows, backfill existing rows, execute migrations, or change attachment/lifecycle behavior.
+- Phase 12L.11 updates `/arsiparis/penambahan-arsip` create UI to collect and submit the required Phase 12L.10 Manual Archive metadata. It does not add edit UI, create canonical `MANUAL` rows, backfill rows, change APIs, execute migrations, or change attachment/lifecycle behavior.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

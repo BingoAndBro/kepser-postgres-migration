@@ -141,3 +141,5 @@ Manual Archive UI collection for Phase 12L.10 API fields
 ```
 
 That phase should add UI inputs for `Nama Arsip`, `Nomor Surat`, required canonical classification, `Tanggal Arsip`, and retention labels. It should not create canonical `MANUAL` rows, backfill existing rows, unify lifecycle, change attachment behavior, or run cleanup.
+
+Implementation note as of Phase 12L.11: `/arsiparis/penambahan-arsip` create UI now collects and submits the required Phase 12L.10 metadata fields, including `nomor_surat`, `tanggal_diarsipkan`, required `klasifikasi_id`, and retention labels. The UI does not submit classification snapshots, retention end dates, archive actor fields, canonical linkage fields, or file access internals. Browser edit UI remains future work; the Phase 12L.10 PATCH API contract is unchanged.
