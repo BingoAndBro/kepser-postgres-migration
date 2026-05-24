@@ -324,6 +324,8 @@ Phase 12L.7 must explicitly decide or confirm these workflow-only items before i
 
 Manual Archive canonical write alignment remains blocked until `nomor_surat`, required classification, retention policy, and `tanggal_diarsipkan` policy are resolved.
 
+Implementation note as of 2026-05-24: Phase 12L.7 implements workflow-only canonical write alignment. New workflow archive writes now submit and validate `klasifikasi_id`, derive classification snapshots server-side, derive `nama_arsip` from workflow document metadata, write explicit `source_type='WORKFLOW'`, set `created_by` from `dokumen_transaksi.created_by`, and keep `archived_by` as the authenticated `KEPALA_SUB_BAGIAN_UMUM` session user. Manual Archive write alignment, existing-row backfill, lifecycle unification, retention redesign, preview/download changes, upload changes, migrations, and cleanup remain out of scope.
+
 ## What Is Intentionally Not Changed
 
 This phase does not:

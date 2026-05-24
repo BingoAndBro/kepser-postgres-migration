@@ -49,6 +49,7 @@ Referensi utama:
 - `docs/migration/phase-12l3-compatibility-read-backfill-plan.md`
 - `docs/migration/phase-12l4-report-only-db-compatibility-reader.md`
 - `docs/migration/phase-12l5-remediation-policy-for-compatibility-gaps.md`
+- `docs/migration/phase-12l7-workflow-archive-canonical-write-alignment.md`
 
 ---
 
@@ -452,6 +453,7 @@ Rules:
 
 - `arsip.lampiran_snapshot` stores attachment metadata snapshot.
 - After Phase 12L.2, `arsip.arsip` is the transitional canonical archive parent foundation and uses `source_type='WORKFLOW'` for current workflow archive rows. Future `source_type='MANUAL'` rows are not created until a later write-alignment phase.
+- After Phase 12L.7, new workflow archive writes explicitly populate canonical workflow fields on `arsip.arsip`, including derived `nama_arsip`, `klasifikasi_id`, classification snapshots from `master_klasifikasi_arsip`, `created_by` from `dokumen_transaksi.created_by`, and `archived_by` from the current `KEPALA_SUB_BAGIAN_UMUM` session user.
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
