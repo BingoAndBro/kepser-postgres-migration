@@ -54,6 +54,7 @@ Referensi utama:
 - `docs/migration/phase-12l10-manual-archive-api-retention-validation.md`
 - `docs/migration/phase-12l11-manual-archive-ui-required-metadata.md`
 - `docs/migration/phase-12l14-manual-archive-create-canonical-write-alignment.md`
+- `docs/migration/phase-12l15-manual-archive-edit-canonical-sync.md`
 
 ---
 
@@ -495,6 +496,7 @@ Rules:
 - Phase 12L.10 updates Manual Archive create/edit API validation and server-side writes for `nomor_surat`, required `klasifikasi_id`, `tanggal_diarsipkan`, retention labels, server-calculated retention dates, server-derived classification snapshots, and `archived_by` on create. It does not update UI, create canonical `MANUAL` rows, backfill existing rows, execute migrations, or change attachment/lifecycle behavior.
 - Phase 12L.11 updates `/arsiparis/penambahan-arsip` create UI to collect and submit the required Phase 12L.10 Manual Archive metadata. It does not add edit UI, create canonical `MANUAL` rows, backfill rows, change APIs, execute migrations, or change attachment/lifecycle behavior.
 - Phase 12L.14 aligns Manual Archive POST create writes: new source rows create one canonical `arsip.arsip` row with `source_type='MANUAL'` and update `manual_arsip.canonical_arsip_id` in the same DB transaction. It does not change PATCH/edit sync, attachment upload/preview/download, existing-row backfill, lifecycle APIs, aggregate/export, migrations, schema, or UI.
+- Phase 12L.15 aligns Manual Archive PATCH/edit for `AKTIF` rows that already have `canonical_arsip_id`: source metadata and the linked canonical `source_type='MANUAL'` row are updated in one DB transaction. `AKTIF` rows without `canonical_arsip_id` remain transitional legacy source-only edits; PATCH does not create canonical rows, set canonical links, backfill existing rows, or change attachment behavior.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

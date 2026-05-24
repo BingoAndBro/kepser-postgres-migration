@@ -146,3 +146,5 @@ Phase 12L.15 - Manual Archive edit and canonical sync policy
 ```
 
 That phase should decide and implement how source `AKTIF` edits interact with canonical `MANUAL` rows. It should remain separate from existing-row backfill, lifecycle unification, unified list/detail UI, aggregate/export, attachment consolidation, and cleanup.
+
+Implementation note as of Phase 12L.15: Manual Archive `PATCH /api/arsiparis/manual-arsip/$id` now syncs `AKTIF` linked source rows to their canonical `arsip.arsip` `MANUAL` row in one DB transaction. Unlinked legacy rows remain source-only and are not canonicalized on PATCH.
