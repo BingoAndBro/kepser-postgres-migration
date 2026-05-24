@@ -157,6 +157,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.15 updates Manual Archive PATCH/edit behavior for `AKTIF` linked rows so source metadata and the linked canonical `source_type='MANUAL'` row sync in one DB transaction; unlinked legacy rows remain source-only and no PATCH backfill/canonicalization is introduced
 - Phase 12L.16 adds a docs-only, report-first remediation/backfill plan for existing Manual Archive rows without canonical `MANUAL` parents; it does not run a live report, mutate rows, create canonical rows, change APIs/UI/schema, touch attachments, or perform cleanup
 - Phase 12L.17 adds an internal read-only Manual Archive remediation report helper with controlled bucket labels, safe DTO output, bounded select-only reader support, and mocked unit tests; it does not run a live report, mutate rows, create canonical rows, update source links, add API/UI/schema, touch attachments, or perform cleanup
+- Phase 12L.18 adds an internal dependency-injected one-row canonicalization helper for explicitly human-approved rows that are still `READY_FOR_CANONICALIZATION` at execution time; it is not wired to routes, UI, CLI, scheduler, report readers, live reports, or automatic backfill
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

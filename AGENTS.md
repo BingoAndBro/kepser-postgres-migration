@@ -57,6 +57,7 @@ Referensi utama:
 - `docs/migration/phase-12l15-manual-archive-edit-canonical-sync.md`
 - `docs/migration/phase-12l16-existing-manual-archive-remediation-backfill-plan.md`
 - `docs/migration/phase-12l17-read-only-manual-archive-remediation-report-helper.md`
+- `docs/migration/phase-12l18-human-reviewed-manual-archive-canonicalization-helper.md`
 
 ---
 
@@ -501,6 +502,7 @@ Rules:
 - Phase 12L.15 aligns Manual Archive PATCH/edit for `AKTIF` rows that already have `canonical_arsip_id`: source metadata and the linked canonical `source_type='MANUAL'` row are updated in one DB transaction. `AKTIF` rows without `canonical_arsip_id` remain transitional legacy source-only edits; PATCH does not create canonical rows, set canonical links, backfill existing rows, or change attachment behavior.
 - Phase 12L.16 defines a docs-only, report-first remediation/backfill plan for existing Manual Archive rows without valid canonical `MANUAL` parents. It does not run a live report, mutate rows, create canonical rows, change APIs/UI/schema, touch attachments, execute migrations, or perform cleanup.
 - Phase 12L.17 adds an internal read-only Manual Archive remediation report helper with controlled bucket labels, safe DTO output, bounded select-only reader support, and mocked unit tests. It does not run a live DB report, mutate rows, create canonical rows, update source links, add API/UI, change schema, touch attachments, execute migrations, or perform cleanup.
+- Phase 12L.18 adds an internal dependency-injected one-row canonicalization helper for explicitly human-approved rows that are still `READY_FOR_CANONICALIZATION` at execution time. It is not wired to routes, UI, CLI, scheduler, report readers, live reports, or automatic backfill, and it must not process linked, broken-link, wrong-source, non-`AKTIF`, metadata-incomplete, or nominal-invalid rows.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

@@ -148,6 +148,8 @@ Phase 12L.18 - Human-Reviewed Per-Row Canonicalization Helper For READY Rows
 
 That phase should remain separate and should only proceed after humans review the 12L.17 helper/report output. It should process only explicitly approved `READY_FOR_CANONICALIZATION` rows and should not process broken links, wrong source types, non-`AKTIF` rows, attachments, cleanup, lifecycle unification, aggregate/export, UI, routes, schema changes, or broad migrations unless separately approved.
 
+Implementation note as of Phase 12L.18: an internal dependency-injected one-row canonicalization helper now exists for explicitly approved rows that are still `READY_FOR_CANONICALIZATION` at execution time. It is not wired to routes, UI, CLI, scheduler, report readers, live reports, or automatic backfill, and it does not process linked, broken-link, wrong-source, non-`AKTIF`, metadata-incomplete, or nominal-invalid rows.
+
 ## Risks And Open Decisions
 
 Risks:
