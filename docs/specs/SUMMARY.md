@@ -159,6 +159,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.17 adds an internal read-only Manual Archive remediation report helper with controlled bucket labels, safe DTO output, bounded select-only reader support, and mocked unit tests; it does not run a live report, mutate rows, create canonical rows, update source links, add API/UI/schema, touch attachments, or perform cleanup
 - Phase 12L.18 adds an internal dependency-injected one-row canonicalization helper for explicitly human-approved rows that are still `READY_FOR_CANONICALIZATION` at execution time; it is not wired to routes, UI, CLI, scheduler, report readers, live reports, or automatic backfill
 - Phase 12L.19 adds an internal dependency-injected one-row dry-run helper for human-approved Manual Archive rows; it returns safe preview metadata only, does not call the 12L.18 mutation helper, and does not insert, update, delete, transact, run live reports, or add routes/UI/CLI/scheduler behavior
+- Phase 12M.1 adds an internal read-only unified archive query service for canonical `arsip.arsip` rows only; it excludes unlinked legacy `manual_arsip` rows, defers broad text search, and does not add routes/UI, mutate rows, backfill, cleanup, run live reports, or change attachment/file behavior
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

@@ -59,6 +59,7 @@ Referensi utama:
 - `docs/migration/phase-12l17-read-only-manual-archive-remediation-report-helper.md`
 - `docs/migration/phase-12l18-human-reviewed-manual-archive-canonicalization-helper.md`
 - `docs/migration/phase-12l19-manual-archive-canonicalization-dry-run.md`
+- `docs/migration/phase-12m1-unified-archive-query-service.md`
 
 ---
 
@@ -505,6 +506,7 @@ Rules:
 - Phase 12L.17 adds an internal read-only Manual Archive remediation report helper with controlled bucket labels, safe DTO output, bounded select-only reader support, and mocked unit tests. It does not run a live DB report, mutate rows, create canonical rows, update source links, add API/UI, change schema, touch attachments, execute migrations, or perform cleanup.
 - Phase 12L.18 adds an internal dependency-injected one-row canonicalization helper for explicitly human-approved rows that are still `READY_FOR_CANONICALIZATION` at execution time. It is not wired to routes, UI, CLI, scheduler, report readers, live reports, or automatic backfill, and it must not process linked, broken-link, wrong-source, non-`AKTIF`, metadata-incomplete, or nominal-invalid rows.
 - Phase 12L.19 adds an internal dependency-injected dry-run helper for exactly one human-approved Manual Archive row. It requires `approvedByUserId` before DB work, reloads the current row, returns safe preview metadata only for rows that would canonicalize, and must not call the live mutation helper, insert, update, delete, transaction, routes, UI, CLI, scheduler, live reports, or automatic backfill.
+- Phase 12M.1 adds an internal read-only unified archive query service for canonical `arsip.arsip` rows only. It does not include unlinked legacy `manual_arsip` rows, add routes/UI, mutate rows, backfill, cleanup, run live reports, or change attachment/file behavior.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
