@@ -26,8 +26,9 @@ The route namespace uses the existing `/arsiparis` compatibility namespace for t
 - `GET /api/arsiparis/manual-arsip`
 - `POST /api/arsiparis/manual-arsip`
 - `GET /api/arsiparis/manual-arsip/$id`
+- `PATCH /api/arsiparis/manual-arsip/$id` after Phase 12L.1, for parent metadata edit only while `status_arsip='AKTIF'`
 
-`PATCH` is intentionally skipped in this phase to keep the foundation narrow. Metadata update behavior can be added in a later phase after UI and lifecycle expectations are clearer.
+`PATCH` was intentionally skipped in Phase 12H to keep the foundation narrow. Phase 12L.1 adds the narrow API-only metadata edit boundary. It does not add UI edit behavior, attachment edit/delete, lifecycle transitions, retention fields, aggregate reports, Excel export, schema changes, migrations, or preview/download changes.
 
 ## Security And RBAC
 
@@ -39,7 +40,7 @@ Unsafe `POST` uses the centralized same-origin guard.
 
 ## Validation
 
-Create request fields:
+Create and Phase 12L.1 edit request fields:
 
 - `nama`, required non-empty string;
 - `tanggal`, required valid `YYYY-MM-DD` date;
@@ -56,6 +57,16 @@ Create defaults:
 - `status_arsip='AKTIF'`;
 - `created_by` comes from the server session user id;
 - `klasifikasi_nama_snapshot` is filled from active `master_klasifikasi_arsip.nama` when `klasifikasi_id` is provided.
+
+Phase 12L.1 edit behavior:
+
+- treats `PATCH` as a full parent metadata update for the allowed fields;
+- rejects omitted required fields instead of silently preserving them;
+- loads the current manual archive first and rejects `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN` with `409`;
+- uses the safe message `Arsip manual hanya dapat diedit saat status AKTIF`;
+- updates category/classification references and `klasifikasi_nama_snapshot` consistently when changed;
+- updates `updated_at` according to existing timestamp convention;
+- does not update `status_arsip`, `created_by`, attachment rows, logical storage paths, preview/download data, lifecycle fields, or retention fields.
 
 ## Response Shape
 
