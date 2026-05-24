@@ -184,3 +184,5 @@ Phase 12L.4 - Report-Only DB Compatibility Reader
 Keep it read-only. Add a server-side internal query service, not a public API route, that loads current workflow archive rows and Manual Archive rows, calls the pure compatibility mappers, and returns safe report counts plus safe row identifiers for human remediation review.
 
 Do not proceed to workflow write alignment, Manual Archive write alignment, lifecycle unification, retention backfill, aggregate/export, UI integration, cleanup, or table deletion until the report output is reviewed and remediation policy is approved.
+
+Implementation note as of 2026-05-24: Phase 12L.4 adds the internal server-side DB compatibility reader in `src/lib/archive/unified-compatibility-reader.ts`. It remains report-only and read-only, with no route, UI, migration, backfill, lifecycle, cleanup, aggregate/export, package, route generation, or storage behavior change.
