@@ -345,3 +345,5 @@ Phase 12L.6 - Manual/Workflow Canonical Write Alignment Split Plan
 ```
 
 That phase should convert this policy into approved per-bucket decisions and split implementation into isolated write-alignment phases. If humans approve all required decisions during Phase 12L.5 review, Phase 12L.6 may instead proceed as workflow archive write alignment planning or implementation, with Manual Archive canonical parent creation kept separate unless explicitly approved.
+
+Cross-reference as of Phase 12L.16: existing Manual Archive source rows now have a dedicated report-first remediation/backfill plan in `docs/migration/phase-12l16-existing-manual-archive-remediation-backfill-plan.md`. That plan keeps live report execution, mutation, canonical row creation, attachment changes, lifecycle unification, and cleanup out of scope.

@@ -153,3 +153,5 @@ Phase 12L.16 - Existing Manual Archive remediation and backfill plan
 ```
 
 That phase should remain report-first and human-reviewed. It should not be combined with cleanup, lifecycle unification, unified list/detail UI, aggregate/export, attachment consolidation, migrations, or storage changes unless explicitly approved.
+
+Implementation note as of Phase 12L.16: the existing Manual Archive remediation/backfill plan now exists as a docs-only, report-first plan. It does not create canonical rows for existing sources, run a live report, mutate rows, add API/UI, change schema, touch attachments, or perform cleanup.

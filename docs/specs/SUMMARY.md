@@ -155,6 +155,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12L.11 updates `/arsiparis/penambahan-arsip` create UI to collect and submit the required Phase 12L.10 Manual Archive metadata; it keeps edit UI, APIs, canonical `MANUAL` rows, backfill, lifecycle, attachments, migrations, and cleanup out of scope
 - Phase 12L.14 updates Manual Archive POST create runtime behavior so new source rows create a linked canonical `arsip.arsip` row with `source_type='MANUAL'` in the same DB transaction; PATCH/edit sync, existing-row backfill, lifecycle, attachment behavior, UI, migrations, and cleanup remain out of scope
 - Phase 12L.15 updates Manual Archive PATCH/edit behavior for `AKTIF` linked rows so source metadata and the linked canonical `source_type='MANUAL'` row sync in one DB transaction; unlinked legacy rows remain source-only and no PATCH backfill/canonicalization is introduced
+- Phase 12L.16 adds a docs-only, report-first remediation/backfill plan for existing Manual Archive rows without canonical `MANUAL` parents; it does not run a live report, mutate rows, create canonical rows, change APIs/UI/schema, touch attachments, or perform cleanup
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 
