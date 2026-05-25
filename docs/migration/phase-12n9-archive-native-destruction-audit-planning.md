@@ -4,6 +4,10 @@ Date: 2026-05-25
 
 Status: planned audit policy document. This phase is documentation-only and does not implement schema, migrations, audit writes, runtime lifecycle changes, or physical file deletion.
 
+Implementation note after 12N.10:
+
+- Phase 12N.10 adds an internal/manual-use helper for source-aware physical file deletion of canonical archives that are already `DIMUSNAHKAN`. It returns safe counts and controlled warnings only, preserves archive metadata, does not write audit rows because no archive-native audit schema exists yet, and does not add public UI, public API, scheduler, schema, migrations, route generation, legacy proposal changes, or broad storage cleanup.
+
 ## 1. Scope And Boundary
 
 Phase 12N.9 defines the future archive-native audit model for unified archive lifecycle actions, especially terminal destruction approval and future source-aware physical file deletion.
