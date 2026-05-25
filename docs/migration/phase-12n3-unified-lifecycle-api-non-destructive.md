@@ -4,6 +4,11 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase adds a narrow unified lifecycle mutation API for non-destructive status transitions only.
 
+Implementation note after 12N.5:
+
+- Phase 12N.5 extends the same route with `approve_destruction` for canonical-only `USUL_MUSNAH -> DIMUSNAHKAN` after explicit confirmation and required reason validation.
+- The original 12N.3 non-destructive actions remain unchanged; 12N.5 does not add UI buttons, legacy proposal bridging, audit writes, file deletion, or snapshot clearing.
+
 ## 1. Scope And Boundary
 
 Phase 12N.3 adds the canonical archive-id lifecycle route:

@@ -4,6 +4,11 @@ Date: 2026-05-25
 
 Status: planned policy and safety document. This phase is documentation-only and does not implement `approve_destruction`.
 
+Implementation note after 12N.5:
+
+- Phase 12N.5 implements the recommended canonical-only `approve_destruction` action on `POST /api/arsiparis/arsip/$id/lifecycle` after human acceptance of the canonical-only governance decision and no-audit limitation.
+- 12N.5 keeps the policy boundary from this document: status-only `USUL_MUSNAH -> DIMUSNAHKAN`, no file deletion, no snapshot clearing, no legacy proposal route changes, no audit writes, and stale file actions blocked server-side.
+
 ## 1. Scope And Boundary
 
 Phase 12N.4 defines the policy and safety requirements for a future unified destruction approval action before any `DIMUSNAHKAN` mutation is added to the canonical lifecycle API.
