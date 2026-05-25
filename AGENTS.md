@@ -83,6 +83,7 @@ Referensi utama:
 - `docs/migration/phase-12n11-legacy-proposal-route-compatibility-cleanup-plan.md`
 - `docs/migration/phase-12n11b-legacy-proposal-route-removal-and-redirect-cleanup.md`
 - `docs/migration/phase-12o-unified-archive-aggregate-export.md`
+- `docs/migration/phase-12p-dev-manual-archive-data-storage-cleanup.md`
 
 ---
 
@@ -554,6 +555,7 @@ Rules:
 - Phase 12N.11 plans legacy proposal route compatibility cleanup only. Legacy proposal approval remains runtime-unchanged but must not be treated as authoritative unified destruction because it is proposal-id based, WORKFLOW-oriented, clears `lampiran_snapshot`, and directly deletes files outside the 12N.10 source-aware helper policy. It does not modify routes, UI, APIs, schema, migrations, storage files, audit, route generation, or roadmap order.
 - Phase 12N.11b removes the obsolete legacy status-specific archive detail and mutation routes that were replaced by unified canonical archive detail and lifecycle. Current list pages remain intact and must link to `/arsiparis/arsip/$id`; lifecycle mutation must go through `POST /api/arsiparis/arsip/$id/lifecycle`. This closes the old proposal-id destructive route surface without deleting DB rows, files, snapshots, schema, migrations, list APIs, or storage metadata.
 - Phase 12O adds metadata-only unified archive aggregate and CSV export APIs plus small export links on the active/inactive/proposed-destruction list pages. Export is bounded to the existing unified query max, uses a static filename, applies CSV/formula-injection escaping, and must not expose file contents, URLs, tokens, paths, storage roots, raw attachment metadata, SQL, env values, session/cookie values, or secrets.
+- Phase 12P-dev adds an internal local/development-only helper for dry-run-first cleanup of invalid/unlinked Manual Archive source rows, their attachment metadata, and disposable physical files after exact confirmation. It must not delete canonical `arsip.arsip` rows, WORKFLOW data, valid linked Manual Archive rows, files referenced by canonical archive metadata, or any file outside local storage safety checks; it adds no route/UI/scheduler/schema/migration/package change and does not scan the whole storage root.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
