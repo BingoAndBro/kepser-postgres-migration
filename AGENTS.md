@@ -69,6 +69,7 @@ Referensi utama:
 - `docs/migration/phase-12m6c-unified-detail-actor-display-name-resolution.md`
 - `docs/migration/phase-12m7-source-aware-preview-download-from-detail.md`
 - `docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`
+- `docs/migration/phase-12n1-unified-archive-lifecycle-policy-inventory.md`
 
 ---
 
@@ -525,6 +526,7 @@ Rules:
 - Phase 12M.6c resolves canonical archive actor ids to display names for unified detail `Dibuat oleh` and `Diarsipkan oleh` fields. It remains read-only and does not add preview/download, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-section actor duplication, or route generation.
 - Phase 12M.7 adds source-aware Preview/Download actions from unified archive detail for available `WORKFLOW` and linked `MANUAL` attachments through authorized server routes. It does not expose paths, storage roots, file URLs, signed URLs, token internals, or raw attachment metadata; `DIMUSNAHKAN` hides actions and stale action URLs must fail server-side.
 - Phase 12M.8 documents a source-boundary review and human-smoke compatibility checklist for unified detail file access after 12M.7/12M.7b. It is documentation-only, separates expected behavior from actual human-smoke results, and does not change runtime source, schema, migrations, route generation, package files, DB rows, or storage files.
+- Phase 12N.1 documents the unified archive lifecycle route inventory and target policy only. It does not implement lifecycle mutation, add routes/UI, change preview/download/file access, mutate rows, delete files, create migrations, run backfill, or alter storage cleanup behavior. During transition, canonical `arsip.arsip.status_arsip` is the unified list/detail lifecycle authority, while linked Manual Archive source status remains an edit/upload/file guard and drift must fail closed before future mutation.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
