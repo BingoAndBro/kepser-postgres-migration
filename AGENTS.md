@@ -64,6 +64,7 @@ Referensi utama:
 - `docs/migration/phase-12m3-unified-archive-detail-policy.md`
 - `docs/migration/phase-12m4-unified-archive-detail-read-service.md`
 - `docs/migration/phase-12m5-unified-archive-detail-page-integration.md`
+- `docs/migration/phase-12m6-source-aware-detail-attachment-metadata.md`
 
 ---
 
@@ -515,6 +516,7 @@ Rules:
 - Phase 12M.3 defines a planning-only unified archive detail policy and recommends future canonical detail route `/arsiparis/arsip/$id`. It does not add routes/UI, route generation, preview/download actions, lifecycle changes, search, export, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
 - Phase 12M.4 adds an internal dependency-injected read-only unified archive detail service for one canonical `arsip.arsip.id`. It does not add routes/UI, route generation, preview/download actions, attachment metadata display, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
 - Phase 12M.5 wires a read-only canonical detail API/page at `/api/arsiparis/arsip/$id` and `/arsiparis/arsip/$id` using the Phase 12M.4 detail service, and adds list `Detail` links from unified archive list rows by canonical `arsip.arsip.id`. It does not add attachment metadata display, preview/download actions, lifecycle mutation, export, cleanup, backfill, migrations, schema changes, or source-link mutation.
+- Phase 12M.6 adds source-aware safe attachment metadata display to unified archive detail for `WORKFLOW` snapshot metadata and linked `MANUAL` attachment rows. It is metadata-only/read-only and does not add preview/download actions, file URLs, signed URLs, token generation, filesystem access, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-link mutation, or route generation.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

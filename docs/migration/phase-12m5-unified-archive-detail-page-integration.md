@@ -4,6 +4,8 @@ Date: 2026-05-25
 
 Status: implemented pending human review. This phase adds a read-only unified archive detail API and page for canonical `arsip.arsip` rows. It keeps attachment metadata display, preview/download, lifecycle mutation, export, cleanup, backfill, migrations, schema changes, and seed/storage cleanup out of scope.
 
+Implementation note after Phase 12M.6: the unified detail service/page now display source-aware safe attachment metadata for `WORKFLOW` and linked `MANUAL` rows. Preview/download actions, lifecycle mutation, export, cleanup, backfill, migrations, schema changes, source-link mutation, and route generation remain deferred.
+
 ## Scope And Boundary
 
 Phase 12M.5 wires the Phase 12M.4 internal detail service into a narrow route/page/API integration.
