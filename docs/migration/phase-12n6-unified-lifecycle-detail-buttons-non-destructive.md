@@ -11,6 +11,11 @@ Implementation note after 12N.6b:
 - After successful `propose_destruction`, the page redirects to `/arsiparis/usul-musnah`.
 - Destructive UI remains out of scope.
 
+Copy note after 12N.8b:
+
+- Phase 12N.8b hardens `mark_inactive` and `propose_destruction` confirmation copy so Kasubag is told that status movement cannot be returned through the current feature and does not delete files.
+- It does not change request bodies, lifecycle API behavior, redirects, file access, storage cleanup, schema, migrations, or route generation.
+
 ## 1. Scope And Boundary
 
 Phase 12N.6 updates:

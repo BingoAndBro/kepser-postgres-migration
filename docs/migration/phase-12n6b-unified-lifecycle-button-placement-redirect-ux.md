@@ -12,6 +12,11 @@ Implementation note after 12N.8:
 
 - Phase 12N.8 keeps `Aksi Lifecycle` below `Lampiran Arsip`. Non-destructive redirects remain unchanged, while successful `approve_destruction` stays on detail and refetches metadata into the `DIMUSNAHKAN` state.
 
+Copy note after 12N.8b:
+
+- Phase 12N.8b only hardens confirmation copy for existing lifecycle UI actions. Non-destructive redirects remain `/arsiparis/inaktif` and `/arsiparis/usul-musnah`; destructive approval still stays on detail and refetches metadata.
+- No lifecycle API behavior, request body, file access, storage cleanup, schema, migration, package, or route-generation behavior changes are included.
+
 ## 1. Scope And Boundary
 
 Phase 12N.6b updates only the unified archive detail page UX:

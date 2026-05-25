@@ -4,6 +4,11 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase exposes the existing unified `approve_destruction` API action in the unified archive detail UI with explicit destructive confirmation.
 
+Copy note after 12N.8b:
+
+- Phase 12N.8b hardens lifecycle confirmation copy only. The destructive warning now explicitly says `DIMUSNAHKAN` cannot be returned through the current feature, preview/download will be blocked, authorized metadata remains visible, physical file deletion is not implemented yet, and physical deletion/storage cleanup is a separate future phase.
+- The 12N.8 API request body, exact phrase requirement, success refetch behavior, no-audit limitation, and no-physical-deletion boundary remain unchanged.
+
 ## 1. Scope And Boundary
 
 Phase 12N.8 updates only the unified archive detail page:
