@@ -79,6 +79,8 @@ Referensi utama:
 - `docs/migration/phase-12n7-destruction-approval-ui-plan.md`
 - `docs/migration/phase-12n8-unified-destruction-approval-ui.md`
 - `docs/migration/phase-12n9-archive-native-destruction-audit-planning.md`
+- `docs/migration/phase-12n10-physical-file-destruction-policy-implementation.md`
+- `docs/migration/phase-12n11-legacy-proposal-route-compatibility-cleanup-plan.md`
 
 ---
 
@@ -547,6 +549,7 @@ Rules:
 - Phase 12N.8b hardens lifecycle confirmation copy only for `AKTIF -> INAKTIF`, `INAKTIF -> USUL_MUSNAH`, and `USUL_MUSNAH -> DIMUSNAHKAN`: users are told status cannot be returned through the current feature, `DIMUSNAHKAN` blocks preview/download, metadata remains visible to authorized users, and physical file deletion/storage cleanup is a separate future phase. It does not change lifecycle API behavior, request bodies, redirects, file access helpers, audit, storage files, schema, migrations, package files, route generation, or legacy proposal routes.
 - Phase 12N.9 plans archive-native destruction audit only. Future audit should be canonical `arsip.arsip` based, cover `WORKFLOW` and `MANUAL` archives consistently, preserve metadata for future physical file deletion, and exclude paths, storage roots, tokens, raw attachment metadata, raw DB rows, SQL details, env values, sessions/cookies, and secrets. It does not create schema/migrations, write audit rows, change lifecycle API/UI/file access, delete files, clear snapshots, delete attachment rows, or modify legacy proposal routes.
 - Phase 12N.10 adds an internal/manual-use source-aware physical file destruction helper for canonical archives that are already `DIMUSNAHKAN`. It supports WORKFLOW `lampiran_snapshot` and linked MANUAL attachment rows, preserves archive metadata rows and attachment metadata, returns safe counts/warnings only, rejects unsafe paths, treats missing files idempotently, and does not add UI/API/scheduler, audit rows, schema/migrations, route generation, broad cleanup, or legacy proposal route changes.
+- Phase 12N.11 plans legacy proposal route compatibility cleanup only. Legacy proposal approval remains runtime-unchanged but must not be treated as authoritative unified destruction because it is proposal-id based, WORKFLOW-oriented, clears `lampiran_snapshot`, and directly deletes files outside the 12N.10 source-aware helper policy. It does not modify routes, UI, APIs, schema, migrations, storage files, audit, route generation, or roadmap order.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

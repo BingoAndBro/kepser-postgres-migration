@@ -251,3 +251,7 @@ Phase 12N.11 - Legacy Proposal Route Compatibility Cleanup Plan
 ```
 
 Do not add extra roadmap phases unless a human explicitly approves changing the roadmap.
+
+Implementation note after 12N.11:
+
+- Phase 12N.11 documents a compatibility cleanup plan for old proposal-based destruction routes. The legacy proposal approval route remains runtime-unchanged and should not be treated as the authoritative unified destruction path because it is proposal-id based, WORKFLOW-oriented, clears snapshot metadata, and directly deletes files outside the 12N.10 source-aware helper policy.
