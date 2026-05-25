@@ -4,6 +4,13 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase adds non-destructive lifecycle action buttons to the unified archive detail page only.
 
+Implementation note after 12N.6b:
+
+- Phase 12N.6b moves the `Aksi Lifecycle` section below `Lampiran Arsip`.
+- After successful `mark_inactive`, the page redirects to `/arsiparis/inaktif`.
+- After successful `propose_destruction`, the page redirects to `/arsiparis/usul-musnah`.
+- Destructive UI remains out of scope.
+
 ## 1. Scope And Boundary
 
 Phase 12N.6 updates:

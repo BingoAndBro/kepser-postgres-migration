@@ -75,6 +75,7 @@ Referensi utama:
 - `docs/migration/phase-12n4-destruction-approval-policy-and-safety-plan.md`
 - `docs/migration/phase-12n5-unified-approve-destruction-api-only.md`
 - `docs/migration/phase-12n6-unified-lifecycle-detail-buttons-non-destructive.md`
+- `docs/migration/phase-12n6b-unified-lifecycle-button-placement-redirect-ux.md`
 
 ---
 
@@ -537,6 +538,7 @@ Rules:
 - Phase 12N.4 documents destruction approval policy and the `DIMUSNAHKAN` safety plan only. It does not implement `approve_destruction`, `DIMUSNAHKAN` mutation, proposal bridging, audit writes, UI buttons, file deletion, snapshot clearing, storage cleanup, migrations, schema changes, file-access changes, or legacy proposal route changes. Future canonical-only `approve_destruction` must be accepted as a domain decision because it bypasses legacy proposal governance.
 - Phase 12N.5 adds `approve_destruction` to `POST /api/arsiparis/arsip/$id/lifecycle` for canonical-only `USUL_MUSNAH -> DIMUSNAHKAN` after exact confirmation phrase and required reason validation. It updates canonical WORKFLOW status only, syncs linked MANUAL canonical/source statuses in one guarded transaction, and intentionally does not write audit rows, bridge legacy proposals, delete files, clear snapshots, change UI, change file helpers, create migrations, or modify legacy proposal routes.
 - Phase 12N.6 adds unified detail page lifecycle buttons for non-destructive actions only: `AKTIF -> INAKTIF` and `INAKTIF -> USUL_MUSNAH`. Manual Kasubag movement is allowed for operational exceptions and does not require waiting for a scheduler. It does not expose `approve_destruction` or a `Musnahkan` UI button, and does not change APIs, list pages, file access, audit, storage, migrations, schema, route generation, or legacy proposal routes.
+- Phase 12N.6b refines the 12N.6 UI only: `Aksi Lifecycle` renders below `Lampiran Arsip`, `mark_inactive` success redirects to `/arsiparis/inaktif`, and `propose_destruction` success redirects to `/arsiparis/usul-musnah`. It does not change lifecycle API behavior or expose destructive UI.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
