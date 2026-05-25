@@ -4,6 +4,8 @@ Date: 2026-05-25
 
 Status: implemented pending human review. This phase adds safe source-aware attachment metadata to the unified archive detail service and page. It remains metadata-only and read-only.
 
+Implementation note after Phase 12M.6b: the unified detail page labels were cleaned up to use novice-friendly Indonesian wording, and duplicated actor/date metadata was removed from source-specific sections. API/service behavior, attachment metadata policy, preview/download behavior, lifecycle behavior, schema, migrations, and route generation remain unchanged.
+
 ## Scope And Boundary
 
 Phase 12M.6 extends the canonical detail route/page introduced in Phase 12M.5:
@@ -236,4 +238,3 @@ Phase 12M.7 - Source-Aware Preview/Download Actions From Detail
 ```
 
 That phase should only start after server-side file-access enforcement for both WORKFLOW and MANUAL sources is reverified against `DIMUSNAHKAN`, stale tokens, stale paths, role authorization, path traversal, and storage-root leakage. It should remain separate from lifecycle mutation, aggregate/export, cleanup, backfill, migrations, and route generation unless explicitly approved.
-
