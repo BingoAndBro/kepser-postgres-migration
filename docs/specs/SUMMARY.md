@@ -167,6 +167,7 @@ DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMP
 - Phase 12M.6 adds source-aware safe attachment metadata display to unified archive detail for `WORKFLOW` snapshot metadata and linked `MANUAL` attachment rows; it remains metadata-only/read-only and keeps preview/download, file URLs, tokens, filesystem access, lifecycle mutation, cleanup, backfill, migrations, schema changes, and route generation out of scope
 - Phase 12M.6b cleans unified detail UI labels and removes duplicate actor/date metadata from source-specific sections; it keeps API/service behavior, preview/download, lifecycle mutation, cleanup, backfill, migrations, schema changes, and route generation out of scope
 - Phase 12M.6c resolves canonical archive actor ids to display names for unified detail actor fields; it remains read-only and keeps preview/download, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-section actor duplication, and route generation out of scope
+- Phase 12M.7 adds source-aware Preview/Download actions from unified archive detail for available `WORKFLOW` and linked `MANUAL` attachments through authorized server routes; it keeps lifecycle mutation, export, cleanup, backfill, migrations, schema changes, route generation, public/static serving, signed URL exposure, and path/token/storage-root disclosure out of scope
 - Future aggregate/export is metadata-only by default and counts one `manual_arsip` parent row as one report regardless of attachment count
 - **Depends on:** 08A (Nominal Realisasi)
 

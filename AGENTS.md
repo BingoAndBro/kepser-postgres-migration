@@ -67,6 +67,7 @@ Referensi utama:
 - `docs/migration/phase-12m6-source-aware-detail-attachment-metadata.md`
 - `docs/migration/phase-12m6b-unified-detail-ui-label-dedup-cleanup.md`
 - `docs/migration/phase-12m6c-unified-detail-actor-display-name-resolution.md`
+- `docs/migration/phase-12m7-source-aware-preview-download-from-detail.md`
 
 ---
 
@@ -521,6 +522,7 @@ Rules:
 - Phase 12M.6 adds source-aware safe attachment metadata display to unified archive detail for `WORKFLOW` snapshot metadata and linked `MANUAL` attachment rows. It is metadata-only/read-only and does not add preview/download actions, file URLs, signed URLs, token generation, filesystem access, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-link mutation, or route generation.
 - Phase 12M.6b cleans unified detail UI labels and removes duplicated actor/date metadata from source-specific sections. It is UI-only and does not change API/service behavior, DB queries, preview/download, lifecycle mutation, cleanup, backfill, migrations, schema, source-link mutation, or route generation.
 - Phase 12M.6c resolves canonical archive actor ids to display names for unified detail `Dibuat oleh` and `Diarsipkan oleh` fields. It remains read-only and does not add preview/download, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-section actor duplication, or route generation.
+- Phase 12M.7 adds source-aware Preview/Download actions from unified archive detail for available `WORKFLOW` and linked `MANUAL` attachments through authorized server routes. It does not expose paths, storage roots, file URLs, signed URLs, token internals, or raw attachment metadata; `DIMUSNAHKAN` hides actions and stale action URLs must fail server-side.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

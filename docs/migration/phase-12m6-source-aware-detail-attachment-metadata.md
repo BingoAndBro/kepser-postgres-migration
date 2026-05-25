@@ -6,6 +6,8 @@ Status: implemented pending human review. This phase adds safe source-aware atta
 
 Implementation note after Phase 12M.6b: the unified detail page labels were cleaned up to use novice-friendly Indonesian wording, and duplicated actor/date metadata was removed from source-specific sections. API/service behavior, attachment metadata policy, preview/download behavior, lifecycle behavior, schema, migrations, and route generation remain unchanged.
 
+Implementation note after Phase 12M.7: the unified detail page now adds source-aware Preview/Download actions for available WORKFLOW and linked MANUAL attachments through the authorized canonical detail API. Attachment metadata remains path/token-free; `DIMUSNAHKAN` rows remain metadata-only with file actions hidden and stale action URLs blocked server-side.
+
 ## Scope And Boundary
 
 Phase 12M.6 extends the canonical detail route/page introduced in Phase 12M.5:
