@@ -9,6 +9,10 @@ Implementation note after 12N.6:
 - Phase 12N.6 adds unified detail page buttons only for non-destructive lifecycle actions: `mark_inactive` and `propose_destruction`.
 - The `approve_destruction` action remains API-only after 12N.6; no `Musnahkan` UI button is exposed.
 
+Planning note after 12N.7:
+
+- Phase 12N.7 documents the future destructive UI policy only. It does not expose `approve_destruction` in the UI, and it recommends staying on detail with refreshed `DIMUSNAHKAN` metadata unless a dedicated destroyed list exists.
+
 ## 1. Scope And Boundary
 
 Phase 12N.5 implements only:

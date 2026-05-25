@@ -4,6 +4,10 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase refines the existing non-destructive lifecycle UI only.
 
+Planning note after 12N.7:
+
+- Phase 12N.7 keeps this runtime behavior unchanged and only documents a future `Musnahkan Arsip` UI policy for `USUL_MUSNAH` after separate human approval.
+
 ## 1. Scope And Boundary
 
 Phase 12N.6b updates only the unified archive detail page UX:
@@ -140,3 +144,7 @@ No broad build, E2E, migrations, seeds, route generation, cleanup, or live DB re
 10. Confirm no `Musnahkan` or `approve_destruction` UI exists.
 11. Confirm `DIMUSNAHKAN` has no lifecycle button.
 12. Confirm no file deletion, preview/download changes, or path/token/storage leaks.
+
+## 9. Next Phase Note
+
+Future destructive UI should remain in the bottom `Aksi Lifecycle` section, below `Lampiran Arsip`, but only after a separate approved implementation phase. Phase 12N.7 is planning-only and does not add the button.
