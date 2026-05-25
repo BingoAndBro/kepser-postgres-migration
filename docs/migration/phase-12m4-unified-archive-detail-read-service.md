@@ -4,6 +4,8 @@ Date: 2026-05-24
 
 Status: implemented pending human review. This phase adds an internal dependency-injected read-only detail helper and mocked unit tests only. It does not add routes, UI, preview/download actions, lifecycle mutation, search, aggregate/export, cleanup, backfill, migrations, schema changes, route generation, live reports, or broad tests.
 
+Implementation note after Phase 12M.5: the read service is now consumed by the read-only canonical detail API/page at `/api/arsiparis/arsip/$id` and `/arsiparis/arsip/$id`. Attachment metadata display, preview/download actions, lifecycle mutation, cleanup, backfill, migrations, schema changes, and source-link mutation remain deferred to later phases.
+
 ## Scope And Boundary
 
 Phase 12M.4 implements the read service planned by Phase 12M.3 for one canonical archive id from `arsip.arsip`.

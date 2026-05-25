@@ -63,6 +63,7 @@ Referensi utama:
 - `docs/migration/phase-12m2-unified-archive-list-page-integration.md`
 - `docs/migration/phase-12m3-unified-archive-detail-policy.md`
 - `docs/migration/phase-12m4-unified-archive-detail-read-service.md`
+- `docs/migration/phase-12m5-unified-archive-detail-page-integration.md`
 
 ---
 
@@ -513,6 +514,7 @@ Rules:
 - Phase 12M.2 wires existing Arsip Aktif, Arsip Inaktif, and Usul Musnah list pages to the unified canonical archive query service behind server-side `KEPALA_SUB_BAGIAN_UMUM` API authorization. It is read-only/list-only and does not add unified detail pages, lifecycle mutation, preview/download, search, export, cleanup, backfill, migrations, or route generation.
 - Phase 12M.3 defines a planning-only unified archive detail policy and recommends future canonical detail route `/arsiparis/arsip/$id`. It does not add routes/UI, route generation, preview/download actions, lifecycle changes, search, export, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
 - Phase 12M.4 adds an internal dependency-injected read-only unified archive detail service for one canonical `arsip.arsip.id`. It does not add routes/UI, route generation, preview/download actions, attachment metadata display, lifecycle mutation, cleanup, backfill, migrations, schema changes, source-link mutation, or file-access behavior changes.
+- Phase 12M.5 wires a read-only canonical detail API/page at `/api/arsiparis/arsip/$id` and `/arsiparis/arsip/$id` using the Phase 12M.4 detail service, and adds list `Detail` links from unified archive list rows by canonical `arsip.arsip.id`. It does not add attachment metadata display, preview/download actions, lifecycle mutation, export, cleanup, backfill, migrations, schema changes, or source-link mutation.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
@@ -736,6 +738,7 @@ UI utama:
 - `/arsiparis/aktif`
 - `/arsiparis/inaktif`
 - `/arsiparis/usul-musnah`
+- `/arsiparis/arsip/$id`
 - `/arsiparis/klasifikasi`
 - `/arsiparis/search`
 
@@ -752,6 +755,7 @@ API utama:
 - `/api/arsiparis/inaktif.$id/musnahkan`
 - `/api/arsiparis/usul-musnah`
 - `/api/arsiparis/usul-musnah.$id`
+- `/api/arsiparis/arsip/$id`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/manual-arsip/categories`
@@ -1029,7 +1033,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-24
+- Last updated: 2026-05-25
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
