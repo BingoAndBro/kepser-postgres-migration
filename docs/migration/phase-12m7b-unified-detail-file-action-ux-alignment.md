@@ -4,6 +4,8 @@ Date: 2026-05-25
 
 Status: implemented pending human review. This phase aligns the Phase 12M.7 unified archive detail file-action UI with existing document attachment UX while preserving the 12M.7 server-side file-access boundary.
 
+Review note after Phase 12M.8: source inspection and manual smoke placeholders are documented in `docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`. Phase 12M.8 records expected behavior separately from actual human-smoke results and does not add runtime behavior.
+
 ## 1. Scope And Boundary
 
 This phase updates the existing unified archive detail page and the WORKFLOW file-action filename policy:

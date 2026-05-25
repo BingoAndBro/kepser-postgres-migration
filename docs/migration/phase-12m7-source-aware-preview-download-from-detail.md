@@ -6,6 +6,8 @@ Status: implemented pending human review. This phase adds narrow source-aware pr
 
 Implementation note after Phase 12M.7b: unified detail Preview now opens in a local modal using the authorized unified preview endpoint instead of navigating away, attachment cards use the compact document-attachment row pattern, and WORKFLOW `Content-Disposition` filenames align with document transaction naming where metadata is available. Server-side authorization, source checks, `DIMUSNAHKAN` blocking, no path/token leak guarantees, and no file duplication remain unchanged.
 
+Review note after Phase 12M.8: source inspection and the human-smoke checklist are documented in `docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`. Phase 12M.8 is review/documentation only and does not add runtime behavior.
+
 ## 1. Scope And Boundary
 
 Phase 12M.7 extends the existing canonical detail page and API:
