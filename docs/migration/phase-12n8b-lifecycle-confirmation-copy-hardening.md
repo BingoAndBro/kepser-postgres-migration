@@ -4,6 +4,10 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase improves confirmation copy for existing unified archive lifecycle UI actions only.
 
+Planning note after 12N.9:
+
+- Phase 12N.9 documents archive-native audit requirements for lifecycle movement, destruction approval, and future physical file deletion. It does not change the 12N.8b copy, lifecycle API behavior, audit writes, storage files, schema, migrations, or legacy proposal routes.
+
 ## 1. Scope And Boundary
 
 Phase 12N.8b updates confirmation and warning copy on:
