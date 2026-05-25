@@ -400,3 +400,8 @@ Recommended 12N.2 constraints:
 - dependency-injected helper with mocked tests;
 - explicit drift detection and proposal bridge planning before route implementation.
 
+Implementation note after 12N.2:
+
+- Phase 12N.2 added `src/lib/archive/unified-archive-lifecycle.ts` and `tests/unit/arsiparis/unified-archive-lifecycle.test.ts`.
+- The helper is a pure planning contract only. It does not add routes, UI, schema changes, migrations, DB writes, file deletion, audit writes, or lifecycle execution.
+- The next implementation phase should treat the helper output as policy input only; the future API route must still reload rows, enforce `dms_session`, enforce assigned `KEPALA_SUB_BAGIAN_UMUM`, reject `ADMIN`-only operational access, run same-origin validation, and execute any approved writes inside a transaction.
