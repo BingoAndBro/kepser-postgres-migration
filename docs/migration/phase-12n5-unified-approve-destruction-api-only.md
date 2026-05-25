@@ -4,6 +4,11 @@ Date: 2026-05-25
 
 Status: implemented for review. This phase adds terminal status mutation through the existing unified lifecycle API only.
 
+Implementation note after 12N.6:
+
+- Phase 12N.6 adds unified detail page buttons only for non-destructive lifecycle actions: `mark_inactive` and `propose_destruction`.
+- The `approve_destruction` action remains API-only after 12N.6; no `Musnahkan` UI button is exposed.
+
 ## 1. Scope And Boundary
 
 Phase 12N.5 implements only:
@@ -257,7 +262,7 @@ Expected: safe `410` gone response with no file bytes.
 
 ## 14. Next Phase Recommendation
 
-Recommended next phase:
+Recommended next phase after 12N.5:
 
 ```text
 Phase 12N.6 - Unified cancel_proposal API Only
