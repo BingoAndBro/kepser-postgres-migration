@@ -82,6 +82,7 @@ Referensi utama:
 - `docs/migration/phase-12n10-physical-file-destruction-policy-implementation.md`
 - `docs/migration/phase-12n11-legacy-proposal-route-compatibility-cleanup-plan.md`
 - `docs/migration/phase-12n11b-legacy-proposal-route-removal-and-redirect-cleanup.md`
+- `docs/migration/phase-12o-unified-archive-aggregate-export.md`
 
 ---
 
@@ -552,9 +553,10 @@ Rules:
 - Phase 12N.10 adds an internal/manual-use source-aware physical file destruction helper for canonical archives that are already `DIMUSNAHKAN`. It supports WORKFLOW `lampiran_snapshot` and linked MANUAL attachment rows, preserves archive metadata rows and attachment metadata, returns safe counts/warnings only, rejects unsafe paths, treats missing files idempotently, and does not add UI/API/scheduler, audit rows, schema/migrations, route generation, broad cleanup, or legacy proposal route changes.
 - Phase 12N.11 plans legacy proposal route compatibility cleanup only. Legacy proposal approval remains runtime-unchanged but must not be treated as authoritative unified destruction because it is proposal-id based, WORKFLOW-oriented, clears `lampiran_snapshot`, and directly deletes files outside the 12N.10 source-aware helper policy. It does not modify routes, UI, APIs, schema, migrations, storage files, audit, route generation, or roadmap order.
 - Phase 12N.11b removes the obsolete legacy status-specific archive detail and mutation routes that were replaced by unified canonical archive detail and lifecycle. Current list pages remain intact and must link to `/arsiparis/arsip/$id`; lifecycle mutation must go through `POST /api/arsiparis/arsip/$id/lifecycle`. This closes the old proposal-id destructive route surface without deleting DB rows, files, snapshots, schema, migrations, list APIs, or storage metadata.
+- Phase 12O adds metadata-only unified archive aggregate and CSV export APIs plus small export links on the active/inactive/proposed-destruction list pages. Export is bounded to the existing unified query max, uses a static filename, applies CSV/formula-injection escaping, and must not expose file contents, URLs, tokens, paths, storage roots, raw attachment metadata, SQL, env values, session/cookie values, or secrets.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
-- Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
+- Aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
 
 ### 6. Ketua Tim
 
@@ -789,6 +791,8 @@ API utama:
 - `/api/arsiparis/usul-musnah`
 - `/api/arsiparis/arsip/$id`
 - `/api/arsiparis/arsip/$id/lifecycle`
+- `/api/arsiparis/arsip/aggregate`
+- `/api/arsiparis/arsip/export`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/manual-arsip/categories`
