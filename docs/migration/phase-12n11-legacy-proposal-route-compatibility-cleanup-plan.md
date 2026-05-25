@@ -4,6 +4,14 @@ Date: 2026-05-25
 
 Status: planned compatibility cleanup document. This phase is documentation-only and does not implement runtime route, API, UI, schema, storage, migration, or cleanup changes.
 
+Implementation note after Phase 12N.11b:
+
+- Phase 12N.11b was separately human-approved as an extra implementation phase before 12O.
+- It deletes the obsolete legacy proposal/status-specific route files instead of merely disabling them.
+- Unified canonical detail `/arsiparis/arsip/$id` and unified lifecycle `POST /api/arsiparis/arsip/$id/lifecycle` are the active replacement surfaces.
+- The retained list pages and read-only list APIs remain intact.
+- Existing proposal rows and proposal schema remain untouched as historical/compatibility data.
+
 ## 1. Scope And Boundary
 
 Phase 12N.11 inventories legacy proposal-based archive destruction routes/pages and defines a compatibility cleanup plan so they do not conflict with the canonical unified archive lifecycle model.
