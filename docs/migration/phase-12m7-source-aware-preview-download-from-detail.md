@@ -4,6 +4,8 @@ Date: 2026-05-25
 
 Status: implemented pending human review. This phase adds narrow source-aware preview/download actions from unified archive detail while keeping lifecycle, export, cleanup, backfill, schema, migrations, and storage cleanup out of scope.
 
+Implementation note after Phase 12M.7b: unified detail Preview now opens in a local modal using the authorized unified preview endpoint instead of navigating away, attachment cards use the compact document-attachment row pattern, and WORKFLOW `Content-Disposition` filenames align with document transaction naming where metadata is available. Server-side authorization, source checks, `DIMUSNAHKAN` blocking, no path/token leak guarantees, and no file duplication remain unchanged.
+
 ## 1. Scope And Boundary
 
 Phase 12M.7 extends the existing canonical detail page and API:
