@@ -251,3 +251,10 @@ Recommended 12N.4 decisions before implementation:
 - `DIMUSNAHKAN` stale file-access regression tests across WORKFLOW and MANUAL surfaces;
 - explicit confirmation requirements;
 - confirmation that physical file deletion remains out of unified lifecycle mutation unless a separate cleanup/destruction phase approves it.
+
+12N.4 planning note:
+
+- Phase 12N.4 is policy/planning only and does not implement `approve_destruction`.
+- Future `approve_destruction` should remain on `POST /api/arsiparis/arsip/$id/lifecycle` with `$id` as canonical `arsip.arsip.id`.
+- The preferred next implementation split is 12N.5 API-only canonical destruction approval, no UI and no file deletion, only if the human accepts canonical-only governance and the documented audit limitation.
+- If legacy proposal governance or archive-native audit is mandatory before terminal status mutation, 12N.5 should be delayed until those policies are approved.
