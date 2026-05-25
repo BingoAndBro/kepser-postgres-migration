@@ -4,6 +4,11 @@ Date: 2026-05-25
 
 Status: planned policy and implementation plan. This phase is documentation-only and does not expose a `Musnahkan` UI action.
 
+Implementation note after 12N.8:
+
+- Phase 12N.8 implements this approved plan by exposing `Musnahkan Arsip` only for `USUL_MUSNAH`, requiring exact phrase `SETUJUI PEMUSNAHAN ARSIP` and a trimmed non-empty reason, staying on detail after success, and refetching metadata into the `DIMUSNAHKAN` state.
+- Phase 12N.8 keeps file deletion, snapshot clearing, audit writes, legacy proposal route changes, schema changes, migrations, route generation, and storage cleanup out of scope.
+
 ## 1. Scope And Boundary
 
 Phase 12N.7 defines the future UI policy for exposing the existing API-only destructive lifecycle action:

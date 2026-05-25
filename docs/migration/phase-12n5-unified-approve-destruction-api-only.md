@@ -13,6 +13,10 @@ Planning note after 12N.7:
 
 - Phase 12N.7 documents the future destructive UI policy only. It does not expose `approve_destruction` in the UI, and it recommends staying on detail with refreshed `DIMUSNAHKAN` metadata unless a dedicated destroyed list exists.
 
+Implementation note after 12N.8:
+
+- Phase 12N.8 exposes `approve_destruction` from unified detail only for `USUL_MUSNAH`, behind exact phrase and required reason UI confirmation. The API contract remains unchanged and still performs the authoritative authorization and lifecycle validation.
+
 ## 1. Scope And Boundary
 
 Phase 12N.5 implements only:

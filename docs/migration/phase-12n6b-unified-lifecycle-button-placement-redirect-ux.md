@@ -8,6 +8,10 @@ Planning note after 12N.7:
 
 - Phase 12N.7 keeps this runtime behavior unchanged and only documents a future `Musnahkan Arsip` UI policy for `USUL_MUSNAH` after separate human approval.
 
+Implementation note after 12N.8:
+
+- Phase 12N.8 keeps `Aksi Lifecycle` below `Lampiran Arsip`. Non-destructive redirects remain unchanged, while successful `approve_destruction` stays on detail and refetches metadata into the `DIMUSNAHKAN` state.
+
 ## 1. Scope And Boundary
 
 Phase 12N.6b updates only the unified archive detail page UX:
