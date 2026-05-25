@@ -71,6 +71,7 @@ Referensi utama:
 - `docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`
 - `docs/migration/phase-12n1-unified-archive-lifecycle-policy-inventory.md`
 - `docs/migration/phase-12n2-unified-archive-lifecycle-helper-foundation.md`
+- `docs/migration/phase-12n3-unified-lifecycle-api-non-destructive.md`
 
 ---
 
@@ -529,6 +530,7 @@ Rules:
 - Phase 12M.8 documents a source-boundary review and human-smoke compatibility checklist for unified detail file access after 12M.7/12M.7b. It is documentation-only, separates expected behavior from actual human-smoke results, and does not change runtime source, schema, migrations, route generation, package files, DB rows, or storage files.
 - Phase 12N.1 documents the unified archive lifecycle route inventory and target policy only. It does not implement lifecycle mutation, add routes/UI, change preview/download/file access, mutate rows, delete files, create migrations, run backfill, or alter storage cleanup behavior. During transition, canonical `arsip.arsip.status_arsip` is the unified list/detail lifecycle authority, while linked Manual Archive source status remains an edit/upload/file guard and drift must fail closed before future mutation.
 - Phase 12N.2 adds a pure unified archive lifecycle helper/planner and focused unit tests only. It defines allowed transition plans, rejects Manual Archive source/canonical status drift, treats `DIMUSNAHKAN` as terminal, and always plans `fileDeletion: false`; it does not add routes/UI, execute DB writes, create migrations, change file access, delete files, or write audit logs.
+- Phase 12N.3 adds `POST /api/arsiparis/arsip/$id/lifecycle` for non-destructive unified lifecycle transitions only: `mark_inactive` and `propose_destruction`. It requires `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, centralized same-origin validation, server-side row reload, planner validation, and guarded transaction updates. It does not add UI buttons, audit writes, proposal approval, `DIMUSNAHKAN`, file deletion, storage cleanup, migrations, schema changes, or legacy route replacement.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Future aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.

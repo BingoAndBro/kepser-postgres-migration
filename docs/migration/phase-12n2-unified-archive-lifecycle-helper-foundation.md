@@ -249,3 +249,10 @@ Recommended 12N.3 scope:
 - do not implement `approve_destruction`;
 - do not delete files;
 - do not add UI buttons.
+
+Implementation note after 12N.3:
+
+- Phase 12N.3 added `POST /api/arsiparis/arsip/$id/lifecycle` for non-destructive canonical lifecycle transitions only.
+- The route uses this helper as a planning contract after server-side row reload, restricts accepted route actions to `mark_inactive` and `propose_destruction`, and executes guarded status updates in one DB transaction.
+- Linked `MANUAL` rows are updated in canonical/source sync only when their statuses match; drift or missing source rows fail closed with a safe conflict.
+- Audit writes, proposal bridging, `DIMUSNAHKAN`, UI buttons, file deletion, storage cleanup, and legacy route replacement remain future work.
