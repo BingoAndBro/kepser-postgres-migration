@@ -4,6 +4,8 @@ Date: 2026-05-26
 
 Status: implemented for review. This phase adds a metadata-only classification report for unified canonical archive rows.
 
+Phase 12Q.1 follow-up: `docs/migration/phase-12q1-classification-report-detail-drilldown.md` adds a metadata-only `Detail` drilldown from each classification row to a canonical archive list for that classification, without per-archive detail actions, preview/download behavior, lifecycle mutation, export, schema change, cleanup, or Supabase runtime behavior.
+
 ## 1. Scope And Boundary
 
 In scope:
