@@ -84,6 +84,7 @@ Referensi utama:
 - `docs/migration/phase-12n11b-legacy-proposal-route-removal-and-redirect-cleanup.md`
 - `docs/migration/phase-12o-unified-archive-aggregate-export.md`
 - `docs/migration/phase-12p-dev-manual-archive-data-storage-cleanup.md`
+- `docs/migration/phase-12q-unified-archive-classification-report.md`
 
 ---
 
@@ -556,6 +557,7 @@ Rules:
 - Phase 12N.11b removes the obsolete legacy status-specific archive detail and mutation routes that were replaced by unified canonical archive detail and lifecycle. Current list pages remain intact and must link to `/arsiparis/arsip/$id`; lifecycle mutation must go through `POST /api/arsiparis/arsip/$id/lifecycle`. This closes the old proposal-id destructive route surface without deleting DB rows, files, snapshots, schema, migrations, list APIs, or storage metadata.
 - Phase 12O adds metadata-only unified archive aggregate and CSV export APIs plus small export links on the active/inactive/proposed-destruction list pages. Export is bounded to the existing unified query max, uses a static filename, applies CSV/formula-injection escaping, and must not expose file contents, URLs, tokens, paths, storage roots, raw attachment metadata, SQL, env values, session/cookie values, or secrets.
 - Phase 12P-dev adds an internal local/development-only helper for dry-run-first cleanup of invalid/unlinked Manual Archive source rows, their attachment metadata, and disposable physical files after exact confirmation. It must not delete canonical `arsip.arsip` rows, WORKFLOW data, valid linked Manual Archive rows, files referenced by canonical archive metadata, or any file outside local storage safety checks; it adds no route/UI/scheduler/schema/migration/package change and does not scan the whole storage root.
+- Phase 12Q adds a metadata-only unified archive classification report at `/arsiparis/laporan-klasifikasi` and `GET /api/arsiparis/arsip/classification-report` for `KEPALA_SUB_BAGIAN_UMUM`. It groups canonical `arsip.arsip` rows by classification across `WORKFLOW` and `MANUAL` sources and all archive statuses, while `nominal_realisasi` totals count only safely available `WORKFLOW` material archive values. It does not include unlinked legacy Manual Archive rows, file paths, URLs, tokens, raw attachment metadata, storage roots, schema/migration/package changes, lifecycle changes, preview/download changes, cleanup, or Supabase runtime behavior.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
 - Aggregate/export behavior must be metadata-only by default and must not include file contents, file URLs, signed token internals, storage roots, or physical paths.
@@ -781,6 +783,7 @@ UI utama:
 - `/arsiparis/usul-musnah`
 - `/arsiparis/arsip/$id`
 - `/arsiparis/klasifikasi`
+- `/arsiparis/laporan-klasifikasi`
 - `/arsiparis/search`
 
 API utama:
@@ -795,6 +798,7 @@ API utama:
 - `/api/arsiparis/arsip/$id/lifecycle`
 - `/api/arsiparis/arsip/aggregate`
 - `/api/arsiparis/arsip/export`
+- `/api/arsiparis/arsip/classification-report`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/manual-arsip/categories`
@@ -1072,7 +1076,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-25
+- Last updated: 2026-05-26
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
