@@ -93,6 +93,7 @@ Referensi utama:
 - `docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
 - `docs/migration/phase-13g-close-folder-helper-api-foundation.md`
 - `docs/migration/phase-13h-folder-berkas-api-foundation.md`
+- `docs/migration/phase-13i-pengklasifikasian-dokumen-open-berkas-integration.md`
 
 ---
 
@@ -408,7 +409,8 @@ Arsip:
 - Phase 13G helper-created folders derive classification code/name snapshots from `master_klasifikasi_arsip`; callers must not supply trusted snapshot values.
 - Phase 13G add-item helpers explicitly reject non-`OPEN` folders and require source classification/payment type to match the target folder.
 - Phase 13G close helper rejects empty folders and already `CLOSED` folders, validates `Nomor SPM` and retention metadata, and calculates retention end dates without creating final canonical archive rows.
-- Phase 13H adds backend-only API route files for opening/get-creating a folder by `Jenis Pembayaran`, adding workflow/manual source items to an `OPEN` folder, and closing a non-empty `OPEN` folder. The routes require local `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, and same-origin protection for unsafe `POST`; `ADMIN` is not a substitute. Phase 13H does not add UI, backfill, lifecycle mapping, canonical archive mutation, schema/migrations, package changes, storage/file changes, or Supabase fallback. If `src/routeTree.gen.ts` is not generated yet, the route files exist but route registration remains pending through the normal generated route-tree process.
+- Phase 13H adds backend-only API route files for opening/get-creating a folder by `Jenis Pembayaran`, adding workflow/manual source items to an `OPEN` folder, and closing a non-empty `OPEN` folder. The routes require local `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, and same-origin protection for unsafe `POST`; `ADMIN` is not a substitute. Phase 13H does not add UI, backfill, lifecycle mapping, canonical archive mutation, schema/migrations, package changes, storage/file changes, or Supabase fallback. Phase 13H.1 registered these routes through the generated route tree.
+- Phase 13I integrates the existing workflow `Pengklasifikasian Dokumen` route with folder/berkas writes: after server-side `Jenis Pembayaran` validation and transitional canonical workflow archive creation, the route gets or creates the matching `OPEN` berkas and attaches the workflow document as a `WORKFLOW` item. Duplicate item assignment must return a safe conflict response. This does not add UI, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
 
 ---
 
@@ -521,7 +523,8 @@ After document `COMPLETED`:
 - Kepala Sub Bagian Umum skip action in FSM keeps document `COMPLETED`.
 - After Phase 13D, the initial user-facing stage is `Pengklasifikasian Dokumen`, and the early classification label is `Jenis Pembayaran`. Internal archive/classification tables, fields, route paths, and API field names may still use `arsip`/`klasifikasi` terminology until a later schema/folder phase.
 - Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata are filled when closing/finalizing a folder/berkas.
-- After Phase 13F, a real folder/berkas foundation exists in schema. After Phase 13G, server-only helpers can create/open folders, add source items to open folders, and close non-empty folders with final metadata. Current UI/runtime routes still use transitional archive/manual flows until a later route/UI phase wires folder writes.
+- After Phase 13F, a real folder/berkas foundation exists in schema. After Phase 13G, server-only helpers can create/open folders, add source items to open folders, and close non-empty folders with final metadata. After Phase 13I, the workflow `Pengklasifikasian Dokumen` route attaches classified workflow documents to an `OPEN` berkas by `Jenis Pembayaran`. Existing transitional canonical workflow archive behavior remains active until a later folder-first finalization phase replaces it safely.
+- Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
 - Archive lifecycle continues on `arsip` table:
 
