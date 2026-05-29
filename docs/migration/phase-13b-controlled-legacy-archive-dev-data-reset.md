@@ -67,13 +67,26 @@ Findings:
 - The admin storage analyze/cleanup route is storage-oriented and admin-only. It protects referenced `dokumen_transaksi.lampiran_urls` and `arsip.lampiran_snapshot`, but it is not a Phase 13 archive metadata reset tool.
 - None of the existing helpers can safely infer which `arsip.arsip` rows and archived source documents from the old Phase 12 model are disposable development data without a human-approved discriminator.
 
-Helper decision for Phase 13B-dev:
+Helper decision for Phase 13B-dev planning:
 
 - no new helper is added in this phase;
 - no existing helper is extended in this phase;
 - docs-only is safer because the reset must be candidate-based and source/status scoped, not a blind archive or document deletion;
 - the approved policy is that old archived workflow source documents may be reset together with their old Phase 12 archive rows, while non-archived workflow documents are preserved;
 - a later helper should be implemented only after the candidate-selection discriminator and FK-safe delete/reset order are approved.
+
+Phase 13B-dev.1 implementation update:
+
+- internal helper added at `src/lib/archive/phase13-legacy-archive-dev-reset-analysis.ts`;
+- exported function: `analyzePhase13LegacyArchiveDevReset`;
+- exported result type: `Phase13LegacyArchiveDevResetAnalysis`;
+- helper status is analyze-only and development-only;
+- output is restricted to safe aggregate counts and controlled warning labels;
+- it returns no row ids, raw rows, filenames, logical paths, physical paths, storage roots, SQL parameters, env values, DB URLs, tokens, cookies, session values, password hashes, or secrets;
+- it adds no route, API, UI, scheduler, cron, startup wiring, migration, seed, schema change, package change, route generation, or cleanup execution;
+- `physicalFileDeletionPlanned` remains `false`;
+- `cleanupExecutionAllowedInThisPhase` remains `false`;
+- next phase should be a human-run analyze/dry-run and review of safe counts before any future reset execution phase is considered.
 
 ## 4. Schema Boundary Summary
 
@@ -235,7 +248,11 @@ git diff --check
 git diff --name-only
 ```
 
-No targeted source test is required because this phase adds documentation only and no helper/source file.
+For Phase 13B-dev.1 helper implementation, run the smallest targeted helper validation available. The intended targeted validation is:
+
+```bash
+pnpm exec vitest run tests/unit/arsiparis/phase13-legacy-archive-dev-reset-analysis.test.ts
+```
 
 Do not run broad build, broad test, E2E, dev server, route generation, migrations, seeds, cleanup execution, or live DB inspection for this phase.
 
