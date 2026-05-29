@@ -2,7 +2,7 @@
 
 Date: 2026-05-29
 
-Status: implemented as backend-only API route foundation pending route-tree generation/manual verification.
+Status: implemented as backend-only API route foundation with route-tree registration verified in Phase 13H.1.
 
 ## Phase Status
 
@@ -150,9 +150,13 @@ Responses do not expose stack traces, SQL, raw rows, env values, storage roots, 
 
 Route files were added for the three API endpoints.
 
-No safe short route generation command exists in `package.json`, and no local `node_modules/.bin` route-generation binary was found. `pnpm dev` and `pnpm build` were intentionally not run because they are long-running or broad commands for this phase.
+Phase 13H.1 generated `src/routeTree.gen.ts` through the installed TanStack router generator path and verified that the generated diff is limited to registering:
 
-`src/routeTree.gen.ts` remains pending/manual generation by the human through the repo's normal TanStack route generation mechanism. It must not be edited manually.
+- `/api/arsiparis/berkas/open`;
+- `/api/arsiparis/berkas/$id/items`;
+- `/api/arsiparis/berkas/$id/close`.
+
+API route registration is no longer pending. `src/routeTree.gen.ts` was not manually edited.
 
 ## Tests
 
@@ -186,4 +190,4 @@ Phase 13H does not:
 
 ## Follow-Up Recommendation
 
-After route-tree generation, a follow-up phase should manually verify these endpoints against a local database where migration `0007` has already been applied, then decide how future UI/write flows attach classified workflow/manual documents into open folders and close folders without changing the deferred archive lifecycle mapping prematurely.
+Manually verify these endpoints against a local database where migration `0007` has already been applied, then decide how future UI/write flows attach classified workflow/manual documents into open folders and close folders without changing the deferred archive lifecycle mapping prematurely.
