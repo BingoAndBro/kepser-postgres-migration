@@ -111,6 +111,13 @@ Phase 13B-dev.6 post-reset verification update:
 - physical storage cleanup remains open as a separate explicit future phase;
 - no reset execution, storage cleanup, route/API/UI/scheduler work, schema/migration change, package change, or physical file deletion is approved by Phase 13B-dev.6.
 
+Phase 13B-dev.7 controlled storage cleanup update:
+
+- controlled local-development formal orphan storage cleanup is documented in `docs/migration/phase-13b-dev7-controlled-storage-orphan-cleanup.md`;
+- existing storage diagnostics and cleanup helpers removed formal orphan candidates after aggregate-only analysis;
+- post-cleanup storage analyze reports zero formal orphan candidates, zero missing referenced files, and zero unsafe files;
+- no database rows, routes, UI, scheduler behavior, schema, migrations, package files, or route generation output were changed.
+
 ## 4. Schema Boundary Summary
 
 Relevant archive tables:
@@ -300,5 +307,6 @@ Recommended next phase options:
 4. `13B-dev.4` - implement confirmation-gated DB reset helper.
 5. `13B-dev.5` - human-run controlled execute.
 6. `13B-dev.6` - post-reset analyze and storage orphan planning.
+7. `13B-dev.7` - controlled local-development formal storage orphan cleanup.
 
 Do not automatically proceed to cleanup execution.
