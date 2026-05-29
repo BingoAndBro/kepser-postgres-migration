@@ -100,6 +100,7 @@ Referensi utama:
 - `docs/migration/phase-13m-close-berkas-finalization-sets-aktif.md`
 - `docs/migration/phase-13n-folder-first-read-model-foundation.md`
 - `docs/migration/phase-13o-folder-first-archive-pages.md`
+- `docs/migration/phase-13p-folder-item-file-access-and-dimusnahkan-block.md`
 
 ---
 
@@ -344,6 +345,7 @@ Rules:
 - Phase 13M updates close/finalize runtime behavior so newly closed berkas set `status_berkas='CLOSED'` and `status_arsip='AKTIF'`. Existing `CLOSED` berkas rows may remain `status_arsip IS NULL` unless a later human-approved backfill/remediation phase changes them. Phase 13M does not implement lifecycle movement beyond initial `AKTIF`.
 - Phase 13N adds a read-only folder-first query/read-model foundation for future folder-first archive pages. New folder-first pages should use `berkas_arsip` plus `berkas_arsip_item` as the primary read authority, with source metadata enriched from `dokumen_transaksi` and `manual_arsip`. `arsip.arsip` remains transitional compatibility and must not be treated as the primary read authority for new folder-first pages.
 - Phase 13O adds bounded folder-first archive list/detail pages at `/arsiparis/berkas` and `/arsiparis/berkas/$id` plus read-only API wrappers that use the Phase 13N read model. Old individual archive pages are retained until a later cleanup phase. New folder-first pages must use `berkas_arsip` and `berkas_arsip_item` as primary authority and must not de-transitionalize `arsip.arsip` writes.
+- Phase 13P adds folder-aware item preview/download for folder-first detail pages. File access for folder items must revalidate the current `berkas_arsip` folder and `berkas_arsip_item` membership on every request. If a folder has `status_arsip='DIMUSNAHKAN'`, preview/download for every item in that folder must be blocked with the safe message `Data sudah dimusnahkan`. Phase 13P does not delete physical files, mutate lifecycle state, stop transitional `arsip.arsip` writes, or add schema/migration changes.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
@@ -548,6 +550,7 @@ After document `COMPLETED`:
 - After Phase 13K, accepted final direction is folder-first Option A: new runtime archive parent is `berkas_arsip`, item list is `berkas_arsip_item`, workflow source remains `dokumen_transaksi`, manual source remains `manual_arsip` for now, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
 - After Phase 13N, future folder-first list/detail pages should build on the read-only `berkas_arsip` read model first. They may enrich from workflow/manual source tables but should not use transitional `arsip.arsip` as the primary read authority for new folder-first pages.
 - After Phase 13O, the first folder-first active archive pages exist at `/arsiparis/berkas` and `/arsiparis/berkas/$id`. They are read-only surfaces backed by read-only API wrappers and the Phase 13N read model. Old individual archive pages remain available, and transitional `arsip.arsip` writes continue until a later human-approved de-transitionalization phase.
+- After Phase 13P, folder-first detail pages may show preview/download actions for item attachments through authorized folder-aware API routes. These routes use `berkas_arsip` and `berkas_arsip_item` as the folder/item authority, resolve attachments from the attached `WORKFLOW` or `MANUAL` source, and re-check folder `status_arsip` for every request. `DIMUSNAHKAN` folders block every item preview/download with `Data sudah dimusnahkan`.
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
@@ -677,6 +680,7 @@ Rules:
 - File access token internals must not be printed.
 - Referenced active document/archive files must be protected from cleanup.
 - `DIMUSNAHKAN` must block stale token/path access.
+- Folder-first item file access must revalidate current folder status and item membership before serving files. `DIMUSNAHKAN` folder access must return a safe `Data sudah dimusnahkan` response and must not delete physical files.
 - Admin diagnostics/cleanup should report logical paths and safe counts only.
 
 Path semantics:
@@ -884,6 +888,8 @@ API utama:
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/berkas/open`
 - `/api/arsiparis/berkas/$id/items`
+- `/api/arsiparis/berkas/$id/items/$itemId/preview/$lampiranIndex`
+- `/api/arsiparis/berkas/$id/items/$itemId/download/$lampiranIndex`
 - `/api/arsiparis/berkas/$id/close`
 - `/api/arsiparis/manual-arsip/categories`
 - `/api/arsiparis/manual-arsip`
