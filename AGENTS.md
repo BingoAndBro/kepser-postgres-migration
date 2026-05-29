@@ -91,6 +91,7 @@ Referensi utama:
 - `docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
 - `docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
 - `docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
+- `docs/migration/phase-13g-close-folder-helper-api-foundation.md`
 
 ---
 
@@ -314,7 +315,7 @@ Catatan:
 
 ### Status Berkas
 
-Folder/berkas status values after Phase 13F:
+Folder/berkas status values after Phase 13F and Phase 13G:
 
 ```ts
 type BerkasStatus = 'OPEN' | 'CLOSED'
@@ -324,7 +325,9 @@ Rules:
 
 - `OPEN` means the folder/berkas may receive future classified documents once a write flow exists.
 - `CLOSED` means final folder metadata has been filled and later phases may map the folder into archive lifecycle handling.
-- Closed folders must not accept new documents in future runtime write phases.
+- Closed folders must not accept new documents/items in runtime write helpers or future APIs.
+- Close-folder requires `Nomor SPM`, active retention, and inactive retention; `closed_at` is recorded using caller input or the server date, and `closed_by` plus calculated retention end dates are set server-side.
+- `KEPALA_SUB_BAGIAN_UMUM` owns close-folder operation; future close-folder APIs must enforce this server-side through `dms_session` assigned roles, not only UI.
 - Folder-level `status_arsip` is deferred until close-folder and folder-first lifecycle phases decide the final mapping.
 
 ---
@@ -400,6 +403,10 @@ Arsip:
 - Exactly one source reference is expected per berkas item according to `source_type`.
 - One `OPEN` folder per `klasifikasi_id` is expected; multiple closed batches per classification remain allowed.
 - Phase 13F does not backfill existing workflow or manual rows into folders and does not change current runtime writes.
+- Phase 13G adds a server-only close-folder/helper foundation in `src/lib/archive/berkas-arsip-service.ts`; it does not add routes/UI, route generation, backfill, lifecycle mapping, schema changes, migrations, storage/file changes, or Supabase fallback.
+- Phase 13G helper-created folders derive classification code/name snapshots from `master_klasifikasi_arsip`; callers must not supply trusted snapshot values.
+- Phase 13G add-item helpers explicitly reject non-`OPEN` folders and require source classification/payment type to match the target folder.
+- Phase 13G close helper rejects empty folders and already `CLOSED` folders, validates `Nomor SPM` and retention metadata, and calculates retention end dates without creating final canonical archive rows.
 
 ---
 
@@ -511,8 +518,9 @@ After document `COMPLETED`:
 - Kepala Sub Bagian Umum can archive -> document becomes `ARCHIVED`, archive record is created with `status_arsip='AKTIF'`.
 - Kepala Sub Bagian Umum skip action in FSM keeps document `COMPLETED`.
 - After Phase 13D, the initial user-facing stage is `Pengklasifikasian Dokumen`, and the early classification label is `Jenis Pembayaran`. Internal archive/classification tables, fields, route paths, and API field names may still use `arsip`/`klasifikasi` terminology until a later schema/folder phase.
-- Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata belong to a future close-folder/berkas phase.
-- After Phase 13F, a real folder/berkas foundation exists in schema only. Current runtime still uses the transitional archive/manual flows until a later close-folder phase wires folder writes.
+- Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata are filled when closing/finalizing a folder/berkas.
+- After Phase 13F, a real folder/berkas foundation exists in schema. After Phase 13G, server-only helpers can create/open folders, add source items to open folders, and close non-empty folders with final metadata. Current UI/runtime routes still use transitional archive/manual flows until a later route/UI phase wires folder writes.
+- Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
 - Archive lifecycle continues on `arsip` table:
 
 ```text
@@ -556,6 +564,7 @@ Rules:
 - After Phase 13E, the user-facing manual entry surface is `Penambahan Dokumen`, not `Penambahan Arsip`. It collects initial document metadata (`Nama Dokumen`, category, source/document date, `Jenis Pembayaran`, nominal, required `keterangan`, optional attachments) while keeping internal `manual_arsip`, `klasifikasi_id`, and compatibility route/API paths unchanged.
 - Phase 13E keeps transitional internal persistence through `manual_arsip` and linked canonical `source_type='MANUAL'` rows for new creates, but current UI no longer collects final archive metadata. Final archive metadata such as `Nomor SPM`, final retention, and folder closure remain deferred to a future folder/berkas phase.
 - Phase 13F adds `berkas_arsip` and `berkas_arsip_item` as an additive schema/data-model foundation only. It does not attach existing Manual Archive rows to folders, change Manual Archive create/edit/upload/preview/download behavior, create close-folder UI/API, or change canonical `source_type='MANUAL'` writes.
+- Phase 13G adds server-only helper support for attaching existing Manual Archive source rows to `OPEN` folders and storing `manual_arsip.canonical_arsip_id` as a bridge when present. It does not change Manual Archive create/edit/upload/preview/download behavior, create close-folder UI/API, backfill existing Manual Archive rows, or change canonical `source_type='MANUAL'` writes.
 - Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.3 adds transitional compatibility/report DTO mapping and report-first backfill planning only. It does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.4 adds an internal read-only compatibility report reader only. Phase 12L.5 adds human-reviewed remediation policy only. Neither phase changes runtime writes, adds routes/UI, mutates rows, creates migrations, performs backfill, deletes rows/files, or performs cleanup.
