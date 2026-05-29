@@ -88,6 +88,7 @@ Referensi utama:
 - `docs/migration/phase-12q1-classification-report-detail-drilldown.md`
 - `docs/migration/phase-12z-unified-archive-feature-handoff-closure.md`
 - `docs/migration/phase-13c-ppspm-display-rename.md`
+- `docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
 
 ---
 
@@ -483,6 +484,8 @@ After document `COMPLETED`:
 
 - Kepala Sub Bagian Umum can archive -> document becomes `ARCHIVED`, archive record is created with `status_arsip='AKTIF'`.
 - Kepala Sub Bagian Umum skip action in FSM keeps document `COMPLETED`.
+- After Phase 13D, the initial user-facing stage is `Pengklasifikasian Dokumen`, and the early classification label is `Jenis Pembayaran`. Internal archive/classification tables, fields, route paths, and API field names may still use `arsip`/`klasifikasi` terminology until a later schema/folder phase.
+- Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata belong to a future close-folder/berkas phase.
 - Archive lifecycle continues on `arsip` table:
 
 ```text
