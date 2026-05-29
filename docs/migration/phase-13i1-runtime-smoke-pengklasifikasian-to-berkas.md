@@ -152,6 +152,8 @@ Expected duplicate/retry behavior:
 - safe rejection, likely because the document is no longer `COMPLETED`, already has an archive row, or the berkas item assignment conflicts;
 - no raw DB error, SQL params, raw rows, paths, cookies, session values, tokens, env values, storage roots, or secrets are exposed.
 
+Follow-up Phase 13I.1a classified the confusing already-`ARCHIVED` retry response as expected behavior with error-copy hardening: `ARCHIVED` remains invalid for re-archive, but the route now returns `Dokumen sudah diarsipkan` for that status.
+
 ## Performed Or Skipped
 
 Performed:
