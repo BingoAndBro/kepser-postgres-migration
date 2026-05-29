@@ -92,6 +92,7 @@ Referensi utama:
 - `docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
 - `docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
 - `docs/migration/phase-13g-close-folder-helper-api-foundation.md`
+- `docs/migration/phase-13h-folder-berkas-api-foundation.md`
 
 ---
 
@@ -407,6 +408,7 @@ Arsip:
 - Phase 13G helper-created folders derive classification code/name snapshots from `master_klasifikasi_arsip`; callers must not supply trusted snapshot values.
 - Phase 13G add-item helpers explicitly reject non-`OPEN` folders and require source classification/payment type to match the target folder.
 - Phase 13G close helper rejects empty folders and already `CLOSED` folders, validates `Nomor SPM` and retention metadata, and calculates retention end dates without creating final canonical archive rows.
+- Phase 13H adds backend-only API route files for opening/get-creating a folder by `Jenis Pembayaran`, adding workflow/manual source items to an `OPEN` folder, and closing a non-empty `OPEN` folder. The routes require local `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, and same-origin protection for unsafe `POST`; `ADMIN` is not a substitute. Phase 13H does not add UI, backfill, lifecycle mapping, canonical archive mutation, schema/migrations, package changes, storage/file changes, or Supabase fallback. If `src/routeTree.gen.ts` is not generated yet, the route files exist but route registration remains pending through the normal generated route-tree process.
 
 ---
 
@@ -565,6 +567,7 @@ Rules:
 - Phase 13E keeps transitional internal persistence through `manual_arsip` and linked canonical `source_type='MANUAL'` rows for new creates, but current UI no longer collects final archive metadata. Final archive metadata such as `Nomor SPM`, final retention, and folder closure remain deferred to a future folder/berkas phase.
 - Phase 13F adds `berkas_arsip` and `berkas_arsip_item` as an additive schema/data-model foundation only. It does not attach existing Manual Archive rows to folders, change Manual Archive create/edit/upload/preview/download behavior, create close-folder UI/API, or change canonical `source_type='MANUAL'` writes.
 - Phase 13G adds server-only helper support for attaching existing Manual Archive source rows to `OPEN` folders and storing `manual_arsip.canonical_arsip_id` as a bridge when present. It does not change Manual Archive create/edit/upload/preview/download behavior, create close-folder UI/API, backfill existing Manual Archive rows, or change canonical `source_type='MANUAL'` writes.
+- Phase 13H adds backend-only folder/berkas API route files under `/api/arsiparis/berkas/*`. These routes are operational `KEPALA_SUB_BAGIAN_UMUM` routes protected by local `dms_session`, server-side assigned-role checks, and same-origin validation for unsafe `POST`. `ADMIN` is not accepted as a substitute. The phase does not add browser UI, backfill existing Manual Archive rows, change Manual Archive create/edit/upload/preview/download behavior, create lifecycle mapping, mutate canonical `arsip.arsip` rows, or change storage behavior.
 - Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.3 adds transitional compatibility/report DTO mapping and report-first backfill planning only. It does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.4 adds an internal read-only compatibility report reader only. Phase 12L.5 adds human-reviewed remediation policy only. Neither phase changes runtime writes, adds routes/UI, mutates rows, creates migrations, performs backfill, deletes rows/files, or performs cleanup.
@@ -850,6 +853,9 @@ API utama:
 - `/api/arsiparis/arsip/classification-report`
 - `/api/arsiparis/search`
 - `/api/arsiparis/klasifikasi/*`
+- `/api/arsiparis/berkas/open`
+- `/api/arsiparis/berkas/$id/items`
+- `/api/arsiparis/berkas/$id/close`
 - `/api/arsiparis/manual-arsip/categories`
 - `/api/arsiparis/manual-arsip`
 - `/api/arsiparis/manual-arsip/$id`
