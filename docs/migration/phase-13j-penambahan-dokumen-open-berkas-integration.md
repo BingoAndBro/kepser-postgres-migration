@@ -4,6 +4,10 @@ Date: 2026-05-29
 
 Status: implemented pending targeted test verification and human smoke.
 
+Runtime smoke follow-up:
+
+- `docs/migration/phase-13j1-runtime-smoke-penambahan-dokumen-to-berkas.md`
+
 ## Phase Status
 
 Phase 13J integrates the existing `Penambahan Dokumen` manual create runtime with the Phase 13F/13G folder/berkas backend foundation.
