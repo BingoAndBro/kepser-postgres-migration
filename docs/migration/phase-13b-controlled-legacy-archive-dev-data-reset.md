@@ -88,6 +88,22 @@ Phase 13B-dev.1 implementation update:
 - `cleanupExecutionAllowedInThisPhase` remains `false`;
 - next phase should be a human-run analyze/dry-run and review of safe counts before any future reset execution phase is considered.
 
+Phase 13B-dev.4 implementation update:
+
+- internal execution helper added at `src/lib/archive/phase13-legacy-archive-dev-reset-execution.ts`;
+- exported constant: `PHASE13_LEGACY_ARCHIVE_DEV_RESET_CONFIRMATION`;
+- exported functions: `resetPhase13LegacyArchiveDevData` and `resetPhase13LegacyArchiveDevDataForDatabase`;
+- exported result/type surface: `Phase13LegacyArchiveDevResetExecutionResult`, `Phase13LegacyArchiveDevResetExecutionMode`, `Phase13LegacyArchiveDevResetExecutionInput`, and `Phase13LegacyArchiveDevResetExecutionDatabase`;
+- helper is server-only and development-only;
+- analyze mode remains read-only and delegates to the Phase 13B-dev.1 analyze helper;
+- execute mode exists only as an internal helper path and must not be run in Phase 13B-dev.4;
+- execute mode requires the exact confirmation phrase `RESET LEGACY ARCHIVE DEV DATA FOR PHASE 13`;
+- wrong or missing confirmation rejects before transaction or mutation;
+- execute mode requires database transaction support and must not perform best-effort partial cleanup outside a transaction;
+- execution output is aggregate-only and returns no ids, raw rows, paths, storage roots, SQL parameters, env values, database URLs, tokens, cookies, session values, password hashes, or secrets;
+- `physicalFileDeletionPerformed` remains `false`;
+- no route, API, UI, scheduler, cron, startup wiring, schema change, migration, seed, package change, route generation, live cleanup execution, or physical file deletion is added.
+
 ## 4. Schema Boundary Summary
 
 Relevant archive tables:
@@ -217,7 +233,7 @@ Recommended future helper modes:
 type Phase13LegacyArchiveDevResetMode = 'analyze' | 'execute'
 ```
 
-Execution must never run as part of Phase 13B-dev.
+Execution must never run as part of Phase 13B-dev. Phase 13B-dev.4 implements the internal helper only; the next execution decision remains a separate human-run controlled phase after reviewing safe analyze output.
 
 ## 9. No Physical File Deletion
 

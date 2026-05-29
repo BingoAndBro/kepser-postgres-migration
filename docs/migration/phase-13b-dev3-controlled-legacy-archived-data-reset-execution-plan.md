@@ -216,7 +216,7 @@ A later implementation phase should include the smallest relevant validation onl
 
 Recommended next phases:
 
-- `13B-dev.4` - Implement Confirmation-Gated DB Reset Helper.
+- `13B-dev.4` - Implement Confirmation-Gated DB Reset Helper at `src/lib/archive/phase13-legacy-archive-dev-reset-execution.ts`. This implementation phase adds the internal helper and targeted unit tests only; it must not run execute/reset against the live database.
 - `13B-dev.5` - Human-Run Controlled Execute.
 - `13B-dev.6` - Post-Reset Analyze And Storage Orphan Planning.
 
