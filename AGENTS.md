@@ -95,6 +95,7 @@ Referensi utama:
 - `docs/migration/phase-13h-folder-berkas-api-foundation.md`
 - `docs/migration/phase-13i-pengklasifikasian-dokumen-open-berkas-integration.md`
 - `docs/migration/phase-13j-penambahan-dokumen-open-berkas-integration.md`
+- `docs/migration/phase-13k-folder-first-finalization-policy-and-detransitionalization-plan.md`
 
 ---
 
@@ -315,6 +316,7 @@ Catatan:
 - migrasi lama pernah mengenal `VERIFIKASI_PENYUSUTAN`
 - status itu sudah dihapus oleh migrasi berikutnya
 - `DIMUSNAHKAN` must block preview/download/file access
+- After Phase 13K, target lifecycle authority moves to folder/berkas level for new runtime; current `arsip.arsip` lifecycle remains transitional compatibility until de-transitionalization.
 
 ### Status Berkas
 
@@ -332,6 +334,9 @@ Rules:
 - Close-folder requires `Nomor SPM`, active retention, and inactive retention; `closed_at` is recorded using caller input or the server date, and `closed_by` plus calculated retention end dates are set server-side.
 - `KEPALA_SUB_BAGIAN_UMUM` owns close-folder operation; future close-folder APIs must enforce this server-side through `dms_session` assigned roles, not only UI.
 - Folder-level `status_arsip` is deferred until close-folder and folder-first lifecycle phases decide the final mapping.
+- Phase 13K accepts Option A: `berkas_arsip` becomes the canonical folder/archive parent for new runtime, `berkas_arsip_item` combines `WORKFLOW` and `MANUAL` source items, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
+- Future folder model prefers `status_berkas = OPEN | CLOSED`, nullable `status_arsip` while `OPEN`, and `status_arsip='AKTIF'` when a folder is closed/finalized.
+- A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
 
@@ -413,6 +418,7 @@ Arsip:
 - Phase 13H adds backend-only API route files for opening/get-creating a folder by `Jenis Pembayaran`, adding workflow/manual source items to an `OPEN` folder, and closing a non-empty `OPEN` folder. The routes require local `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, and same-origin protection for unsafe `POST`; `ADMIN` is not a substitute. Phase 13H does not add UI, backfill, lifecycle mapping, canonical archive mutation, schema/migrations, package changes, storage/file changes, or Supabase fallback. Phase 13H.1 registered these routes through the generated route tree.
 - Phase 13I integrates the existing workflow `Pengklasifikasian Dokumen` route with folder/berkas writes: after server-side `Jenis Pembayaran` validation and transitional canonical workflow archive creation, the route gets or creates the matching `OPEN` berkas and attaches the workflow document as a `WORKFLOW` item. Duplicate item assignment must return a safe conflict response. This does not add UI, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
 - Phase 13J integrates the existing `Penambahan Dokumen` manual create runtime with folder/berkas writes: after server-side `Jenis Pembayaran` validation and transitional `manual_arsip` plus canonical `source_type='MANUAL'` creation/linking, the route gets or creates the matching `OPEN` berkas and attaches the manual source as a `MANUAL` item with the canonical bridge when available. Duplicate item assignment must return a safe conflict response. This does not add UI, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
+- Phase 13K locks the folder-first finalization policy as docs/planning only. Future `Pengklasifikasian Dokumen` should keep workflow documents `COMPLETED`, attach them to an `OPEN` berkas, and stop writing new canonical `arsip.arsip` rows only in a later implementation phase. Final archive metadata and lifecycle belong to `berkas_arsip`, not individual item archive rows.
 
 ---
 
@@ -526,9 +532,11 @@ After document `COMPLETED`:
 - After Phase 13D, the initial user-facing stage is `Pengklasifikasian Dokumen`, and the early classification label is `Jenis Pembayaran`. Internal archive/classification tables, fields, route paths, and API field names may still use `arsip`/`klasifikasi` terminology until a later schema/folder phase.
 - Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata are filled when closing/finalizing a folder/berkas.
 - After Phase 13F, a real folder/berkas foundation exists in schema. After Phase 13G, server-only helpers can create/open folders, add source items to open folders, and close non-empty folders with final metadata. After Phase 13I, the workflow `Pengklasifikasian Dokumen` route attaches classified workflow documents to an `OPEN` berkas by `Jenis Pembayaran`. After Phase 13J, `Penambahan Dokumen` manual creates attach new manual document sources to an `OPEN` berkas by `Jenis Pembayaran`. Existing transitional canonical workflow and manual archive behavior remains active until a later folder-first finalization phase replaces it safely.
+- After Phase 13K, accepted final direction is folder-first Option A: new runtime archive parent is `berkas_arsip`, item list is `berkas_arsip_item`, workflow source remains `dokumen_transaksi`, manual source remains `manual_arsip` for now, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
+- Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
-- Archive lifecycle continues on `arsip` table:
+- Until folder-first lifecycle implementation replaces it, existing transitional archive lifecycle continues on `arsip.arsip`:
 
 ```text
 AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
