@@ -89,6 +89,7 @@ Referensi utama:
 - `docs/migration/phase-12z-unified-archive-feature-handoff-closure.md`
 - `docs/migration/phase-13c-ppspm-display-rename.md`
 - `docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
+- `docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
 
 ---
 
@@ -500,7 +501,7 @@ Rules:
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
-### 5A. Manual Archive / Penambahan Arsip
+### 5A. Manual Archive / Penambahan Dokumen
 
 Manual archive uses separate tables:
 
@@ -526,6 +527,8 @@ Rules:
 - Phase 12K.1 adds direct authorized preview/download API responses for manual archive attachments only. It does not add UI buttons, file tokens, signed URLs, lifecycle transitions, aggregate report, Excel export, attachment delete, schema changes, migrations, upload changes, or public/static serving.
 - Phase 12L.1 adds parent metadata edit through `PATCH /api/arsiparis/manual-arsip/$id` only while `status_arsip='AKTIF'`. It does not add UI edit behavior, attachment edit/delete, lifecycle transitions, retention fields, aggregate report, Excel export, schema changes, migrations, preview/download changes, upload changes, or public/static serving.
 - Manual Archive create and edit APIs require a positive integer `nominal_realisasi` greater than 0 even though the database column remains nullable for compatibility.
+- After Phase 13E, the user-facing manual entry surface is `Penambahan Dokumen`, not `Penambahan Arsip`. It collects initial document metadata (`Nama Dokumen`, category, source/document date, `Jenis Pembayaran`, nominal, required `keterangan`, optional attachments) while keeping internal `manual_arsip`, `klasifikasi_id`, and compatibility route/API paths unchanged.
+- Phase 13E keeps transitional internal persistence through `manual_arsip` and linked canonical `source_type='MANUAL'` rows for new creates, but current UI no longer collects final archive metadata. Final archive metadata such as `Nomor SPM`, final retention, and folder closure remain deferred to a future folder/berkas phase.
 - Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.3 adds transitional compatibility/report DTO mapping and report-first backfill planning only. It does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.4 adds an internal read-only compatibility report reader only. Phase 12L.5 adds human-reviewed remediation policy only. Neither phase changes runtime writes, adds routes/UI, mutates rows, creates migrations, performs backfill, deletes rows/files, or performs cleanup.
