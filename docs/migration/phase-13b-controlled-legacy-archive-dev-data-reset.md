@@ -273,7 +273,9 @@ Recommended next phase options:
 
 1. `13B-dev.1` - implement internal analyze-only helper for legacy archived document data reset.
 2. `13B-dev.2` - human-run analyze/dry-run using the helper from `13B-dev.1`, returning safe counts only.
-3. `13B-dev.3` - controlled DB reset execution on disposable local development data only, after explicit confirmation and after reviewing the analyze output.
-4. `13B-dev.4` - optional storage orphan analyze/cleanup planning.
+3. `13B-dev.3` - docs-only controlled execution plan for disposable local development legacy archive data. See `docs/migration/phase-13b-dev3-controlled-legacy-archived-data-reset-execution-plan.md`.
+4. `13B-dev.4` - implement confirmation-gated DB reset helper.
+5. `13B-dev.5` - human-run controlled execute.
+6. `13B-dev.6` - post-reset analyze and storage orphan planning.
 
 Do not automatically proceed to cleanup execution.
