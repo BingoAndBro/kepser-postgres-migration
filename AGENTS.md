@@ -87,6 +87,7 @@ Referensi utama:
 - `docs/migration/phase-12q-unified-archive-classification-report.md`
 - `docs/migration/phase-12q1-classification-report-detail-drilldown.md`
 - `docs/migration/phase-12z-unified-archive-feature-handoff-closure.md`
+- `docs/migration/phase-13c-ppspm-display-rename.md`
 
 ---
 
@@ -234,6 +235,8 @@ type Role =
 ```
 
 Display label tambahan: `Penanggung Jawab Kinerja`.
+
+After Phase 13C, internal role enum/value `BENDAHARA` remains unchanged for DB values, RBAC, routes, API contracts, file paths, and workflow status semantics. User-facing display label for that role is `PPSPM`, with full wording `Pejabat Penandatangan Surat Perintah Membayar` where helpful.
 
 Canonical constants ada di:
 
@@ -1080,7 +1083,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-28
+- Last updated: 2026-05-29
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
