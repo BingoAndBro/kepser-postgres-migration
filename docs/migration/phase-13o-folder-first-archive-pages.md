@@ -131,6 +131,7 @@ New TanStack route files were added, so `src/routeTree.gen.ts` must be generated
 
 Recommended follow-ups:
 
+- review the Phase 13O.1 runtime smoke report in `docs/migration/phase-13o1-runtime-smoke-folder-first-archive-pages.md`;
 - human smoke the new folder-first active list and detail pages;
 - add folder-first Inaktif and Usul Musnah pages after active page review;
 - add folder-level lifecycle action UI only in a separate phase;
