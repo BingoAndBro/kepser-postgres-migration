@@ -191,3 +191,7 @@ Phase 13H does not:
 ## Follow-Up Recommendation
 
 Manually verify these endpoints against a local database where migration `0007` has already been applied, then decide how future UI/write flows attach classified workflow/manual documents into open folders and close folders without changing the deferred archive lifecycle mapping prematurely.
+
+## Follow-Up Verification
+
+Phase 13H.2 records targeted static verification and the pending manual runtime smoke status in `docs/migration/phase-13h2-api-smoke-verification.md`.
