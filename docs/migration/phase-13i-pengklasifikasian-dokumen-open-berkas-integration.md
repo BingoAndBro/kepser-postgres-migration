@@ -4,6 +4,10 @@ Date: 2026-05-29
 
 Status: implemented pending targeted test verification and human smoke.
 
+Follow-up smoke report:
+
+- `docs/migration/phase-13i1-runtime-smoke-pengklasifikasian-to-berkas.md`
+
 ## Phase Status
 
 Phase 13I integrates the existing workflow `Pengklasifikasian Dokumen` write route with the Phase 13F/13G folder/berkas backend foundation.
