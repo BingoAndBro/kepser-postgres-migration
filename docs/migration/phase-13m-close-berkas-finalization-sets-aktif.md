@@ -80,3 +80,9 @@ Recommended follow-up remains separate:
 3. Add folder-level lifecycle transitions.
 4. Add folder-item preview/download checks that block `DIMUSNAHKAN`.
 5. Plan any existing-row backfill/remediation as a separate human-approved phase.
+
+## Runtime Smoke Follow-Up
+
+Phase 13M.1 smoke/report notes are recorded in:
+
+- `docs/migration/phase-13m1-runtime-smoke-close-berkas-finalization.md`
