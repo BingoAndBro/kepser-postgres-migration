@@ -97,6 +97,7 @@ Referensi utama:
 - `docs/migration/phase-13j-penambahan-dokumen-open-berkas-integration.md`
 - `docs/migration/phase-13k-folder-first-finalization-policy-and-detransitionalization-plan.md`
 - `docs/migration/phase-13l-berkas-status-arsip-schema-foundation.md`
+- `docs/migration/phase-13m-close-berkas-finalization-sets-aktif.md`
 
 ---
 
@@ -334,10 +335,11 @@ Rules:
 - Closed folders must not accept new documents/items in runtime write helpers or future APIs.
 - Close-folder requires `Nomor SPM`, active retention, and inactive retention; `closed_at` is recorded using caller input or the server date, and `closed_by` plus calculated retention end dates are set server-side.
 - `KEPALA_SUB_BAGIAN_UMUM` owns close-folder operation; future close-folder APIs must enforce this server-side through `dms_session` assigned roles, not only UI.
-- Folder-level `status_arsip` schema foundation exists after Phase 13L; runtime close/finalization behavior still remains deferred until Phase 13M.
+- Folder-level `status_arsip` schema foundation exists after Phase 13L; after Phase 13M, runtime close/finalization sets `status_arsip='AKTIF'`.
 - Phase 13K accepts Option A: `berkas_arsip` becomes the canonical folder/archive parent for new runtime, `berkas_arsip_item` combines `WORKFLOW` and `MANUAL` source items, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
 - Future folder model prefers `status_berkas = OPEN | CLOSED`, nullable `status_arsip` while `OPEN`, and `status_arsip='AKTIF'` when a folder is closed/finalized.
-- Phase 13L adds the nullable folder-level `berkas_arsip.status_arsip` schema foundation with allowed values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; `OPEN` folders must keep it null, while `CLOSED` folders may temporarily remain null until Phase 13M updates close behavior to set `AKTIF`.
+- Phase 13L adds the nullable folder-level `berkas_arsip.status_arsip` schema foundation with allowed values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; `OPEN` folders must keep it null.
+- Phase 13M updates close/finalize runtime behavior so newly closed berkas set `status_berkas='CLOSED'` and `status_arsip='AKTIF'`. Existing `CLOSED` berkas rows may remain `status_arsip IS NULL` unless a later human-approved backfill/remediation phase changes them. Phase 13M does not implement lifecycle movement beyond initial `AKTIF`.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
@@ -409,7 +411,7 @@ Arsip:
 - Phase 13F adds additive folder/berkas foundation tables `arsip.berkas_arsip` and `arsip.berkas_arsip_item`.
 - `berkas_arsip.status_berkas` values are `OPEN` and `CLOSED`.
 - `berkas_arsip.status_arsip` is a nullable folder-level archive lifecycle foundation after Phase 13L, limited to `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN` when present.
-- Phase 13L keeps close-folder runtime behavior unchanged; it does not yet make close/finalize set `status_arsip='AKTIF'`.
+- Phase 13M close/finalize runtime behavior sets `status_arsip='AKTIF'` for newly closed berkas. Existing `CLOSED` rows may remain null unless a later backfill/remediation phase is approved.
 - `berkas_arsip_item.source_type` values are `WORKFLOW` and `MANUAL`.
 - `WORKFLOW` berkas items reference `dokumen_transaksi` through `dokumen_id`; `MANUAL` berkas items reference transitional `manual_arsip` through `manual_arsip_id`.
 - Exactly one source reference is expected per berkas item according to `source_type`.
@@ -423,6 +425,7 @@ Arsip:
 - Phase 13I integrates the existing workflow `Pengklasifikasian Dokumen` route with folder/berkas writes: after server-side `Jenis Pembayaran` validation and transitional canonical workflow archive creation, the route gets or creates the matching `OPEN` berkas and attaches the workflow document as a `WORKFLOW` item. Duplicate item assignment must return a safe conflict response. This does not add UI, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
 - Phase 13J integrates the existing `Penambahan Dokumen` manual create runtime with folder/berkas writes: after server-side `Jenis Pembayaran` validation and transitional `manual_arsip` plus canonical `source_type='MANUAL'` creation/linking, the route gets or creates the matching `OPEN` berkas and attaches the manual source as a `MANUAL` item with the canonical bridge when available. Duplicate item assignment must return a safe conflict response. This does not add UI, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
 - Phase 13K locks the folder-first finalization policy as docs/planning only. Future `Pengklasifikasian Dokumen` should keep workflow documents `COMPLETED`, attach them to an `OPEN` berkas, and stop writing new canonical `arsip.arsip` rows only in a later implementation phase. Final archive metadata and lifecycle belong to `berkas_arsip`, not individual item archive rows.
+- Phase 13M updates close/finalize berkas behavior only: closing a non-empty `OPEN` berkas with valid final metadata sets `status_berkas='CLOSED'` and initial folder lifecycle `status_arsip='AKTIF'`. It does not backfill existing `CLOSED` rows, add lifecycle transitions, add folder-first pages, stop transitional `arsip.arsip` writes, change file access, implement `DIMUSNAHKAN` blocking, delete physical files, or change schema/migrations/packages/env/storage/Supabase behavior.
 
 ---
 
