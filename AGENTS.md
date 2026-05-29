@@ -99,6 +99,7 @@ Referensi utama:
 - `docs/migration/phase-13l-berkas-status-arsip-schema-foundation.md`
 - `docs/migration/phase-13m-close-berkas-finalization-sets-aktif.md`
 - `docs/migration/phase-13n-folder-first-read-model-foundation.md`
+- `docs/migration/phase-13o-folder-first-archive-pages.md`
 
 ---
 
@@ -342,6 +343,7 @@ Rules:
 - Phase 13L adds the nullable folder-level `berkas_arsip.status_arsip` schema foundation with allowed values `AKTIF`, `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; `OPEN` folders must keep it null.
 - Phase 13M updates close/finalize runtime behavior so newly closed berkas set `status_berkas='CLOSED'` and `status_arsip='AKTIF'`. Existing `CLOSED` berkas rows may remain `status_arsip IS NULL` unless a later human-approved backfill/remediation phase changes them. Phase 13M does not implement lifecycle movement beyond initial `AKTIF`.
 - Phase 13N adds a read-only folder-first query/read-model foundation for future folder-first archive pages. New folder-first pages should use `berkas_arsip` plus `berkas_arsip_item` as the primary read authority, with source metadata enriched from `dokumen_transaksi` and `manual_arsip`. `arsip.arsip` remains transitional compatibility and must not be treated as the primary read authority for new folder-first pages.
+- Phase 13O adds bounded folder-first archive list/detail pages at `/arsiparis/berkas` and `/arsiparis/berkas/$id` plus read-only API wrappers that use the Phase 13N read model. Old individual archive pages are retained until a later cleanup phase. New folder-first pages must use `berkas_arsip` and `berkas_arsip_item` as primary authority and must not de-transitionalize `arsip.arsip` writes.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
@@ -429,6 +431,7 @@ Arsip:
 - Phase 13K locks the folder-first finalization policy as docs/planning only. Future `Pengklasifikasian Dokumen` should keep workflow documents `COMPLETED`, attach them to an `OPEN` berkas, and stop writing new canonical `arsip.arsip` rows only in a later implementation phase. Final archive metadata and lifecycle belong to `berkas_arsip`, not individual item archive rows.
 - Phase 13M updates close/finalize berkas behavior only: closing a non-empty `OPEN` berkas with valid final metadata sets `status_berkas='CLOSED'` and initial folder lifecycle `status_arsip='AKTIF'`. It does not backfill existing `CLOSED` rows, add lifecycle transitions, add folder-first pages, stop transitional `arsip.arsip` writes, change file access, implement `DIMUSNAHKAN` blocking, delete physical files, or change schema/migrations/packages/env/storage/Supabase behavior.
 - Phase 13N adds `src/lib/archive/berkas-arsip-read-model.ts` as a read-only folder-first helper/query foundation. It returns folder list/detail DTOs, item counts, source metadata, and safe warning labels without adding routes/UI, mutating data, changing file access, stopping transitional `arsip.arsip` writes, or using `arsip.arsip` as the primary authority for new folder-first reads.
+- Phase 13O adds read-only folder-first pages and API wrappers for active berkas archives. It points the Kepala Sub Bagian Umum active archive navigation to `/arsiparis/berkas`, keeps old `/arsiparis/aktif` and `/arsiparis/arsip/$id` compatibility pages available, and does not add lifecycle mutation, file access, schema/migration, package/env, storage, or Supabase runtime changes.
 
 ---
 
@@ -544,6 +547,7 @@ After document `COMPLETED`:
 - After Phase 13F, a real folder/berkas foundation exists in schema. After Phase 13G, server-only helpers can create/open folders, add source items to open folders, and close non-empty folders with final metadata. After Phase 13I, the workflow `Pengklasifikasian Dokumen` route attaches classified workflow documents to an `OPEN` berkas by `Jenis Pembayaran`. After Phase 13J, `Penambahan Dokumen` manual creates attach new manual document sources to an `OPEN` berkas by `Jenis Pembayaran`. Existing transitional canonical workflow and manual archive behavior remains active until a later folder-first finalization phase replaces it safely.
 - After Phase 13K, accepted final direction is folder-first Option A: new runtime archive parent is `berkas_arsip`, item list is `berkas_arsip_item`, workflow source remains `dokumen_transaksi`, manual source remains `manual_arsip` for now, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
 - After Phase 13N, future folder-first list/detail pages should build on the read-only `berkas_arsip` read model first. They may enrich from workflow/manual source tables but should not use transitional `arsip.arsip` as the primary read authority for new folder-first pages.
+- After Phase 13O, the first folder-first active archive pages exist at `/arsiparis/berkas` and `/arsiparis/berkas/$id`. They are read-only surfaces backed by read-only API wrappers and the Phase 13N read model. Old individual archive pages remain available, and transitional `arsip.arsip` writes continue until a later human-approved de-transitionalization phase.
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
