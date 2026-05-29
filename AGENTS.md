@@ -90,6 +90,7 @@ Referensi utama:
 - `docs/migration/phase-13c-ppspm-display-rename.md`
 - `docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
 - `docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
+- `docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
 
 ---
 
@@ -311,6 +312,21 @@ Catatan:
 - status itu sudah dihapus oleh migrasi berikutnya
 - `DIMUSNAHKAN` must block preview/download/file access
 
+### Status Berkas
+
+Folder/berkas status values after Phase 13F:
+
+```ts
+type BerkasStatus = 'OPEN' | 'CLOSED'
+```
+
+Rules:
+
+- `OPEN` means the folder/berkas may receive future classified documents once a write flow exists.
+- `CLOSED` means final folder metadata has been filled and later phases may map the folder into archive lifecycle handling.
+- Closed folders must not accept new documents in future runtime write phases.
+- Folder-level `status_arsip` is deferred until close-folder and folder-first lifecycle phases decide the final mapping.
+
 ---
 
 ## Database Source Of Truth
@@ -351,6 +367,8 @@ Workflow Dokumen:
 Arsip:
 
 - `arsip.arsip`
+- `arsip.berkas_arsip`
+- `arsip.berkas_arsip_item`
 - `arsip.master_klasifikasi_arsip`
 - `arsip.arsip_usul_musnah`
 - `arsip.manual_arsip_category`
@@ -375,6 +393,13 @@ Arsip:
 - `manual_arsip_attachment.judul_lampiran` is the official attachment title column; existing rows are backfilled from `original_filename` by Phase 12J.2a.
 - `manual_arsip.nominal_realisasi` remains nullable at the DB layer for compatibility, but Manual Archive create API/UI require a positive integer `nominal_realisasi` greater than 0.
 - Manual archive file paths are logical storage paths only, never physical filesystem paths or storage roots.
+- Phase 13F adds additive folder/berkas foundation tables `arsip.berkas_arsip` and `arsip.berkas_arsip_item`.
+- `berkas_arsip.status_berkas` values are `OPEN` and `CLOSED`.
+- `berkas_arsip_item.source_type` values are `WORKFLOW` and `MANUAL`.
+- `WORKFLOW` berkas items reference `dokumen_transaksi` through `dokumen_id`; `MANUAL` berkas items reference transitional `manual_arsip` through `manual_arsip_id`.
+- Exactly one source reference is expected per berkas item according to `source_type`.
+- One `OPEN` folder per `klasifikasi_id` is expected; multiple closed batches per classification remain allowed.
+- Phase 13F does not backfill existing workflow or manual rows into folders and does not change current runtime writes.
 
 ---
 
@@ -487,6 +512,7 @@ After document `COMPLETED`:
 - Kepala Sub Bagian Umum skip action in FSM keeps document `COMPLETED`.
 - After Phase 13D, the initial user-facing stage is `Pengklasifikasian Dokumen`, and the early classification label is `Jenis Pembayaran`. Internal archive/classification tables, fields, route paths, and API field names may still use `arsip`/`klasifikasi` terminology until a later schema/folder phase.
 - Initial classification must not require `Nomor Surat` or `Nomor SPM`. `Nomor SPM` and final retention metadata belong to a future close-folder/berkas phase.
+- After Phase 13F, a real folder/berkas foundation exists in schema only. Current runtime still uses the transitional archive/manual flows until a later close-folder phase wires folder writes.
 - Archive lifecycle continues on `arsip` table:
 
 ```text
@@ -529,6 +555,7 @@ Rules:
 - Manual Archive create and edit APIs require a positive integer `nominal_realisasi` greater than 0 even though the database column remains nullable for compatibility.
 - After Phase 13E, the user-facing manual entry surface is `Penambahan Dokumen`, not `Penambahan Arsip`. It collects initial document metadata (`Nama Dokumen`, category, source/document date, `Jenis Pembayaran`, nominal, required `keterangan`, optional attachments) while keeping internal `manual_arsip`, `klasifikasi_id`, and compatibility route/API paths unchanged.
 - Phase 13E keeps transitional internal persistence through `manual_arsip` and linked canonical `source_type='MANUAL'` rows for new creates, but current UI no longer collects final archive metadata. Final archive metadata such as `Nomor SPM`, final retention, and folder closure remain deferred to a future folder/berkas phase.
+- Phase 13F adds `berkas_arsip` and `berkas_arsip_item` as an additive schema/data-model foundation only. It does not attach existing Manual Archive rows to folders, change Manual Archive create/edit/upload/preview/download behavior, create close-folder UI/API, or change canonical `source_type='MANUAL'` writes.
 - Phase 12L.2 is schema foundation only: it does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.3 adds transitional compatibility/report DTO mapping and report-first backfill planning only. It does not change runtime writes, Manual Archive APIs, workflow archive creation, lifecycle APIs, preview/download, upload behavior, list pages, route generation, data backfill, table deletion, seed data, or storage files.
 - Phase 12L.4 adds an internal read-only compatibility report reader only. Phase 12L.5 adds human-reviewed remediation policy only. Neither phase changes runtime writes, adds routes/UI, mutates rows, creates migrations, performs backfill, deletes rows/files, or performs cleanup.
