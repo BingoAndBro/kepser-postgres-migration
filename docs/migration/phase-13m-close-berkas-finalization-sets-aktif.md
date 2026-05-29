@@ -73,13 +73,14 @@ No response should expose env values, DB URLs, SQL params, storage roots, physic
 
 ## Next Phase Recommendation
 
-Recommended follow-up remains separate:
+Recommended follow-ups remain separate:
 
-1. De-transitionalize workflow/manual create behavior so new runtime stops writing `arsip.arsip` after folder-first replacements are ready.
-2. Add folder-first archive list/detail read models.
+1. Add folder-first archive list/detail read models.
+2. Add folder-first archive pages using the read model.
 3. Add folder-level lifecycle transitions.
 4. Add folder-item preview/download checks that block `DIMUSNAHKAN`.
-5. Plan any existing-row backfill/remediation as a separate human-approved phase.
+5. De-transitionalize workflow/manual create behavior so new runtime stops writing `arsip.arsip` only after folder-first replacements are ready.
+6. Plan any existing-row backfill/remediation as a separate human-approved phase.
 
 ## Runtime Smoke Follow-Up
 

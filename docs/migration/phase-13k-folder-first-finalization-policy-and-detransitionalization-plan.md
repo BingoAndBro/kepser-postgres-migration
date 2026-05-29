@@ -175,8 +175,9 @@ No later phase should infer that historical `arsip.arsip` data can be blindly de
 
 - 13L - Berkas `status_arsip` schema foundation.
 - 13M - Close Berkas finalization behavior sets `status_arsip = AKTIF` and final metadata.
-- 13N - Stop workflow/manual create from writing canonical `arsip.arsip`.
-- 13O - Folder-first archive pages/read model.
+- 13N - Folder-first archive read model foundation.
+- 13O - Folder-first archive pages using the read model.
+- Later de-transitionalization - stop workflow/manual create from writing canonical `arsip.arsip` only after folder-first replacements are ready.
 - 13P - Folder item preview/download and `DIMUSNAHKAN` block.
 - 13Q - Legacy individual archive page cleanup.
 - 13R - Physical destruction implementation.
