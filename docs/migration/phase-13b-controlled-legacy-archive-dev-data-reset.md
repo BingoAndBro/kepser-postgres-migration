@@ -104,6 +104,13 @@ Phase 13B-dev.4 implementation update:
 - `physicalFileDeletionPerformed` remains `false`;
 - no route, API, UI, scheduler, cron, startup wiring, schema change, migration, seed, package change, route generation, live cleanup execution, or physical file deletion is added.
 
+Phase 13B-dev.6 post-reset verification update:
+
+- post-reset verification and storage orphan planning are documented in `docs/migration/phase-13b-dev6-post-reset-verification-and-storage-orphan-planning.md`;
+- the post-reset DB analyze result reports zero legacy archive reset candidates from the database perspective;
+- physical storage cleanup remains open as a separate explicit future phase;
+- no reset execution, storage cleanup, route/API/UI/scheduler work, schema/migration change, package change, or physical file deletion is approved by Phase 13B-dev.6.
+
 ## 4. Schema Boundary Summary
 
 Relevant archive tables:
