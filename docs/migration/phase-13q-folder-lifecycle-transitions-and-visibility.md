@@ -69,7 +69,9 @@ Responses use safe DTOs and do not expose raw rows, storage paths, tokens, SQL, 
 
 ## UI Visibility
 
-`/arsiparis/berkas` keeps the page title/navigation name `Pemberkasan Arsip Aktif` and now shows:
+Phase 13Q.2 supersedes the list-page placement below. Current `/arsiparis/berkas` placement is documented in `docs/migration/phase-13q2-lifecycle-ux-placement-confirmation-and-filename-preservation.md`: the page keeps only `Berkas Terbuka` and `Pemberkasan Arsip Aktif`; inactive/proposed statuses belong to dedicated future integration surfaces, and `Dimusnahkan` does not need a general list section.
+
+Phase 13Q originally rendered these buckets on `/arsiparis/berkas`:
 
 - `Berkas Terbuka` for `OPEN/null`;
 - `Pemberkasan Arsip Aktif` for `CLOSED/AKTIF`;
@@ -99,10 +101,10 @@ Confirmation copy:
 
 `DIMUSNAHKAN` in this phase is status-only.
 
-Existing Phase 13P folder-aware file access continues to block preview/download with:
+Phase 13Q.2 updates folder item file-access blocking copy to:
 
 ```text
-Data sudah dimusnahkan
+Data file sudah dimusnahkan
 ```
 
 This phase does not delete physical files, clear item rows, clear attachment metadata, or remove source document metadata. Future physical deletion must be a separate destructive phase with explicit safeguards.

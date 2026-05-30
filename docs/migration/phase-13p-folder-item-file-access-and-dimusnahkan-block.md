@@ -27,7 +27,7 @@ The helper:
 - resolves `WORKFLOW` attachments from `dokumen_transaksi.lampiran_urls`;
 - resolves `MANUAL` attachments through `manual_arsip_attachment` ordering and delegates file streaming to the existing manual archive file responder;
 - blocks folder-level `status_arsip='DIMUSNAHKAN'` before source/file resolution;
-- returns the safe blocked message `Data sudah dimusnahkan`;
+- returns safe blocked copy for file access; after Phase 13Q.2 this is `Data file sudah dimusnahkan`;
 - avoids exposing physical paths, storage roots, logical paths, tokens, raw rows, SQL details, env values, session/cookie values, or secrets in error DTOs.
 
 ## API Routes Added
@@ -47,10 +47,10 @@ The routes are read-only and do not require same-origin protection because they 
 
 Every preview/download request re-checks the current folder row.
 
-If `berkas_arsip.status_arsip = DIMUSNAHKAN`, every item attachment request in that folder is blocked with:
+If `berkas_arsip.status_arsip = DIMUSNAHKAN`, every item attachment request in that folder is blocked with file-specific copy:
 
 ```text
-Data sudah dimusnahkan
+Data file sudah dimusnahkan
 ```
 
 This applies to stale links rendered before the folder status changed. No physical deletion occurs in this phase.
@@ -102,7 +102,7 @@ Recommended human smoke:
 3. Open a folder detail with at least one `WORKFLOW` item attachment and one `MANUAL` item attachment.
 4. Preview and download both item types.
 5. Mark a test folder as `DIMUSNAHKAN` only through an approved lifecycle path or controlled test fixture.
-6. Reuse an old preview/download link and confirm it returns `Data sudah dimusnahkan`.
+6. Reuse an old preview/download link and confirm it returns `Data file sudah dimusnahkan`.
 7. Confirm no physical files are deleted by this phase.
 
 Phase 13P.1 smoke report:
