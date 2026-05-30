@@ -108,6 +108,7 @@ Referensi utama:
 - `docs/migration/phase-13s-close-berkas-ui-form.md`
 - `docs/migration/phase-13s1-close-berkas-modal-and-list-shortcut.md`
 - `docs/migration/phase-13t-workflow-pengklasifikasian-detransitionalization.md`
+- `docs/migration/phase-13t1-folder-item-attachment-name-preservation-bugfix.md`
 
 ---
 
@@ -363,6 +364,7 @@ Rules:
 - Phase 13S preserves the Phase 13P.2 1:1 rule: after close, the Jenis Pembayaran no longer accepts new workflow/manual documents because the only matching berkas is closed. It does not change dropdown eligibility logic, lifecycle semantics, CSV export behavior, schema/migration/package/env/storage/Supabase runtime behavior, transitional `arsip.arsip` writes, or physical file deletion.
 - Phase 13S.1 makes the preferred close UX a modal/popup metadata form titled `Tutup Berkas`. The detail-page button and `Berkas Terbuka` list shortcut both reuse the existing close API and close metadata fields, preserve the 1:1 Jenis Pembayaran rule after close, and do not render close actions for `Pemberkasan Arsip Aktif` rows.
 - Phase 13T de-transitionalizes workflow `Pengklasifikasian Dokumen` only: selected `COMPLETED` workflow documents attach to an `OPEN` berkas as `WORKFLOW` `berkas_arsip_item` rows, remain `dokumen_transaksi.status='COMPLETED'`, and no longer create new `arsip.arsip` `WORKFLOW` rows during classification. Final archive metadata and lifecycle remain folder-level. Manual `Penambahan Dokumen` remains transitional for a later phase.
+- Phase 13T.1 fixes folder-first item attachment naming only. Folder item labels, preview titles, and `WORKFLOW` download filenames must preserve safe source naming semantics from `dokumen_transaksi.lampiran_urls` plus existing dokumen filename formatting; `MANUAL` labels/preview titles must use safe `manual_arsip_attachment.judul_lampiran` metadata while manual download responses continue using the existing Manual Archive responder policy. Generic labels such as `Lampiran 1` or `Lampiran` are fallback only when source metadata is missing or unsafe.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
@@ -458,6 +460,7 @@ Arsip:
 - Phase 13S close UI is a detail-page form integration only. It uses the existing close API and close metadata schema, refuses obvious empty-folder submission in the UI while keeping server rejection authoritative, and refreshes the safe detail DTO after success. It does not add routes, schema/migration/storage/package/env changes, physical deletion, lifecycle semantic changes, backfill, or de-transitionalization.
 - Phase 13S.1 refactors close UI into a shared client-side modal and adds an `OPEN/null` list shortcut. Closing from list/detail refreshes safe DTO data after success so the berkas can move from `Berkas Terbuka` to `Pemberkasan Arsip Aktif`; CSV export remains read-only and safe.
 - Phase 13T de-transitionalizes workflow classification only. `POST /api/arsiparis/dokumen/$id/archive` remains a compatible route name but now performs folder-first classification for workflow documents: validate `COMPLETED`, validate `Jenis Pembayaran`, open/reuse the matching `OPEN` berkas, insert the `WORKFLOW` berkas item, keep the source document `COMPLETED`, do not write an `ARCHIVE` log tied to a status transition, and do not create a new `arsip.arsip` workflow row. The Pengklasifikasian inbox/detail read surface treats an existing `WORKFLOW` berkas item as classification evidence. Existing old `ARCHIVED` workflow data remains compatibility/history only and is rejected safely by this route.
+- Phase 13T.1 preserves folder-first attachment names without changing schema, storage, lifecycle, classification, physical files, or transitional Manual Archive writes. Folder-first safe DTOs may expose sanitized attachment labels/titles, but must not expose raw `lampiran_urls`, logical paths, physical paths, storage roots, signed URLs, tokens, raw attachment metadata, SQL, env/session/cookie values, or internal route/file token details.
 
 ---
 
@@ -706,7 +709,8 @@ Rules:
 - Referenced active document/archive files must be protected from cleanup.
 - `DIMUSNAHKAN` must block stale token/path access.
 - Folder-first item file access must revalidate current folder status and item membership before serving files. `DIMUSNAHKAN` folder access must return safe file-specific blocking copy such as `Data file sudah dimusnahkan` and must not delete physical files.
-- Folder-first `WORKFLOW` file responses must preserve safe original filename metadata from `dokumen_transaksi.lampiran_urls` when available. Folder-first `MANUAL` file responses must preserve the existing Manual Archive attachment responder filename policy. Content-Disposition filenames must be safe and must not expose logical paths, physical paths, storage roots, tokens, or signed-token internals.
+- Folder-first item labels, preview titles, and download filenames must preserve safe source attachment names from `WORKFLOW` `dokumen_transaksi.lampiran_urls` and `MANUAL` attachment metadata where safe. `WORKFLOW` download filenames should follow the existing dokumen persetujuan filename formatting behavior; `MANUAL` download filenames must preserve the existing Manual Archive attachment responder policy. Generic fallback names like `Lampiran 1` or `Lampiran` are allowed only when source metadata is missing or unsafe.
+- Folder-first file access and safe DTOs must never expose raw `lampiran_urls`, logical paths, physical paths, storage roots, signed URLs, file tokens, signed-token internals, cookies, session values, SQL details, or secrets.
 - Admin diagnostics/cleanup should report logical paths and safe counts only.
 
 Path semantics:
