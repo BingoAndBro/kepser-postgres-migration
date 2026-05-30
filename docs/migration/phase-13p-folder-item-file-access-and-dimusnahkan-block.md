@@ -105,6 +105,10 @@ Recommended human smoke:
 6. Reuse an old preview/download link and confirm it returns `Data sudah dimusnahkan`.
 7. Confirm no physical files are deleted by this phase.
 
+Phase 13P.1 smoke report:
+
+- `docs/migration/phase-13p1-runtime-smoke-folder-item-file-access.md`
+
 ## Validation
 
 Targeted validation for this phase:
