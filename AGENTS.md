@@ -106,6 +106,7 @@ Referensi utama:
 - `docs/migration/phase-13q2-lifecycle-ux-placement-confirmation-and-filename-preservation.md`
 - `docs/migration/phase-13r-folder-first-csv-export.md`
 - `docs/migration/phase-13s-close-berkas-ui-form.md`
+- `docs/migration/phase-13s1-close-berkas-modal-and-list-shortcut.md`
 
 ---
 
@@ -359,6 +360,7 @@ Rules:
 - Phase 13R adds read-only client-side CSV export for `/arsiparis/berkas` and `/arsiparis/berkas/$id` using existing safe folder-first DTOs. CSV exports are limited to user-facing metadata and must not include raw IDs, item keys, paths, URLs, tokens, storage roots, signed-token internals, raw attachment metadata, SQL details, env/session/cookie/secret values, or file content. Phase 13R does not add routes, DB queries, lifecycle/write behavior, schema/migration/package/env/storage changes, Supabase runtime changes, physical deletion, backfill, or de-transitionalization.
 - Phase 13S adds the user-facing `Tutup Berkas` form on `/arsiparis/berkas/$id` for `OPEN/null` berkas only. The form reuses the existing close API, sends `nomor_spm`, `retensi_aktif`, `retensi_inaktif`, and optional `closed_at`, refreshes detail after success, and close/finalize sets `status_berkas='CLOSED'` and `status_arsip='AKTIF'`.
 - Phase 13S preserves the Phase 13P.2 1:1 rule: after close, the Jenis Pembayaran no longer accepts new workflow/manual documents because the only matching berkas is closed. It does not change dropdown eligibility logic, lifecycle semantics, CSV export behavior, schema/migration/package/env/storage/Supabase runtime behavior, transitional `arsip.arsip` writes, or physical file deletion.
+- Phase 13S.1 makes the preferred close UX a modal/popup metadata form titled `Tutup Berkas`. The detail-page button and `Berkas Terbuka` list shortcut both reuse the existing close API and close metadata fields, preserve the 1:1 Jenis Pembayaran rule after close, and do not render close actions for `Pemberkasan Arsip Aktif` rows.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
@@ -452,6 +454,7 @@ Arsip:
 - Phase 13Q adds `POST /api/arsiparis/berkas/$id/lifecycle` for status-only folder lifecycle transitions. It updates only `berkas_arsip.status_arsip` and `updated_at`, keeps `berkas_arsip_item`, workflow/manual sources, physical files, and transitional `arsip.arsip` writes unchanged. Phase 13Q.2 later narrows `/arsiparis/berkas` page placement to `OPEN/null` and `CLOSED/AKTIF` sections only; `CLOSED/INAKTIF`, `CLOSED/USUL_MUSNAH`, and `CLOSED/DIMUSNAHKAN` remain lifecycle states but do not belong as sections on that active pemberkasan page.
 - Phase 13R CSV export is client-side/read-only from existing safe DTOs on folder-first pages. It must not be implemented as raw DB row export, must not expose `berkas_arsip`/`berkas_arsip_item` internal IDs or file keys, and must not mutate folder, item, workflow, manual, lifecycle, storage, or transitional `arsip.arsip` state.
 - Phase 13S close UI is a detail-page form integration only. It uses the existing close API and close metadata schema, refuses obvious empty-folder submission in the UI while keeping server rejection authoritative, and refreshes the safe detail DTO after success. It does not add routes, schema/migration/storage/package/env changes, physical deletion, lifecycle semantic changes, backfill, or de-transitionalization.
+- Phase 13S.1 refactors close UI into a shared client-side modal and adds an `OPEN/null` list shortcut. Closing from list/detail refreshes safe DTO data after success so the berkas can move from `Berkas Terbuka` to `Pemberkasan Arsip Aktif`; CSV export remains read-only and safe.
 
 ---
 
