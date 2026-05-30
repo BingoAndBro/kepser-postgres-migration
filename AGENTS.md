@@ -113,6 +113,7 @@ Referensi utama:
 - `docs/migration/phase-13u-manual-penambahan-dokumen-detransitionalization.md`
 - `docs/migration/phase-13v-legacy-active-archive-route-cleanup.md`
 - `docs/migration/phase-13w-folder-first-inaktif-usul-musnah-pages.md`
+- `docs/migration/phase-13w1-lifecycle-redirects-and-destruction-modal.md`
 
 ---
 
@@ -375,6 +376,7 @@ Rules:
 - Phase 13W makes `/arsiparis/inaktif` the folder-first `CLOSED/INAKTIF` lifecycle surface using `berkas_arsip` list data and the existing folder lifecycle API for `propose_destruction`.
 - Phase 13W makes `/arsiparis/usul-musnah` the folder-first `CLOSED/USUL_MUSNAH` lifecycle surface using `berkas_arsip` list data and the existing folder lifecycle API for `approve_destruction` with exact typed confirmation `MUSNAHKAN DATA FILE`.
 - Phase 13W does not create a general `Dimusnahkan` list page or section. Physical file deletion remains a future dedicated destructive phase; `DIMUSNAHKAN` continues to preserve metadata and block preview/download through existing file-access policy.
+- Phase 13W.1 records the lifecycle success-navigation preference: successful close/lifecycle actions should redirect or land on their destination list page (`/arsiparis/berkas`, `/arsiparis/inaktif`, or `/arsiparis/usul-musnah`). `Musnahkan Data` on `/arsiparis/usul-musnah` uses a modal with exact typed confirmation `MUSNAHKAN DATA FILE`; `Dimusnahkan` still has no general list page.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
