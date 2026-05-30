@@ -115,6 +115,7 @@ Referensi utama:
 - `docs/migration/phase-13w-folder-first-inaktif-usul-musnah-pages.md`
 - `docs/migration/phase-13w1-lifecycle-redirects-and-destruction-modal.md`
 - `docs/migration/phase-13w2-detail-destruction-modal-ux.md`
+- `docs/migration/phase-13x-physical-file-destruction-policy-plan.md`
 
 ---
 
@@ -379,8 +380,9 @@ Rules:
 - Phase 13W does not create a general `Dimusnahkan` list page or section. Physical file deletion remains a future dedicated destructive phase; `DIMUSNAHKAN` continues to preserve metadata and block preview/download through existing file-access policy.
 - Phase 13W.1 records the lifecycle success-navigation preference: successful close/lifecycle actions should redirect or land on their destination list page (`/arsiparis/berkas`, `/arsiparis/inaktif`, or `/arsiparis/usul-musnah`). `Musnahkan Data` on `/arsiparis/usul-musnah` uses a modal with exact typed confirmation `MUSNAHKAN DATA FILE`; `Dimusnahkan` still has no general list page.
 - Phase 13W.2 records the detail-page destruction UX preference: `Musnahkan Data` confirmation is modal-based on both `/arsiparis/usul-musnah` list rows and `/arsiparis/berkas/$id` folder detail, with exact typed confirmation `MUSNAHKAN DATA FILE`, no physical deletion, and no general `Dimusnahkan` list page.
+- Phase 13X records folder-first physical file destruction as a future dedicated destructive phase only. Preferred safeguards are a separate dry-run-first maintenance action after `CLOSED/DIMUSNAHKAN`, exact typed confirmation `HAPUS FILE FISIK ARSIP` for execution, server-side `KEPALA_SUB_BAGIAN_UMUM` authorization unless a later explicit maintenance role policy is approved, deletion candidates derived only from current `berkas_arsip_item` membership plus source tables, metadata preservation, idempotent already-missing handling, and safe count/category reports with no path/root/token leaks.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
-- A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
+- A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata and must target folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion.
 
 ---
 
@@ -723,7 +725,8 @@ Rules:
 - File access token internals must not be printed.
 - Referenced active document/archive files must be protected from cleanup.
 - `DIMUSNAHKAN` must block stale token/path access.
-- Folder-first item file access must revalidate current folder status and item membership before serving files. `DIMUSNAHKAN` folder access must return safe file-specific blocking copy such as `Data file sudah dimusnahkan` and must not delete physical files.
+- Folder-first item file access must revalidate current folder status and item membership before serving files. `DIMUSNAHKAN` folder access must return safe file-specific blocking copy such as `Data file sudah dimusnahkan` and must not delete physical files until a later explicit destructive phase runs.
+- Future folder-first physical deletion must be dry-run-first, exact-confirmation gated, `CLOSED/DIMUSNAHKAN` only, metadata-preserving, idempotent for missing files, local-storage-only, and limited to candidates derived from current folder items plus source tables. It must never use client-supplied paths, broad storage-root scans, public/static targets, Supabase fallback, or user-facing reports containing logical paths, physical paths, storage roots, tokens, signed-token internals, SQL details, env values, cookies, session values, raw rows, or secrets.
 - Folder-first item labels, preview titles, and download filenames must preserve safe source attachment names from `WORKFLOW` `dokumen_transaksi.lampiran_urls` and `MANUAL` attachment metadata where safe. `WORKFLOW` download filenames should follow the existing dokumen persetujuan filename formatting behavior; `MANUAL` download filenames must preserve the existing Manual Archive attachment responder policy. Generic fallback names like `Lampiran 1` or `Lampiran` are allowed only when source metadata is missing or unsafe.
 - Folder-first file access and safe DTOs must never expose raw `lampiran_urls`, logical paths, physical paths, storage roots, signed URLs, file tokens, signed-token internals, cookies, session values, SQL details, or secrets.
 - Admin diagnostics/cleanup should report logical paths and safe counts only.
