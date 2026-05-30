@@ -101,6 +101,7 @@ Referensi utama:
 - `docs/migration/phase-13n-folder-first-read-model-foundation.md`
 - `docs/migration/phase-13o-folder-first-archive-pages.md`
 - `docs/migration/phase-13p-folder-item-file-access-and-dimusnahkan-block.md`
+- `docs/migration/phase-13p2-open-berkas-visibility-and-jenis-pembayaran-eligibility.md`
 
 ---
 
@@ -346,6 +347,8 @@ Rules:
 - Phase 13N adds a read-only folder-first query/read-model foundation for future folder-first archive pages. New folder-first pages should use `berkas_arsip` plus `berkas_arsip_item` as the primary read authority, with source metadata enriched from `dokumen_transaksi` and `manual_arsip`. `arsip.arsip` remains transitional compatibility and must not be treated as the primary read authority for new folder-first pages.
 - Phase 13O adds bounded folder-first archive list/detail pages at `/arsiparis/berkas` and `/arsiparis/berkas/$id` plus read-only API wrappers that use the Phase 13N read model. Old individual archive pages are retained until a later cleanup phase. New folder-first pages must use `berkas_arsip` and `berkas_arsip_item` as primary authority and must not de-transitionalize `arsip.arsip` writes.
 - Phase 13P adds folder-aware item preview/download for folder-first detail pages. File access for folder items must revalidate the current `berkas_arsip` folder and `berkas_arsip_item` membership on every request. If a folder has `status_arsip='DIMUSNAHKAN'`, preview/download for every item in that folder must be blocked with the safe message `Data sudah dimusnahkan`. Phase 13P does not delete physical files, mutate lifecycle state, stop transitional `arsip.arsip` writes, or add schema/migration changes.
+- Phase 13P.2 records the stricter 1:1 `Jenis Pembayaran` to `berkas_arsip` rule for new runtime. If an `OPEN` berkas exists for a `klasifikasi_id`, new workflow/manual documents may attach to that existing berkas. If only `CLOSED` berkas rows exist for that `klasifikasi_id`, including `AKTIF`, future `INAKTIF`, `USUL_MUSNAH`, or `DIMUSNAHKAN`, that Jenis Pembayaran must not be selectable for new Pengklasifikasian Dokumen or Penambahan Dokumen. Runtime open/get-create helpers must not create a second berkas for the same Jenis Pembayaran.
+- OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
@@ -421,7 +424,8 @@ Arsip:
 - `berkas_arsip_item.source_type` values are `WORKFLOW` and `MANUAL`.
 - `WORKFLOW` berkas items reference `dokumen_transaksi` through `dokumen_id`; `MANUAL` berkas items reference transitional `manual_arsip` through `manual_arsip_id`.
 - Exactly one source reference is expected per berkas item according to `source_type`.
-- One `OPEN` folder per `klasifikasi_id` is expected; multiple closed batches per classification remain allowed.
+- One `OPEN` folder per `klasifikasi_id` is expected by schema foundation.
+- After Phase 13P.2, new runtime treats Jenis Pembayaran and berkas as 1:1: server helpers must prevent creating a second berkas when any `CLOSED` berkas already exists for the same `klasifikasi_id`.
 - Phase 13F does not backfill existing workflow or manual rows into folders and does not change current runtime writes.
 - Phase 13G adds a server-only close-folder/helper foundation in `src/lib/archive/berkas-arsip-service.ts`; it does not add routes/UI, route generation, backfill, lifecycle mapping, schema changes, migrations, storage/file changes, or Supabase fallback.
 - Phase 13G helper-created folders derive classification code/name snapshots from `master_klasifikasi_arsip`; callers must not supply trusted snapshot values.
@@ -551,6 +555,7 @@ After document `COMPLETED`:
 - After Phase 13N, future folder-first list/detail pages should build on the read-only `berkas_arsip` read model first. They may enrich from workflow/manual source tables but should not use transitional `arsip.arsip` as the primary read authority for new folder-first pages.
 - After Phase 13O, the first folder-first active archive pages exist at `/arsiparis/berkas` and `/arsiparis/berkas/$id`. They are read-only surfaces backed by read-only API wrappers and the Phase 13N read model. Old individual archive pages remain available, and transitional `arsip.arsip` writes continue until a later human-approved de-transitionalization phase.
 - After Phase 13P, folder-first detail pages may show preview/download actions for item attachments through authorized folder-aware API routes. These routes use `berkas_arsip` and `berkas_arsip_item` as the folder/item authority, resolve attachments from the attached `WORKFLOW` or `MANUAL` source, and re-check folder `status_arsip` for every request. `DIMUSNAHKAN` folders block every item preview/download with `Data sudah dimusnahkan`.
+- After Phase 13P.2, `/arsiparis/berkas` must keep `OPEN` berkas visible before finalization as `Berkas Terbuka` or equivalent, while finalized active berkas remain visible as active archives. Jenis Pembayaran dropdowns for `Pengklasifikasian Dokumen` and `Penambahan Dokumen` must use server-side eligibility so classifications with only `CLOSED` berkas are not selectable for new additions, and direct helper/API calls must not create a second berkas for the same Jenis Pembayaran. Phase 13P.2 does not add lifecycle mutation, file-access changes, destruction behavior, de-transitionalization, schema/migration changes, package/env changes, storage cleanup, or Supabase runtime changes.
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
@@ -1166,7 +1171,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-29
+- Last updated: 2026-05-30
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
