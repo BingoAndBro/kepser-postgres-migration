@@ -109,6 +109,7 @@ Referensi utama:
 - `docs/migration/phase-13s1-close-berkas-modal-and-list-shortcut.md`
 - `docs/migration/phase-13t-workflow-pengklasifikasian-detransitionalization.md`
 - `docs/migration/phase-13t1-folder-item-attachment-name-preservation-bugfix.md`
+- `docs/migration/phase-13t2-folder-attachment-name-runtime-hotfix.md`
 
 ---
 
@@ -365,6 +366,7 @@ Rules:
 - Phase 13S.1 makes the preferred close UX a modal/popup metadata form titled `Tutup Berkas`. The detail-page button and `Berkas Terbuka` list shortcut both reuse the existing close API and close metadata fields, preserve the 1:1 Jenis Pembayaran rule after close, and do not render close actions for `Pemberkasan Arsip Aktif` rows.
 - Phase 13T de-transitionalizes workflow `Pengklasifikasian Dokumen` only: selected `COMPLETED` workflow documents attach to an `OPEN` berkas as `WORKFLOW` `berkas_arsip_item` rows, remain `dokumen_transaksi.status='COMPLETED'`, and no longer create new `arsip.arsip` `WORKFLOW` rows during classification. Final archive metadata and lifecycle remain folder-level. Manual `Penambahan Dokumen` remains transitional for a later phase.
 - Phase 13T.1 fixes folder-first item attachment naming only. Folder item labels, preview titles, and `WORKFLOW` download filenames must preserve safe source naming semantics from `dokumen_transaksi.lampiran_urls` plus existing dokumen filename formatting; `MANUAL` labels/preview titles must use safe `manual_arsip_attachment.judul_lampiran` metadata while manual download responses continue using the existing Manual Archive responder policy. Generic labels such as `Lampiran 1` or `Lampiran` are fallback only when source metadata is missing or unsafe.
+- Phase 13T.2 hotfix makes folder-first attachment naming defensive. `WORKFLOW` source filename reconstruction is best-effort only and must never crash folder detail or file access; if full dokumen persetujuan filename formatting cannot be safely built, runtime falls back to safe `lampiran_urls[].nama` plus logical-path extension, then `Lampiran N` plus extension, then `Lampiran N`. Manual download delegation remains unchanged.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
