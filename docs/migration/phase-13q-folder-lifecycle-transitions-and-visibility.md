@@ -4,6 +4,8 @@ Date: 2026-05-30
 
 Status: implemented pending targeted test and human review.
 
+Phase 13Q.1 smoke report: `docs/migration/phase-13q1-runtime-smoke-folder-lifecycle.md`
+
 ## Phase Status
 
 Phase 13Q adds bounded folder-level archive lifecycle transitions for the folder-first archive model.
