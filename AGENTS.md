@@ -120,6 +120,7 @@ Referensi utama:
 - `docs/migration/phase-13y2-musnahkan-data-physical-deletion-integration.md`
 - `docs/migration/phase-13y3-document-file-access-destroyed-folder-awareness.md`
 - `docs/migration/phase-13y4-attachment-viewer-destroyed-file-ux.md`
+- `docs/migration/phase-13z-legacy-canonical-archive-cleanup-decision-plan.md`
 
 ---
 
@@ -389,6 +390,7 @@ Rules:
 - Phase 13Y.2 integrates folder-first physical deletion into the existing `Musnahkan Data` / `approve_destruction` action. After server-side validation and exact typed confirmation `MUSNAHKAN DATA FILE`, the API moves `USUL_MUSNAH -> DIMUSNAHKAN`, then invokes the server-only physical deletion helper for the same berkas id with the helper confirmation phrase internally. The action preserves metadata/history and logical references, blocks preview/download through `DIMUSNAHKAN`, returns safe count/category physical deletion summaries only, and does not add a separate physical deletion button, route, page, modal, or `Dimusnahkan` list.
 - Phase 13Y.3 makes legacy/document token file-access paths folder-first destroyed-aware. After token/session validation and document RBAC pass, document preview/download for a `WORKFLOW` source attached to a `CLOSED/DIMUSNAHKAN` `berkas_arsip` must return `Data file sudah dimusnahkan` with destroyed-file status instead of falling through to generic `File not found` after physical deletion. Unauthorized users must still receive auth/authorization failures, not destroyed-folder existence signals.
 - Phase 13Y.4 makes `AttachmentViewer` display the backend destroyed-file message for preview/download failures. When authorized file access returns `410` with exact JSON `{ "error": "Data file sudah dimusnahkan" }`, the preview modal and download error path must show `Data file sudah dimusnahkan`; unauthorized or arbitrary backend errors must keep generic/fallback messaging and must not be converted into destroyed-file copy.
+- Phase 13Z is planning/audit only. It records that folder-first `berkas_arsip` plus `berkas_arsip_item` is the runtime archive authority after lifecycle completion, while old canonical `arsip.arsip` surfaces remain historical compatibility until later implementation phases explicitly soft-deprecate, redirect, disable, or remove specific routes/APIs. `/arsiparis/arsip/$id` should remain available for old canonical rows for now, but future cleanup should make it clearly historical/read-only and remove it from primary navigation/search authority where safe.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
