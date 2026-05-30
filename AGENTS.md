@@ -102,6 +102,7 @@ Referensi utama:
 - `docs/migration/phase-13o-folder-first-archive-pages.md`
 - `docs/migration/phase-13p-folder-item-file-access-and-dimusnahkan-block.md`
 - `docs/migration/phase-13p2-open-berkas-visibility-and-jenis-pembayaran-eligibility.md`
+- `docs/migration/phase-13q-folder-lifecycle-transitions-and-visibility.md`
 
 ---
 
@@ -348,8 +349,9 @@ Rules:
 - Phase 13O adds bounded folder-first archive list/detail pages at `/arsiparis/berkas` and `/arsiparis/berkas/$id` plus read-only API wrappers that use the Phase 13N read model. Old individual archive pages are retained until a later cleanup phase. New folder-first pages must use `berkas_arsip` and `berkas_arsip_item` as primary authority and must not de-transitionalize `arsip.arsip` writes.
 - Phase 13P adds folder-aware item preview/download for folder-first detail pages. File access for folder items must revalidate the current `berkas_arsip` folder and `berkas_arsip_item` membership on every request. If a folder has `status_arsip='DIMUSNAHKAN'`, preview/download for every item in that folder must be blocked with the safe message `Data sudah dimusnahkan`. Phase 13P does not delete physical files, mutate lifecycle state, stop transitional `arsip.arsip` writes, or add schema/migration changes.
 - Phase 13P.2 records the stricter 1:1 `Jenis Pembayaran` to `berkas_arsip` rule for new runtime. If an `OPEN` berkas exists for a `klasifikasi_id`, new workflow/manual documents may attach to that existing berkas. If only `CLOSED` berkas rows exist for that `klasifikasi_id`, including `AKTIF`, future `INAKTIF`, `USUL_MUSNAH`, or `DIMUSNAHKAN`, that Jenis Pembayaran must not be selectable for new Pengklasifikasian Dokumen or Penambahan Dokumen. Runtime open/get-create helpers must not create a second berkas for the same Jenis Pembayaran.
+- Phase 13Q adds bounded folder-level lifecycle transitions at `berkas_arsip.status_arsip`: `AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN`. The lifecycle API/UI require assigned `KEPALA_SUB_BAGIAN_UMUM`, reject `OPEN/null`, `CLOSED/null`, invalid jumps, and terminal `DIMUSNAHKAN`, and update only folder lifecycle status plus `updated_at`.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
-- A `DIMUSNAHKAN` folder must block preview/download for every item in that folder; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
+- A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. Phase 13Q marks `DIMUSNAHKAN` status-only and does not delete physical files; future physical deletion must be a separate destructive phase that deletes files while preserving metadata.
 
 ---
 
@@ -438,6 +440,7 @@ Arsip:
 - Phase 13M updates close/finalize berkas behavior only: closing a non-empty `OPEN` berkas with valid final metadata sets `status_berkas='CLOSED'` and initial folder lifecycle `status_arsip='AKTIF'`. It does not backfill existing `CLOSED` rows, add lifecycle transitions, add folder-first pages, stop transitional `arsip.arsip` writes, change file access, implement `DIMUSNAHKAN` blocking, delete physical files, or change schema/migrations/packages/env/storage/Supabase behavior.
 - Phase 13N adds `src/lib/archive/berkas-arsip-read-model.ts` as a read-only folder-first helper/query foundation. It returns folder list/detail DTOs, item counts, source metadata, and safe warning labels without adding routes/UI, mutating data, changing file access, stopping transitional `arsip.arsip` writes, or using `arsip.arsip` as the primary authority for new folder-first reads.
 - Phase 13O adds read-only folder-first pages and API wrappers for active berkas archives. It points the Kepala Sub Bagian Umum active archive navigation to `/arsiparis/berkas`, keeps old `/arsiparis/aktif` and `/arsiparis/arsip/$id` compatibility pages available, and does not add lifecycle mutation, file access, schema/migration, package/env, storage, or Supabase runtime changes.
+- Phase 13Q adds `POST /api/arsiparis/berkas/$id/lifecycle` for status-only folder lifecycle transitions. It updates only `berkas_arsip.status_arsip` and `updated_at`, keeps `berkas_arsip_item`, workflow/manual sources, physical files, and transitional `arsip.arsip` writes unchanged, and expands `/arsiparis/berkas` visibility to `OPEN/null`, `CLOSED/AKTIF`, `CLOSED/INAKTIF`, `CLOSED/USUL_MUSNAH`, and `CLOSED/DIMUSNAHKAN`.
 
 ---
 
@@ -896,6 +899,7 @@ API utama:
 - `/api/arsiparis/berkas/$id/items/$itemId/preview/$lampiranIndex`
 - `/api/arsiparis/berkas/$id/items/$itemId/download/$lampiranIndex`
 - `/api/arsiparis/berkas/$id/close`
+- `/api/arsiparis/berkas/$id/lifecycle`
 - `/api/arsiparis/manual-arsip/categories`
 - `/api/arsiparis/manual-arsip`
 - `/api/arsiparis/manual-arsip/$id`
