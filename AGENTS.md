@@ -126,6 +126,7 @@ Referensi utama:
 - `docs/migration/phase-14c-local-archive-page-search-filters.md`
 - `docs/migration/phase-14d-folder-first-report-export-alignment.md`
 - `docs/migration/phase-14e-remove-laporan-klasifikasi-surface.md`
+- `docs/migration/phase-14f-inaktif-usul-musnah-csv-export.md`
 
 ---
 
@@ -401,6 +402,7 @@ Rules:
 - Phase 14C implements or confirms local client-side archive search/filter controls on folder-first archive pages only. `/arsiparis/berkas` filters both `Berkas Terbuka` and `Pemberkasan Arsip Aktif`, `/arsiparis/inaktif` filters only the current inactive table, `/arsiparis/usul-musnah` filters only the current proposed-destruction table, and `/arsiparis/berkas/$id` filters only the documents/items inside that berkas. These filters use existing safe DTO/display fields and must not search or expose raw IDs, logical paths, URLs, tokens, storage roots, signed-token internals, SQL, env/session/cookie values, raw rows, or secrets. Do not reintroduce sidebar/global `Cari Arsip`; header search remains separate and is not archive authority.
 - Phase 14D briefly aligned the classification report/drilldown implementation to folder-first runtime authority, but Phase 14E supersedes that product surface. Do not treat `Laporan Klasifikasi` as an active runtime/report feature.
 - Phase 14E removes the `Laporan Klasifikasi` UI/API surface: `/arsiparis/laporan-klasifikasi`, `/arsiparis/laporan-klasifikasi/detail`, `GET /api/arsiparis/arsip/classification-report`, and `GET /api/arsiparis/arsip/classification-report-detail` are no longer active routes. Do not reintroduce them unless a later explicit human-approved phase restores the feature. Folder-first CSV exports remain on `/arsiparis/berkas` and `/arsiparis/berkas/$id`. Legacy DB/schema cleanup, including `arsip.arsip`, is a separate future phase.
+- Phase 14F adds safe client-side folder-first CSV export to lifecycle list pages where useful: `/arsiparis/berkas`, `/arsiparis/inaktif`, `/arsiparis/usul-musnah`, and `/arsiparis/berkas/$id`. Exports follow local filtered visible rows/items and must remain metadata-only with no raw IDs, item file keys, logical paths, physical paths, storage roots, URLs, signed-token internals, SQL/env/session/cookie values, secrets, raw rows, or file content. This does not restore `Laporan Klasifikasi`, global `Cari Arsip`, header search changes, backend export APIs, lifecycle behavior, schema/storage/package/env changes, Supabase runtime, or physical deletion behavior.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
