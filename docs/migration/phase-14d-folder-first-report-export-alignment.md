@@ -4,6 +4,8 @@ Date: 2026-05-31
 
 Status: implemented with targeted unit test validation pending/recorded in the phase result.
 
+Superseded by Phase 14E for the `Laporan Klasifikasi` product surface: the classification report page, drilldown page, and their API routes are no longer active features. Keep this document as historical context for the short-lived 14D alignment only.
+
 ## Decision
 
 Active archive report/export behavior must follow the folder-first runtime authority:
@@ -21,10 +23,10 @@ Existing canonical `arsip.arsip` report/export/aggregate helpers and APIs remain
 |---|---|---|---|---|---|
 | Folder list CSV | `/arsiparis/berkas` using `berkas-arsip-csv.ts` | Folder-first safe list DTOs | Active | No raw ids, paths, URLs, tokens, storage roots, SQL/env/session/cookie values, raw rows, or file content | Preserved |
 | Folder detail CSV | `/arsiparis/berkas/$id` using `berkas-arsip-csv.ts` | Folder-first safe detail DTOs | Active | No raw ids, item file keys, paths, URLs, tokens, storage roots, SQL/env/session/cookie values, raw rows, or file content | Preserved |
-| Classification report page | `/arsiparis/laporan-klasifikasi` | Canonical API path backed by `arsip.arsip` | Active | Metadata only | Switched to folder-first helper behind the existing API path |
-| Classification drilldown page | `/arsiparis/laporan-klasifikasi/detail` | Canonical API path backed by `arsip.arsip` | Active | Metadata only, no file actions | Switched to folder-first helper behind the existing API path |
-| Classification report API | `GET /api/arsiparis/arsip/classification-report` | `arsip.arsip` via `unified-archive-classification-report.ts` | Active report page | Metadata only | Existing URL retained, implementation now reads folder-first berkas/items |
-| Classification detail API | `GET /api/arsiparis/arsip/classification-report-detail` | `arsip.arsip` via `unified-archive-classification-detail.ts` | Active drilldown page | Metadata only | Existing URL retained, implementation now reads folder-first berkas/items |
+| Classification report page | `/arsiparis/laporan-klasifikasi` | Canonical API path backed by `arsip.arsip` | Removed by 14E | Metadata only | 14D switched it to folder-first helper; 14E removed the surface |
+| Classification drilldown page | `/arsiparis/laporan-klasifikasi/detail` | Canonical API path backed by `arsip.arsip` | Removed by 14E | Metadata only, no file actions | 14D switched it to folder-first helper; 14E removed the surface |
+| Classification report API | `GET /api/arsiparis/arsip/classification-report` | `arsip.arsip` via `unified-archive-classification-report.ts` | Removed by 14E | Metadata only | 14D retained the URL temporarily; 14E removed the route |
+| Classification detail API | `GET /api/arsiparis/arsip/classification-report-detail` | `arsip.arsip` via `unified-archive-classification-detail.ts` | Removed by 14E | Metadata only | 14D retained the URL temporarily; 14E removed the route |
 | Aggregate API | `GET /api/arsiparis/arsip/aggregate` | `arsip.arsip` | No active folder-first page caller observed | Aggregate counts only | Left as legacy/historical compatibility |
 | Canonical CSV export API | `GET /api/arsiparis/arsip/export` | `arsip.arsip` via `getUnifiedArchiveList` | No active folder-first page caller observed | Metadata CSV, but includes canonical `ID Arsip` | Left as legacy/historical compatibility |
 | Dashboard counts | `/arsiparis` page | Folder-first `/api/arsiparis/berkas` for active/inactive/proposed counts after prior phases | Active | Safe summary DTO | Confirmed no 14D change needed |
@@ -42,7 +44,7 @@ The helper returns metadata-only classification summaries and detail rows from:
 - `manual_arsip` manual title/date/nominal metadata;
 - `manual_arsip_attachment` counts only.
 
-The existing classification report API URLs were retained to avoid route generation:
+The existing classification report API URLs were retained in 14D to avoid route generation, then removed in 14E:
 
 - `GET /api/arsiparis/arsip/classification-report`
 - `GET /api/arsiparis/arsip/classification-report-detail`
@@ -101,7 +103,9 @@ This phase does not:
 
 Active runtime/package Supabase dependency remains retired. Historical Supabase artifacts remain.
 
-## Manual Smoke Checklist
+## Historical Manual Smoke Checklist
+
+This checklist applied only to the short-lived 14D surface and is superseded by Phase 14E removal.
 
 1. Open `/arsiparis/laporan-klasifikasi`.
 2. Confirm totals display folder-first berkas/document counts.

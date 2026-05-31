@@ -125,6 +125,7 @@ Referensi utama:
 - `docs/migration/phase-14b-remove-global-archive-search.md`
 - `docs/migration/phase-14c-local-archive-page-search-filters.md`
 - `docs/migration/phase-14d-folder-first-report-export-alignment.md`
+- `docs/migration/phase-14e-remove-laporan-klasifikasi-surface.md`
 
 ---
 
@@ -398,7 +399,8 @@ Rules:
 - Phase 14A is planning-only. It records the high-level direction that folder-first `berkas_arsip` plus `berkas_arsip_item` is the runtime authority for future search, report/export, aggregate, and dashboard-count alignment. Canonical `arsip.arsip` remains historical compatibility until scoped implementation phases relabel, soft-deprecate, block, redirect, or remove specific legacy surfaces. Primary future search/report/dashboard behavior should not use old canonical APIs as runtime authority.
 - Phase 14B removes the sidebar/global archive search surface. `Cari Arsip` / `Pencarian Arsip` must not appear as active sidebar or dashboard navigation, and `/arsiparis/search` is compatibility redirect-only to `/arsiparis/berkas`. Archive search/filter behavior is local per archive page/table (`/arsiparis/berkas`, `/arsiparis/inaktif`, `/arsiparis/usul-musnah`, and detail pages where needed). `GET /api/arsiparis/search` remains deprecated compatibility-only canonical search and must not become folder-first runtime authority. Header search is a separate global UI surface and is not archive authority.
 - Phase 14C implements or confirms local client-side archive search/filter controls on folder-first archive pages only. `/arsiparis/berkas` filters both `Berkas Terbuka` and `Pemberkasan Arsip Aktif`, `/arsiparis/inaktif` filters only the current inactive table, `/arsiparis/usul-musnah` filters only the current proposed-destruction table, and `/arsiparis/berkas/$id` filters only the documents/items inside that berkas. These filters use existing safe DTO/display fields and must not search or expose raw IDs, logical paths, URLs, tokens, storage roots, signed-token internals, SQL, env/session/cookie values, raw rows, or secrets. Do not reintroduce sidebar/global `Cari Arsip`; header search remains separate and is not archive authority.
-- Phase 14D aligns the active classification report/drilldown surface with folder-first runtime authority while keeping existing API URLs to avoid route churn. Active runtime report/export behavior should use `berkas_arsip`, `berkas_arsip_item`, `dokumen_transaksi` for `WORKFLOW` source metadata, `manual_arsip` for `MANUAL` source metadata, and safe DTO/display fields only. Old canonical `arsip.arsip` report/export/aggregate helpers and APIs remain historical compatibility until scoped removal or soft-deprecation, not active runtime authority. Folder-first reports/exports may include `DIMUSNAHKAN` metadata but must not imply file access or expose logical paths, physical paths, storage roots, URLs, file tokens, signed-token internals, raw IDs/bridge IDs, SQL, env/session/cookie values, raw rows, or secrets.
+- Phase 14D briefly aligned the classification report/drilldown implementation to folder-first runtime authority, but Phase 14E supersedes that product surface. Do not treat `Laporan Klasifikasi` as an active runtime/report feature.
+- Phase 14E removes the `Laporan Klasifikasi` UI/API surface: `/arsiparis/laporan-klasifikasi`, `/arsiparis/laporan-klasifikasi/detail`, `GET /api/arsiparis/arsip/classification-report`, and `GET /api/arsiparis/arsip/classification-report-detail` are no longer active routes. Do not reintroduce them unless a later explicit human-approved phase restores the feature. Folder-first CSV exports remain on `/arsiparis/berkas` and `/arsiparis/berkas/$id`. Legacy DB/schema cleanup, including `arsip.arsip`, is a separate future phase.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
@@ -702,8 +704,8 @@ Rules:
 - Phase 12N.11b removes the obsolete legacy status-specific archive detail and mutation routes that were replaced by unified canonical archive detail and lifecycle. Current list pages remain intact and must link to `/arsiparis/arsip/$id`; lifecycle mutation must go through `POST /api/arsiparis/arsip/$id/lifecycle`. This closes the old proposal-id destructive route surface without deleting DB rows, files, snapshots, schema, migrations, list APIs, or storage metadata.
 - Phase 12O adds metadata-only unified archive aggregate and CSV export APIs plus small export links on the active/inactive/proposed-destruction list pages. Export is bounded to the existing unified query max, uses a static filename, applies CSV/formula-injection escaping, and must not expose file contents, URLs, tokens, paths, storage roots, raw attachment metadata, SQL, env values, session/cookie values, or secrets.
 - Phase 12P-dev adds an internal local/development-only helper for dry-run-first cleanup of invalid/unlinked Manual Archive source rows, their attachment metadata, and disposable physical files after exact confirmation. It must not delete canonical `arsip.arsip` rows, WORKFLOW data, valid linked Manual Archive rows, files referenced by canonical archive metadata, or any file outside local storage safety checks; it adds no route/UI/scheduler/schema/migration/package change and does not scan the whole storage root.
-- Phase 12Q adds a metadata-only unified archive classification report at `/arsiparis/laporan-klasifikasi` and `GET /api/arsiparis/arsip/classification-report` for `KEPALA_SUB_BAGIAN_UMUM`. It groups canonical `arsip.arsip` rows by classification across `WORKFLOW` and `MANUAL` sources and all archive statuses, while `nominal_realisasi` totals count only safely available `WORKFLOW` material archive values. It does not include unlinked legacy Manual Archive rows, file paths, URLs, tokens, raw attachment metadata, storage roots, schema/migration/package changes, lifecycle changes, preview/download changes, cleanup, or Supabase runtime behavior.
-- Phase 12Q.1 adds a metadata-only classification report detail drilldown at `/arsiparis/laporan-klasifikasi/detail` and `GET /api/arsiparis/arsip/classification-report-detail`; it lists canonical archives for one classification/folder bucket without per-archive Detail actions, preview/download behavior, lifecycle mutation, cleanup, export, schema/migration/package changes, or Supabase runtime behavior.
+- Phase 12Q originally added a metadata-only unified archive classification report at `/arsiparis/laporan-klasifikasi` and `GET /api/arsiparis/arsip/classification-report` for `KEPALA_SUB_BAGIAN_UMUM`. Phase 14E removes that active UI/API surface; keep Phase 12Q references as historical context only.
+- Phase 12Q.1 originally added a metadata-only classification report detail drilldown at `/arsiparis/laporan-klasifikasi/detail` and `GET /api/arsiparis/arsip/classification-report-detail`. Phase 14E removes that active UI/API surface; keep Phase 12Q.1 references as historical context only.
 - Phase 12Z documents unified archive feature closure as a bounded local/internal/LAN development milestone pending/after human smoke. It closes Phase 12 documentation around unified lists/detail, source-aware file actions, lifecycle, aggregate/export, classification reporting/drilldown, cleanup status, safety boundaries, manual retest, and deferred backlog; it does not add runtime behavior, routes, migrations, cleanup, physical deletion wiring, audit schema, package changes, route generation, or production/go-live/security certification.
 - Manual Archive parent metadata edit is locked for `INAKTIF`, `USUL_MUSNAH`, and `DIMUSNAHKAN`; locked edits must return a safe conflict response.
 - Future file access must go through authorized server/API boundaries and must block `DIMUSNAHKAN`, including stale token/path access.
@@ -938,7 +940,6 @@ UI utama:
 - `/arsiparis/usul-musnah`
 - `/arsiparis/arsip/$id`
 - `/arsiparis/klasifikasi`
-- `/arsiparis/laporan-klasifikasi`
 - `/arsiparis/search` compatibility redirect-only to `/arsiparis/berkas`, not active navigation
 
 API utama:
@@ -953,7 +954,6 @@ API utama:
 - `/api/arsiparis/arsip/$id/lifecycle`
 - `/api/arsiparis/arsip/aggregate`
 - `/api/arsiparis/arsip/export`
-- `/api/arsiparis/arsip/classification-report`
 - `/api/arsiparis/search` deprecated compatibility-only canonical search, not folder-first runtime authority
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/berkas/open`
