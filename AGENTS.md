@@ -122,6 +122,7 @@ Referensi utama:
 - `docs/migration/phase-13y4-attachment-viewer-destroyed-file-ux.md`
 - `docs/migration/phase-13z-legacy-canonical-archive-cleanup-decision-plan.md`
 - `docs/migration/phase-14a-legacy-soft-deprecation-search-report-plan.md`
+- `docs/migration/phase-14b-remove-global-archive-search.md`
 
 ---
 
@@ -393,6 +394,7 @@ Rules:
 - Phase 13Y.4 makes `AttachmentViewer` display the backend destroyed-file message for preview/download failures. When authorized file access returns `410` with exact JSON `{ "error": "Data file sudah dimusnahkan" }`, the preview modal and download error path must show `Data file sudah dimusnahkan`; unauthorized or arbitrary backend errors must keep generic/fallback messaging and must not be converted into destroyed-file copy.
 - Phase 13Z is planning/audit only. It records that folder-first `berkas_arsip` plus `berkas_arsip_item` is the runtime archive authority after lifecycle completion, while old canonical `arsip.arsip` surfaces remain historical compatibility until later implementation phases explicitly soft-deprecate, redirect, disable, or remove specific routes/APIs. `/arsiparis/arsip/$id` should remain available for old canonical rows for now, but future cleanup should make it clearly historical/read-only and remove it from primary navigation/search authority where safe.
 - Phase 14A is planning-only. It records the high-level direction that folder-first `berkas_arsip` plus `berkas_arsip_item` is the runtime authority for future search, report/export, aggregate, and dashboard-count alignment. Canonical `arsip.arsip` remains historical compatibility until scoped implementation phases relabel, soft-deprecate, block, redirect, or remove specific legacy surfaces. Primary future search/report/dashboard behavior should not use old canonical APIs as runtime authority.
+- Phase 14B removes the sidebar/global archive search surface. `Cari Arsip` / `Pencarian Arsip` must not appear as active sidebar or dashboard navigation, and `/arsiparis/search` is compatibility redirect-only to `/arsiparis/berkas`. Archive search/filter behavior is local per archive page/table (`/arsiparis/berkas`, `/arsiparis/inaktif`, `/arsiparis/usul-musnah`, and detail pages where needed). `GET /api/arsiparis/search` remains deprecated compatibility-only canonical search and must not become folder-first runtime authority. Header search is a separate global UI surface and is not archive authority.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
@@ -933,7 +935,7 @@ UI utama:
 - `/arsiparis/arsip/$id`
 - `/arsiparis/klasifikasi`
 - `/arsiparis/laporan-klasifikasi`
-- `/arsiparis/search`
+- `/arsiparis/search` compatibility redirect-only to `/arsiparis/berkas`, not active navigation
 
 API utama:
 
@@ -948,7 +950,7 @@ API utama:
 - `/api/arsiparis/arsip/aggregate`
 - `/api/arsiparis/arsip/export`
 - `/api/arsiparis/arsip/classification-report`
-- `/api/arsiparis/search`
+- `/api/arsiparis/search` deprecated compatibility-only canonical search, not folder-first runtime authority
 - `/api/arsiparis/klasifikasi/*`
 - `/api/arsiparis/berkas/open`
 - `/api/arsiparis/berkas/$id/items`
@@ -1231,7 +1233,7 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-30
+- Last updated: 2026-05-31
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
