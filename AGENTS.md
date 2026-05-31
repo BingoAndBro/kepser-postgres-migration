@@ -129,6 +129,7 @@ Referensi utama:
 - `docs/migration/phase-14f-inaktif-usul-musnah-csv-export.md`
 - `docs/migration/phase-14g-legacy-canonical-archive-removal-audit-plan.md`
 - `docs/migration/phase-14h-remove-legacy-canonical-runtime.md`
+- `docs/migration/phase-14i0-folder-first-storage-guards.md`
 
 ---
 
@@ -234,8 +235,10 @@ Rules:
 
 - Destructive admin cleanup requires `POST` with explicit destructive intent.
 - `GET` cleanup is non-destructive dry-run/report-only.
-- Cleanup must protect referenced active document paths and retained archive snapshots.
+- Cleanup must protect referenced current source files from `dokumen_transaksi.lampiran_urls` and `manual_arsip_attachment.logical_path`.
+- Cleanup and diagnostics must use folder-first/current-source guards, not legacy canonical `arsip.arsip`, `arsip.lampiran_snapshot`, or `canonical_arsip_id` bridge data.
 - Cleanup responses must not expose physical storage paths or storage roots.
+- Cleanup and diagnostics API responses must not expose logical paths, storage roots, raw rows, SQL details, tokens, env/session/cookie values, or secrets; return safe counts/categories only.
 
 ### File Access
 
@@ -749,7 +752,8 @@ Rules:
 - File access must prevent path traversal and root escape.
 - File access must not expose physical storage path/root.
 - File access token internals must not be printed.
-- Referenced active document/archive files must be protected from cleanup.
+- Referenced active source files must be protected from cleanup using current runtime references: `dokumen_transaksi.lampiran_urls` for `WORKFLOW` source files and `manual_arsip_attachment.logical_path` for `MANUAL` source files.
+- Folder-first storage/file-access guards must use `berkas_arsip` plus `berkas_arsip_item` membership and folder `status_arsip` for destroyed-file behavior. Do not use legacy canonical `arsip.arsip`, `arsip.lampiran_snapshot`, or `canonical_arsip_id` as active storage cleanup, diagnostics, or file-access guards.
 - `DIMUSNAHKAN` must block stale token/path access.
 - Folder-first item file access must revalidate current folder status and item membership before serving files. `DIMUSNAHKAN` folder access must return safe file-specific blocking copy such as `Data file sudah dimusnahkan`; after Phase 13Y.2, the existing `Musnahkan Data` action also performs folder-first physical file deletion after the status becomes `DIMUSNAHKAN`.
 - Legacy/document token preview/download paths must also revalidate folder-first `WORKFLOW` membership after authorization. If the requested document belongs to a `CLOSED/DIMUSNAHKAN` folder-first berkas, every authorized preview/download surface must return `Data file sudah dimusnahkan` instead of generic missing-file copy, including after physical deletion has removed the file contents.
@@ -757,7 +761,7 @@ Rules:
 - Folder-first physical deletion uses the server-only helper from Phase 13Y.1. It remains exact-confirmation gated internally, `CLOSED/DIMUSNAHKAN` only, metadata-preserving, idempotent for missing files, local-storage-only, and limited to candidates derived from current folder items plus source tables. It must never use client-supplied paths, broad storage-root scans, public/static targets, Supabase fallback, or user-facing reports containing logical paths, physical paths, storage roots, tokens, signed-token internals, SQL details, env values, cookies, session values, raw rows, or secrets. Phase 13Y.2 wires this helper into the existing `Musnahkan Data` action and does not require or allow a separate general physical deletion UI button/page.
 - Folder-first item labels, preview titles, and download filenames must preserve safe source attachment names from `WORKFLOW` `dokumen_transaksi.lampiran_urls` and `MANUAL` attachment metadata where safe. `WORKFLOW` download filenames should follow the existing dokumen persetujuan filename formatting behavior; `MANUAL` download filenames must preserve the existing Manual Archive attachment responder policy. Generic fallback names like `Lampiran 1` or `Lampiran` are allowed only when source metadata is missing or unsafe.
 - Folder-first file access and safe DTOs must never expose raw `lampiran_urls`, logical paths, physical paths, storage roots, signed URLs, file tokens, signed-token internals, cookies, session values, SQL details, or secrets.
-- Admin diagnostics/cleanup should report logical paths and safe counts only.
+- Admin diagnostics/cleanup API responses should report safe counts/categories only and must not expose logical paths.
 
 Path semantics:
 
@@ -773,7 +777,7 @@ Rules:
 
 - File upload may create pending paths.
 - Submit/resubmit/update movement must move pending files to formal paths where scoped.
-- `arsip.lampiran_snapshot` keeps snapshot metadata at archive time.
+- `arsip.lampiran_snapshot` is legacy canonical schema pending a later schema-drop phase. It must not be used as the active storage cleanup, diagnostics, or file-access guard after Phase 14I.0.
 - Download/preview must re-check current document/archive state.
 
 Helper sentral:
@@ -1184,7 +1188,7 @@ When describing 11H.3:
 4. If changing archive lifecycle:
    - Check active archive endpoints.
    - Check file-access behavior after `DIMUSNAHKAN`.
-   - Check `arsip.lampiran_snapshot` preservation/destruction semantics.
+   - Check folder-first `berkas_arsip` lifecycle and current source file guards.
    - Update docs and this file.
 
 5. If changing auth/role resolution:
