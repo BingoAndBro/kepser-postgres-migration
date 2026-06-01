@@ -1,5 +1,7 @@
 # Phase 14A - Legacy Soft Deprecation, Search, And Report Alignment Plan
 
+> Historical note: This document is retained for traceability. Current archive runtime authority is folder-first `berkas_arsip` / `berkas_arsip_item` after Phase 14K. Do not treat this document as current implementation authority without checking `docs/migration/README.md` and `AGENTS.md`.
+
 Date: 2026-05-30
 
 Status: planning-only.
@@ -275,4 +277,3 @@ Expected changed files:
 
 - `AGENTS.md`
 - `docs/migration/phase-14a-legacy-soft-deprecation-search-report-plan.md`
-

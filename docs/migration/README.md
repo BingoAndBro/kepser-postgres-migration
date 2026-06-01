@@ -1,74 +1,101 @@
-# PostgreSQL Local Migration
+# Migration Documentation Index
 
-This folder tracks the documentation-only planning work for migrating the DMS app from Supabase-managed services to local infrastructure.
+Last updated: 2026-06-01
 
-## What This Migration Is
+This index is the first navigation document for migration history. Use it to separate current authority from older phase records before starting new implementation work.
 
-The migration target is a fresh local PostgreSQL-backed version of the existing internal DMS workflow app. The goal is to preserve the current product behavior while replacing the infrastructure behind it:
+## Current Active Authority
 
-- Supabase PostgreSQL becomes local PostgreSQL running in Docker.
-- Supabase Auth becomes custom cookie session auth.
-- Supabase Storage becomes local filesystem storage under `storage/`.
-- Supabase signed URLs become internal signed-token preview/download routes.
+Read these first for current project truth:
 
-This is not a feature rewrite. API paths, request payloads, response shapes, UI behavior, workflow status transitions, active role behavior, pending upload behavior, preview/download behavior, and audit log behavior must remain compatible.
+- `AGENTS.md`
+- `docs/migration/phase-14k-final-folder-first-archive-regression-handoff.md`
+- `docs/migration/phase-14j2-local-seed-hash-handling-hardening.md`
+- `docs/migration/phase-14j-dev-db-migration-validation.md`
+- `docs/migration/phase-14i-drop-legacy-canonical-archive-schema.md`
+- `docs/migration/phase-14i0-folder-first-storage-guards.md`
+- `docs/migration/phase-14h-remove-legacy-canonical-runtime.md`
+- `docs/migration/phase-13k-folder-first-finalization-policy-and-detransitionalization-plan.md`
+- `docs/migration/phase-13y2-musnahkan-data-physical-deletion-integration.md`
 
-## Current Architecture
+For future frontend redesign starting context, read:
 
-The current app is a TanStack Start, React, and TypeScript application. It is currently SPA-heavy because the root route uses `ssr: false`, so authentication bootstrap happens mainly in the browser layout while API/server routes still enforce authorization.
+- `docs/migration/phase-15-frontend-redesign-starting-context.md`
 
-Current runtime services:
+## Active Runtime Summary
 
-- Supabase Auth for users and sessions.
-- Supabase PostgreSQL as the real database.
-- Supabase Storage for document files.
-- Drizzle exists as a partial mirror/schema helper, not the full source of truth.
-- Zod is required at request/response boundaries.
-- Vitest and Playwright exist for regression testing.
+Folder-first archive runtime is active. The current archive browser surfaces are:
 
-Current schema truth must be read from existing Supabase migrations and active API/helper behavior, not only from `src/lib/db/schema.ts`.
+- `/arsiparis/berkas`
+- `/arsiparis/berkas/$id`
+- `/arsiparis/inaktif`
+- `/arsiparis/usul-musnah`
 
-## Target Architecture
+Active archive API authority is:
 
-Target runtime services:
+- `/api/arsiparis/berkas/**`
+- `/api/arsiparis/dokumen/$id.archive`
+- `/api/arsiparis/dokumen/$id`, with folder-first evidence for classification/detail state
 
-- PostgreSQL in Docker.
-- New Drizzle PostgreSQL schema from scratch.
-- PostgreSQL schemas: `auth`, `master`, `dokumen`, `arsip`, and `app`.
-- Custom cookie session auth using argon2id password hashes.
-- Session token stored hashed in the database.
-- Default session expiration of 8 hours.
-- Remember-me expiration of 30 days.
-- Local filesystem storage under `storage/`.
-- Files served only through authorized API routes, never as static public files.
-- Internal signed-token behavior for preview/download.
+Active archive DB authority is:
 
-PostgreSQL RLS is intentionally deferred. The schema should remain RLS-friendly, but authorization remains enforced in API/server code during this migration.
+- `arsip.berkas_arsip`
+- `arsip.berkas_arsip_item`
+- `arsip.manual_arsip`
+- `arsip.manual_arsip_attachment`
+- `dokumen.dokumen_transaksi`
 
-## Local And LAN Deployment Goal
+Security and domain boundaries remain:
 
-The eventual deployment target is a local network setup:
+- `dms_session` is the auth boundary.
+- `dms_active_role` is UX-only state.
+- Server/API RBAC is authoritative.
+- `ADMIN` is not a substitute for operational roles.
+- Active runtime/package Supabase dependency is retired.
+- Historical Supabase artifacts remain.
 
-- One computer acts as the server.
-- PostgreSQL runs in Docker on that server.
-- Other devices on the same WiFi/LAN access the app through the server IP address or hostname.
-- Persistent PostgreSQL volumes, persistent local file storage, backup/restore, environment variables, firewall rules, and LAN binding must be planned before deployment.
+## Removed Or Deprecated Surfaces
 
-Application containerization can be considered later, but should not happen before DB/auth/storage behavior is stable.
+These surfaces are not active runtime authority and must not be resurrected by frontend redesign unless a later explicit human-approved phase scopes that work:
 
-## Why This Branch Is Isolated
+- `/arsiparis/aktif` removed
+- `/arsiparis/search` removed
+- `/arsiparis/arsip/$id` removed
+- `/api/arsiparis/aktif` removed
+- `/api/arsiparis/inaktif` removed
+- `/api/arsiparis/usul-musnah` removed
+- `/api/arsiparis/search` removed
+- legacy `/api/arsiparis/arsip/*` removed
+- `Laporan Klasifikasi` removed
+- global/sidebar `Cari Arsip` removed
+- legacy `arsip.arsip` schema removed
+- `lampiran_snapshot` removed from active Drizzle schema
+- `canonical_arsip_id` bridge removed from active Drizzle schema
 
-This branch is an isolated migration clone and intentionally has no git remote. Do not add a remote. The isolation exists so migration planning and later implementation can proceed without accidentally affecting the active Supabase-backed development line.
+Local, page-scoped archive search/filter controls remain active on folder-first pages. Header search is separate UI and is not archive authority.
 
-## Why Supabase Remains As Reference
+## Historical Docs Policy
 
-Do not remove Supabase code early. Supabase Auth, database calls, storage calls, migrations, and helper behavior are the current reference implementation. They should remain available until each replacement layer has proven compatibility through targeted tests and manual workflow checks.
+Older phase docs are retained for audit and traceability only. They may mention Supabase, `arsip.arsip`, `lampiran_snapshot`, `canonical_arsip_id`, legacy archive routes, `Laporan Klasifikasi`, or old lifecycle designs.
 
-## References
+Do not treat older docs as current implementation authority unless their claims are cross-checked against `AGENTS.md`, this index, and the Phase 14K handoff.
 
-- TanStack Start environment variables: https://tanstack.com/start/latest/docs/framework/react/guide/environment-variables
-- TanStack Start server routes: https://tanstack.com/start/v0/docs/framework/react/guide/server-routes
-- Drizzle migrations: https://orm.drizzle.team/docs/migrations
-- PostgreSQL schemas: https://www.postgresql.org/docs/17/ddl-schemas.html
-- Docker Compose volumes: https://docs.docker.com/reference/compose-file/volumes/
+Do not rewrite old phase docs to pretend they were current all along. If a historical doc is dangerous for future work, add a short historical note instead of changing its original decision record.
 
+## Frontend Redesign Preparation
+
+Future frontend redesign should start from current active surfaces:
+
+- Pegawai, PPK, PPSPM, Kepala Sub Bagian Umum, Penanggung Jawab Kinerja, and Admin role pages as documented in `AGENTS.md`.
+- Folder-first archive pages: `/arsiparis/berkas`, `/arsiparis/berkas/$id`, `/arsiparis/inaktif`, and `/arsiparis/usul-musnah`.
+- Local page filters and safe metadata-only CSV exports where already implemented.
+
+Do not restore removed pages, reports, search routes, legacy canonical archive detail, or legacy canonical APIs as part of visual redesign.
+
+Preserve:
+
+- folder-first archive model;
+- `dms_session` auth boundary;
+- server/API RBAC;
+- no Supabase runtime fallback;
+- no production, go-live, operational certification, security certification, or full Supabase repository removal claims.

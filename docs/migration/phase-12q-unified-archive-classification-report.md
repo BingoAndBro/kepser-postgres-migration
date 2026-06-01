@@ -1,5 +1,7 @@
 # Phase 12Q - Unified Archive Classification Report
 
+> Historical note: This document is retained for traceability. Current archive runtime authority is folder-first `berkas_arsip` / `berkas_arsip_item` after Phase 14K. Do not treat this document as current implementation authority without checking `docs/migration/README.md` and `AGENTS.md`.
+
 Date: 2026-05-26
 
 Status: implemented for review. This phase adds a metadata-only classification report for unified canonical archive rows.
