@@ -8,26 +8,30 @@ participant "Auth / RBAC" as Auth
 participant "Archive Service" as Archive
 participant "Physical Destruction Service" as Destroy
 database "Database" as DB
-collections "Local File Storage" as Storage
 
-KSB -> UI : Buka berkas USUL_MUSNAH
-UI -> API : Minta detail / daftar Usul Musnah
+KSB -> UI : Buka daftar berkas Usul Musnah
+UI -> API : Minta daftar berkas eligible
 API -> Auth : Validasi dms_session dan role Kepala Sub Bagian Umum
 
-alt role tidak sah
+alt session atau role tidak sah
   Auth --> API : Tolak akses
   API --> UI : Unauthorized / Forbidden
 else akses sah
-  API -> Archive : Ambil berkas eligible
-  Archive -> DB : Baca status arsip
-  DB --> Archive : Status ditemukan
+  API -> Archive : Ambil berkas dengan status USUL_MUSNAH
+  Archive -> DB : Baca status dan metadata berkas
+  DB --> Archive : Berkas eligible
   Archive --> API : Data aman untuk ditampilkan
   API --> UI : Tampilkan aksi Musnahkan Data
 end
 
 KSB -> UI : Konfirmasi Musnahkan Data
+note right of UI
+  Konfirmasi menggunakan frasa tepat MUSNAHKAN DATA FILE.
+  Metadata dan referensi dokumen tetap dipertahankan.
+end note
+
 UI -> API : Permintaan approve_destruction
-API -> Auth : Validasi ulang role dan session
+API -> Auth : Validasi ulang session dan role
 API -> Archive : Validasi eligible untuk pemusnahan
 
 alt berkas bukan USUL_MUSNAH
@@ -36,21 +40,11 @@ alt berkas bukan USUL_MUSNAH
 else eligible
   Archive -> DB : Set status_arsip DIMUSNAHKAN
   DB --> Archive : Status tersimpan
-  Archive -> Destroy : Hapus file folder-first untuk berkas
-  Destroy -> Storage : Hapus kandidat file saat ini
-  alt penghapusan file parsial atau gagal
-    Storage --> Destroy : Sebagian gagal / sudah tidak ada
-    Destroy --> Archive : Ringkasan aman kategori/count
-    Archive -> DB : Tambah log aktivitas dengan ringkasan aman
-    Archive --> API : Status tetap DIMUSNAHKAN dan akses file diblokir
-    API --> UI : Pemusnahan selesai dengan catatan aman
-  else penghapusan file selesai
-    Storage --> Destroy : File kandidat diproses
-    Destroy --> Archive : Ringkasan aman kategori/count
-    Archive -> DB : Tambah log aktivitas
-    Archive --> API : Metadata tetap, file access diblokir
-    API --> UI : Berkas DIMUSNAHKAN
-  end
+  Archive -> Destroy : Proses penghapusan fisik file folder-first
+  Destroy --> Archive : Ringkasan aman kategori/count
+  Archive -> DB : Tambah log aktivitas
+  Archive --> API : Metadata tetap dan akses file diblokir
+  API --> UI : Berkas DIMUSNAHKAN
 end
 
 opt akses file setelah pemusnahan

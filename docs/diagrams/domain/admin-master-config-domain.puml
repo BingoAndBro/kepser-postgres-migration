@@ -6,71 +6,59 @@ hide circle
 
 package "User & Role Configuration" {
   class User {
-    id
     displayName
-    createdAt
-    updatedAt
+    status
   }
 
   class Role {
-    id
     roleName
-    displayName
+    displayLabel
   }
 
   class UserRole {
-    id
-    createdAt
+    assignedRole
   }
 
   class KetuaTimAssignment {
-    id
-    createdAt
+    activePeriod
   }
 }
 
 package "Master Data" {
   class MasterFungsi {
-    id
-    displayName
+    namaFungsi
   }
 
   class MasterKegiatan {
-    id
-    displayName
+    namaKegiatan
   }
 
   class MasterJenisDokumen {
-    id
-    displayName
+    namaJenisDokumen
   }
 
   class MasterJenisPermintaan {
-    id
-    displayName
+    namaJenisPermintaan
   }
 
   class MasterKategoriPermintaan {
-    id
-    displayName
+    namaKategori
   }
 
   class MasterDetailPermintaan {
-    id
-    displayName
+    namaDetail
   }
 
   class MasterKelengkapanDokumen {
-    id
-    displayName
-    appliesTo
+    namaKelengkapan
+    berlakuUntuk
   }
 }
 
-User "1" *-- "0..*" UserRole : assigned roles
-Role "1" *-- "0..*" UserRole : role membership
+User "1" o-- "0..*" UserRole : has roles
+Role "1" o-- "0..*" UserRole : assigned through
 MasterFungsi "1" *-- "0..*" MasterKegiatan : kegiatan
-MasterKegiatan "1" *-- "0..*" MasterJenisDokumen : jenis dokumen
+MasterKegiatan "1" o-- "0..*" MasterJenisDokumen : jenis dokumen
 MasterKegiatan "1" *-- "0..*" MasterJenisPermintaan : jenis permintaan
 MasterJenisPermintaan "1" *-- "0..*" MasterKategoriPermintaan : kategori
 MasterKategoriPermintaan "1" *-- "0..*" MasterDetailPermintaan : detail leaf
@@ -83,15 +71,13 @@ note right of MasterKelengkapanDokumen
 end note
 
 note bottom of KetuaTimAssignment
-  Satu Kegiatan hanya memiliki satu Ketua Tim aktif.
-  Satu User dapat memimpin banyak Kegiatan.
+  Satu kegiatan hanya memiliki satu Ketua Tim aktif.
+  Satu user dapat memimpin banyak kegiatan.
 end note
 
 note bottom
-  Admin Sistem mengelola user, role, master data, kelengkapan,
-  dan reset password user.
-  Reset Password Admin membutuhkan Password Baru dan Konfirmasi saja.
-  Ganti password profil terpisah dan membutuhkan password saat ini.
+  Admin Sistem mengelola user, role, master data,
+  kelengkapan, Ketua Tim, dan reset password user.
   Admin Sistem bukan aktor workflow operasional.
 end note
 

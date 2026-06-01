@@ -1,5 +1,5 @@
 @startuml
-title DMS - Use Case Keseluruhan
+title DMS - Use Case Utama
 
 left to right direction
 
@@ -11,94 +11,52 @@ actor "Penanggung Jawab Kinerja" as PJK
 actor "Admin Sistem" as Admin
 
 rectangle "Dynamic Document Workflow Management System" {
-  package "Akses Pengguna" {
-    usecase "Login / Logout" as UCLogin
-    usecase "Ganti Peran" as UCSwitchRole
-  }
-
-  package "Pengajuan Dokumen" {
-    usecase "Ajukan Dokumen Material" as UCAjukanMaterial
-    usecase "Simpan Dokumen Non-Material" as UCSimpanNonMaterial
-    usecase "Revisi / Ajukan Ulang Dokumen" as UCRevisi
-    usecase "Lihat Status dan Riwayat Dokumen" as UCRiwayat
-  }
-
-  package "Validasi dan Persetujuan" {
-    usecase "Validasi Dokumen" as UCValidasi
-    usecase "Minta Revisi ke Pegawai" as UCMintaRevisi
-    usecase "Teruskan ke PPSPM" as UCTeruskan
-    usecase "Setujui Dokumen" as UCSetujui
-    usecase "Kembalikan ke PPK" as UCKembalikan
-  }
-
-  package "Pemberkasan Arsip" {
-    usecase "Klasifikasikan Dokumen Selesai" as UCKlasifikasi
-    usecase "Tambah Dokumen Manual" as UCTambahManual
-    usecase "Kelola Berkas Arsip" as UCKelolaBerkas
-    usecase "Tutup Berkas" as UCTutupBerkas
-    usecase "Pindahkan Status Arsip" as UCPindahStatus
-    usecase "Musnahkan Data" as UCMusnahkan
-    usecase "Export CSV" as UCExport
-  }
-
-  package "Akses File Terotorisasi" {
-    usecase "Preview / Download Lampiran Terotorisasi" as UCFile
-  }
-
-  package "Laporan Kinerja" {
-    usecase "Lihat Laporan Kinerja Metadata" as UCLaporanKinerja
-    usecase "Lihat Dokumen Final Tanpa Akses File" as UCDokumenFinalMetadata
-  }
-
-  package "Administrasi Sistem" {
-    usecase "Kelola User" as UCKelolaUser
-    usecase "Reset Password User" as UCResetPassword
-    usecase "Kelola Master Data" as UCMasterData
-    usecase "Kelola Kelengkapan Dokumen" as UCKelengkapan
-  }
+  usecase "Login / Logout" as UCLogin
+  usecase "Ganti Peran" as UCSwitchRole
+  usecase "Kelola Dokumen" as UCDokumen
+  usecase "Validasi Dokumen" as UCValidasi
+  usecase "Setujui Dokumen" as UCSetujui
+  usecase "Kelola Berkas Arsip" as UCBerkas
+  usecase "Kelola Dokumen Manual" as UCManual
+  usecase "Kelola Laporan Kinerja" as UCLaporan
+  usecase "Kelola User dan Master Data" as UCAdmin
 }
 
 Pegawai --> UCLogin
 Pegawai --> UCSwitchRole
-Pegawai --> UCAjukanMaterial
-Pegawai --> UCSimpanNonMaterial
-Pegawai --> UCRevisi
-Pegawai --> UCRiwayat
-Pegawai --> UCFile
+Pegawai --> UCDokumen
 
+PPK --> UCLogin
+PPK --> UCSwitchRole
 PPK --> UCValidasi
-PPK --> UCMintaRevisi
-PPK --> UCTeruskan
-PPK --> UCFile
 
+PPSPM --> UCLogin
+PPSPM --> UCSwitchRole
 PPSPM --> UCSetujui
-PPSPM --> UCKembalikan
-PPSPM --> UCFile
 
-KSB --> UCKlasifikasi
-KSB --> UCTambahManual
-KSB --> UCKelolaBerkas
-KSB --> UCTutupBerkas
-KSB --> UCPindahStatus
-KSB --> UCMusnahkan
-KSB --> UCExport
-KSB --> UCFile
+KSB --> UCLogin
+KSB --> UCSwitchRole
+KSB --> UCBerkas
+KSB --> UCManual
 
-PJK --> UCLaporanKinerja
-PJK --> UCDokumenFinalMetadata
+PJK --> UCLogin
+PJK --> UCSwitchRole
+PJK --> UCLaporan
 
-Admin --> UCKelolaUser
-Admin --> UCResetPassword
-Admin --> UCMasterData
-Admin --> UCKelengkapan
+Admin --> UCLogin
+Admin --> UCAdmin
 
 note right of Admin
-  Admin Sistem hanya untuk administrasi konfigurasi.
-  Admin tidak menjadi pengganti aktor operasional.
+  Admin Sistem mengelola administrasi sistem.
+  Admin Sistem bukan pengganti aktor operasional.
 end note
 
-note right of PJK
-  Penanggung Jawab Kinerja melihat metadata laporan saja.
+note bottom of PPSPM
+  PPSPM adalah label pengguna untuk peran internal BENDAHARA.
+end note
+
+note bottom of UCBerkas
+  Berkas folder-first adalah authority arsip aktif.
 end note
 
 @enduml

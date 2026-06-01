@@ -6,28 +6,21 @@ hide circle
 
 package "Workflow Dokumen" {
   class User <<external auth>> {
-    id
     displayName
   }
 
   class DokumenTransaksi {
-    id
     status
     currentStep
     revisionTarget
     nominalRealisasi
-    createdAt
-    updatedAt
   }
 
   class LampiranMetadata {
-    id
     displayName
-    createdAt
   }
 
   class LogAktivitas {
-    id
     action
     createdAt
   }
@@ -39,6 +32,7 @@ package "Workflow Dokumen" {
     NEED_REVISION
     COMPLETED
     TERSIMPAN
+    ARCHIVED
   }
 
   enum RevisionTarget {
@@ -59,15 +53,20 @@ note right of WorkflowStatus
   DRAFT -> IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL -> COMPLETED
 
   Label pengguna untuk tahap IN_BENDAHARA_APPROVAL adalah persetujuan PPSPM.
+  BENDAHARA tetap hanya konstanta internal.
 
   Non-material:
   DRAFT -> TERSIMPAN
+
+  ARCHIVED masih ada di konstanta status dokumen,
+  tetapi authority arsip runtime berada pada BerkasArsip folder-first.
 end note
 
 note bottom of DokumenTransaksi
   Dokumen material memakai nominalRealisasi.
   Dokumen non-material tidak memakai nominalRealisasi.
-  Setelah COMPLETED/SELESAI, metadata material seperti nominalRealisasi tidak diedit.
+  Setelah COMPLETED/TERSIMPAN, laporan memakai metadata final.
+  Diagram ini tidak memodelkan runtime arsip legacy.
 end note
 
 note bottom of LogAktivitas
