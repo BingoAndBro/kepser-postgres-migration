@@ -1,0 +1,126 @@
+@startuml
+title Activity Workflow Dokumen Material
+
+start
+
+partition "Pegawai" {
+  :Ajukan Dokumen Material;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role PEGAWAI;
+  :Validasi field material, kelengkapan, lampiran, dan nominal_realisasi;
+  if (Input valid?) then (Tidak)
+    :Kembalikan error validasi ke Pegawai;
+    stop
+  else (Ya)
+    :Buat dokumen material;
+    :Set status IN_PPK_VALIDATION;
+    :Tambahkan log aktivitas;
+  endif
+}
+
+partition "PPK" {
+  :Review dokumen material;
+  if (Keputusan PPK?) then (Minta revisi)
+    :Tolak dengan target revisi Pegawai;
+  else (Setujui)
+  endif
+}
+
+partition "System/API" {
+  if (PPK meminta revisi?) then (Ya)
+    :Set status NEED_REVISION target Pegawai;
+    :Tambahkan log aktivitas;
+  else (Tidak)
+    :Set status IN_BENDAHARA_APPROVAL;
+    :Tambahkan log aktivitas;
+  endif
+}
+
+if (Revisi Pegawai diperlukan?) then (Ya)
+  partition "Pegawai" {
+    :Revisi dan ajukan ulang dokumen;
+  }
+  partition "System/API" {
+    :Validasi revisi Pegawai;
+    :Set status IN_PPK_VALIDATION;
+    :Tambahkan log aktivitas;
+  }
+  partition "PPK" {
+    :Review ulang dokumen;
+    if (Keputusan PPK ulang?) then (Minta revisi)
+      :Tolak dengan target revisi Pegawai;
+    else (Setujui)
+    endif
+  }
+  partition "System/API" {
+    if (PPK ulang meminta revisi?) then (Ya)
+      :Set status NEED_REVISION target Pegawai;
+      :Tambahkan log aktivitas;
+      stop
+    else (Tidak)
+      :Set status IN_BENDAHARA_APPROVAL;
+      :Tambahkan log aktivitas;
+    endif
+  }
+endif
+
+partition "PPSPM" {
+  :Review dokumen material;
+  if (Keputusan PPSPM?) then (Kembalikan)
+    :Kembalikan ke PPK;
+  else (Setujui)
+  endif
+}
+
+partition "System/API" {
+  if (PPSPM mengembalikan?) then (Ya)
+    :Set status NEED_REVISION target PPK;
+    :Tambahkan log aktivitas;
+  else (Tidak)
+    :Set status COMPLETED;
+    :Tambahkan log aktivitas;
+    :Kunci perubahan metadata material selesai;
+    stop
+  endif
+}
+
+partition "PPK" {
+  :Koreksi dan ajukan ulang ke PPSPM;
+}
+
+partition "System/API" {
+  :Validasi koreksi PPK;
+  :Set status IN_BENDAHARA_APPROVAL;
+  :Tambahkan log aktivitas;
+}
+
+partition "PPSPM" {
+  :Review ulang dokumen material;
+  if (Keputusan PPSPM ulang?) then (Kembalikan)
+    :Kembalikan lagi ke PPK;
+  else (Setujui)
+  endif
+}
+
+partition "System/API" {
+  if (PPSPM ulang mengembalikan?) then (Ya)
+    :Set status NEED_REVISION target PPK;
+    :Tambahkan log aktivitas;
+  else (Tidak)
+    :Set status COMPLETED;
+    :Tambahkan log aktivitas;
+    :Kunci perubahan metadata material selesai;
+  endif
+}
+
+stop
+
+note bottom
+  Label pengguna tahap persetujuan adalah PPSPM.
+  IN_BENDAHARA_APPROVAL hanya status internal workflow.
+  Setelah COMPLETED, metadata material seperti nominal_realisasi tidak diedit.
+end note
+
+@enduml

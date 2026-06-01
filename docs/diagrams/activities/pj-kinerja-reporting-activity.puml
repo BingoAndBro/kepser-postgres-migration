@@ -1,0 +1,41 @@
+@startuml
+title Activity Laporan Kinerja Metadata
+
+start
+
+partition "Penanggung Jawab Kinerja" {
+  :Buka Laporan Kinerja;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role;
+  :Muat metadata dokumen final yang diizinkan;
+}
+
+partition "Penanggung Jawab Kinerja" {
+  :Pilih Fungsi;
+}
+
+partition "System/API" {
+  :Tampilkan kegiatan dan metadata dokumen final;
+}
+
+partition "Penanggung Jawab Kinerja" {
+  :Pilih kegiatan;
+}
+
+partition "System/API" {
+  :Tampilkan detail metadata;
+  :Sembunyikan aksi preview, download, dan lampiran;
+  :Kembalikan tampilan laporan;
+}
+
+stop
+
+note bottom
+  Laporan Kinerja hanya metadata.
+  Tidak ada akses file.
+  Fokus pada metrik dokumen, nominal, dan status.
+end note
+
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+title Activity Musnahkan Data Berkas Arsip
+
+start
+
+partition "Kepala Sub Bagian Umum" {
+  :Buka Usul Musnah;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role;
+  :Tampilkan berkas dengan status USUL_MUSNAH;
+}
+
+partition "Kepala Sub Bagian Umum" {
+  :Pilih berkas eligible;
+}
+
+partition "System/API" {
+  :Validasi status_arsip USUL_MUSNAH;
+
+  if (Eligible?) then (Tidak)
+    :Tolak Musnahkan Data;
+    stop
+  else (Ya)
+  endif
+}
+
+partition "Kepala Sub Bagian Umum" {
+  :Konfirmasi Musnahkan Data;
+}
+
+partition "System/API" {
+  :Set status_arsip DIMUSNAHKAN;
+}
+
+partition "File Handling" {
+  :Proses penghapusan file folder-first;
+  :Kembalikan ringkasan aman;
+}
+
+partition "System/API" {
+  :Pertahankan metadata dan referensi dokumen;
+  :Blokir akses file berikutnya;
+  :Tambahkan log aktivitas;
+  :Kembalikan sukses;
+}
+
+if (Ada preview atau download berikutnya?) then (Ya)
+  partition "System/API" {
+    :Kembalikan Data file sudah dimusnahkan;
+  }
+else (Tidak)
+endif
+
+stop
+
+note bottom
+  Musnahkan Data tidak menghapus metadata.
+  Diagram tidak menampilkan rincian penyimpanan file.
+  Pesan blokir file harus persis: Data file sudah dimusnahkan
+end note
+
+@enduml

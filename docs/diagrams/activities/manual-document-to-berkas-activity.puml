@@ -1,0 +1,53 @@
+@startuml
+title Activity Penambahan Dokumen ke Berkas
+
+start
+
+partition "Kepala Sub Bagian Umum" {
+  :Buka Penambahan Dokumen;
+  :Isi nama dokumen;
+  :Isi kategori;
+  :Isi tanggal dokumen atau sumber;
+  :Pilih Jenis Pembayaran;
+  :Isi nominal realisasi;
+  :Isi keterangan;
+  :Tambahkan lampiran opsional;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role;
+  :Validasi field wajib dan Jenis Pembayaran;
+
+  if (Input valid?) then (Tidak)
+    :Kembalikan error validasi;
+    stop
+  else (Ya)
+  endif
+
+  if (Jenis Pembayaran tersedia?) then (Tidak)
+    :Tolak karena Jenis Pembayaran tertutup;
+    stop
+  else (Ya)
+  endif
+
+  if (Ada lampiran?) then (Ya)
+    :Validasi lampiran;
+    :Formalkan metadata lampiran;
+  else (Tidak)
+  endif
+
+  :Cari atau buat berkas OPEN;
+  :Buat ManualArsip;
+  :Link ManualArsip ke BerkasArsipItem sumber MANUAL;
+  :Tambahkan log aktivitas;
+  :Kembalikan sukses;
+}
+
+stop
+
+note bottom
+  Nama fitur pengguna adalah Penambahan Dokumen.
+  Detail penyimpanan lampiran tetap internal dan tidak diekspos.
+end note
+
+@enduml

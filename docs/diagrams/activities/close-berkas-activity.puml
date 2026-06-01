@@ -1,0 +1,54 @@
+@startuml
+title Activity Tutup Berkas dan Metadata Arsip Final
+
+start
+
+partition "Kepala Sub Bagian Umum" {
+  :Buka detail Berkas Terbuka;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role;
+  :Tampilkan detail berkas OPEN;
+}
+
+partition "Kepala Sub Bagian Umum" {
+  :Pilih Tutup Berkas;
+  :Isi Nomor SPM;
+  :Isi retensi;
+  :Isi metadata arsip final terkait;
+}
+
+partition "System/API" {
+  :Validasi berkas masih OPEN;
+
+  if (Berkas OPEN?) then (Tidak)
+    :Tolak karena berkas sudah CLOSED atau state berubah;
+    stop
+  else (Ya)
+  endif
+
+  :Validasi metadata penutupan;
+
+  if (Metadata valid?) then (Tidak)
+    :Kembalikan error validasi;
+    stop
+  else (Ya)
+  endif
+
+  :Set status_berkas CLOSED;
+  :Set status_arsip AKTIF;
+  :Simpan metadata arsip final;
+  :Jadikan Jenis Pembayaran tidak tersedia untuk dokumen baru;
+  :Tambahkan log aktivitas;
+  :Kembalikan sukses;
+}
+
+stop
+
+note bottom
+  Berkas OPEN belum memiliki metadata arsip final.
+  Nomor SPM diisi saat penutupan, bukan saat klasifikasi awal.
+end note
+
+@enduml

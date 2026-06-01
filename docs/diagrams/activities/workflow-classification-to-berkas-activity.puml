@@ -1,0 +1,55 @@
+@startuml
+title Activity Pengklasifikasian Dokumen Workflow ke Berkas
+
+start
+
+partition "Kepala Sub Bagian Umum" {
+  :Buka Pengklasifikasian Dokumen;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role;
+  :Tampilkan dokumen workflow COMPLETED yang eligible;
+}
+
+partition "Kepala Sub Bagian Umum" {
+  :Pilih satu dokumen COMPLETED;
+  :Pilih leaf Jenis Pembayaran;
+}
+
+partition "System/API" {
+  :Validasi dokumen COMPLETED;
+  :Validasi dokumen belum diklasifikasikan;
+  :Cek ketersediaan Jenis Pembayaran;
+
+  if (Dokumen eligible?) then (Tidak)
+    :Tolak klasifikasi dokumen;
+    stop
+  else (Ya)
+  endif
+
+  if (Jenis Pembayaran tersedia?) then (Tidak)
+    :Tolak karena Jenis Pembayaran tertutup;
+    stop
+  else (Ya)
+  endif
+
+  if (Berkas OPEN sudah ada?) then (Tidak)
+    :Buat berkas OPEN;
+  else (Ya)
+    :Gunakan berkas OPEN;
+  endif
+
+  :Tambahkan BerkasArsipItem sumber WORKFLOW;
+  :Tambahkan log aktivitas;
+  :Kembalikan sukses;
+}
+
+stop
+
+note bottom
+  Klasifikasi awal hanya memilih Jenis Pembayaran.
+  Nomor SPM, retensi, dan metadata arsip final diisi saat Tutup Berkas.
+end note
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+title Activity Workflow Dokumen Non-Material
+
+start
+
+partition "Pegawai" {
+  :Submit dokumen Non-Material;
+  :Isi field non-material;
+  :Tambahkan dokumen pendukung opsional;
+  :Isi keterangan atau detail bila perlu;
+}
+
+partition "System/API" {
+  :Validasi dms_session dan role PEGAWAI;
+  :Validasi field non-material;
+  :Pastikan nominal_realisasi tidak diperlukan;
+  :Pastikan kelengkapan wajib tidak diperlukan;
+
+  if (Input valid?) then (Tidak)
+    :Kembalikan error validasi;
+    stop
+  else (Ya)
+    :Simpan dokumen sebagai TERSIMPAN;
+    :Tambahkan log aktivitas;
+    :Kembalikan status tersimpan;
+  endif
+}
+
+stop
+
+note bottom
+  Non-Material tidak melewati alur approval PPK atau PPSPM.
+  Lampiran pendukung, keterangan, dan detail bersifat opsional sesuai konteks.
+end note
+
+@enduml
