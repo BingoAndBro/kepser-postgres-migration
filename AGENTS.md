@@ -133,6 +133,7 @@ Referensi utama:
 - `docs/migration/phase-14i-drop-legacy-canonical-archive-schema.md`
 - `docs/migration/phase-14j-dev-db-migration-validation.md`
 - `docs/migration/phase-14j2-local-seed-hash-handling-hardening.md`
+- `docs/migration/phase-14k-final-folder-first-archive-regression-handoff.md`
 
 ---
 
@@ -417,6 +418,8 @@ Rules:
 - Phase 14H removes legacy canonical archive runtime routes, APIs, helpers, and tests that are no longer used by folder-first runtime. `/arsiparis/aktif`, `/arsiparis/search`, and `/arsiparis/arsip/$id` are no longer registered runtime browser routes; `/api/arsiparis/aktif`, `/api/arsiparis/inaktif`, `/api/arsiparis/usul-musnah`, `/api/arsiparis/search`, and legacy `/api/arsiparis/arsip/*` detail/lifecycle/aggregate/export APIs are removed. Archive dashboard counts now use folder-first `/api/arsiparis/berkas` filters for `CLOSED/AKTIF`, `CLOSED/INAKTIF`, and `CLOSED/USUL_MUSNAH`. Schema cleanup remains separate for Phase 14I; do not drop `arsip.arsip`, `arsip.lampiran_snapshot`, `arsip_usul_musnah`, or `canonical_arsip_id` columns in Phase 14H.
 - Phase 14I removes legacy canonical archive schema from active Drizzle/runtime authority after 14H and 14I.0. Active Drizzle schema no longer exports `arsip.arsip`, `arsip.arsip_usul_musnah`, `arsip.lampiran_snapshot`, `manual_arsip.canonical_arsip_id`, or `berkas_arsip_item.canonical_arsip_id`. Folder-first `berkas_arsip` plus `berkas_arsip_item`, `dokumen_transaksi`, `manual_arsip`, and `manual_arsip_attachment` remain the archive runtime authority. Historical docs, old migrations, and retained Supabase artifacts may still mention old canonical objects and are not active runtime authority.
 - Phase 14J validates the cleaned migration chain on the disposable local development PostgreSQL target after a documented local Docker DB reset. `pnpm db:local:migrate` applies through 0009 successfully, folder-first archive/source tables are present, legacy canonical archive tables/columns are absent, and the targeted archive/manual/storage regression set passes. This is development validation only; no feature behavior, schema design, storage cleanup, package/env, Supabase artifact, or route behavior changed.
+- Phase 14J.2 hardens local development seed password-hash handling so `db:local:seed` loads `.env.migration` with dotenv expansion disabled, validates a present `DMS_DEV_SEED_PASSWORD_HASH` as an Argon2id PHC-shaped value before user inserts, skips development users when the hash is absent, and fails safely for invalid/empty values without printing the hash.
+- Phase 14K completes final folder-first archive regression and handoff for local/development after Phase 14 cleanup. Folder-first archive cleanup is implemented and targeted-tested for local/dev, the user has human-smoked the core login/workflow/classification flow, and this is not production/go-live/security certification. Active archive authority remains `berkas_arsip`, `berkas_arsip_item`, `dokumen_transaksi`, `manual_arsip`, and `manual_arsip_attachment`; removed legacy canonical archive runtime/schema surfaces must not be restored.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
@@ -1245,10 +1248,11 @@ Do not mix these workstreams unless the human explicitly approves a combined pha
 
 ## Status
 
-- Last updated: 2026-05-31
+- Last updated: 2026-06-01
 - App mode: Active development after local migration
 - Architecture mode: TanStack Start SPA-heavy app with local PostgreSQL, Drizzle, local `dms_session` auth, and local filesystem storage
 - Handoff mode: partial/bounded release handoff for human-controlled internal/local/LAN use
+- Phase 14 folder-first archive mode: cleanup implemented and targeted-tested for local/development; core flow human-smoked by user; not production/go-live/security certification
 - Supabase mode: active runtime/package dependency retired; historical artifacts remain
 - Constitution accuracy target: synced to post-11H.3 migration state and implemented features
 
