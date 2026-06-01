@@ -132,6 +132,7 @@ Referensi utama:
 - `docs/migration/phase-14i0-folder-first-storage-guards.md`
 - `docs/migration/phase-14i-drop-legacy-canonical-archive-schema.md`
 - `docs/migration/phase-14j-dev-db-migration-validation.md`
+- `docs/migration/phase-14j2-local-seed-hash-handling-hardening.md`
 
 ---
 
@@ -218,6 +219,8 @@ Rules:
 - `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
 - Passwords use Argon2id.
 - Logout and password-change/reset session revocation behavior must remain server-authoritative.
+- Development seed password hashes use `DMS_DEV_SEED_PASSWORD_HASH` as a literal Argon2id PHC string beginning with `$argon2id$`; seed loading must not expand `$` segments.
+- Seed commands, validation, tests, and docs must not print password hashes, env contents, DB URLs, credentials, tokens, cookies, sessions, or other secrets.
 
 ### Same-Origin And CSRF
 
