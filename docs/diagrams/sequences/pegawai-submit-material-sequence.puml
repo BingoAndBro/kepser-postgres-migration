@@ -1,0 +1,48 @@
+@startuml
+title Pegawai Mengajukan Dokumen Material
+
+actor "Pegawai" as Pegawai
+participant "UI Ajukan Dokumen" as UI
+participant "API Dokumen" as API
+participant "Auth / RBAC" as Auth
+participant "Upload / File Service" as FileSvc
+participant "Workflow Service" as Workflow
+database "Database" as DB
+collections "Local File Storage" as Storage
+
+Pegawai -> UI : Isi form dokumen Material
+Pegawai -> UI : Upload lampiran
+UI -> API : Submit dokumen dan referensi lampiran
+API -> Auth : Validasi dms_session dan role PEGAWAI
+
+alt session atau role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> Workflow : Validasi field Material dan kelengkapan
+  alt field wajib atau lampiran tidak valid
+    Workflow --> API : Validasi gagal
+    API --> UI : Tampilkan error validasi
+  else validasi berhasil
+    API -> FileSvc : Formalisasi lampiran pending
+    FileSvc -> Storage : Pindahkan file ke storage dokumen
+    alt pemindahan file gagal
+      Storage --> FileSvc : Gagal
+      FileSvc -> Storage : Kompensasi file yang sempat dipindah
+      FileSvc --> API : Gagal aman
+      API --> UI : Submit gagal tanpa data parsial
+    else file berhasil diformalkan
+      Storage --> FileSvc : File tersimpan
+      FileSvc --> API : Metadata lampiran aman
+      API -> Workflow : Buat dokumen Material
+      Workflow -> DB : Simpan metadata termasuk nominal_realisasi
+      Workflow -> DB : Set status IN_PPK_VALIDATION
+      Workflow -> DB : Tambah log aktivitas
+      DB --> Workflow : Dokumen tercatat
+      Workflow --> API : Dokumen dibuat
+      API --> UI : Dokumen dan status IN_PPK_VALIDATION
+    end
+  end
+end
+
+@enduml

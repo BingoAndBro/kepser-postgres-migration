@@ -1,0 +1,54 @@
+@startuml
+title Validasi Dokumen oleh PPK
+
+actor "PPK" as PPK
+participant "UI Validasi PPK" as UI
+participant "API PPK" as API
+participant "Auth / RBAC" as Auth
+participant "Workflow Service" as Workflow
+database "Database" as DB
+participant "File Access Service" as FileAccess
+
+PPK -> UI : Buka inbox validasi
+UI -> API : Minta daftar dokumen validasi
+API -> Auth : Validasi dms_session dan role PPK
+
+alt akses tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> DB : Ambil dokumen yang menunggu validasi PPK
+  DB --> API : Daftar dokumen
+  API --> UI : Tampilkan inbox
+end
+
+PPK -> UI : Buka detail dokumen
+UI -> API : Minta detail dan lampiran terotorisasi
+API -> Auth : Validasi akses dokumen
+API -> FileAccess : Siapkan akses lampiran setelah cek otorisasi dan status
+FileAccess --> API : Akses lampiran aman
+API --> UI : Detail dokumen dan aksi validasi
+
+PPK -> UI : Pilih aksi
+UI -> API : Kirim keputusan validasi
+API -> Auth : Validasi role PPK
+API -> Workflow : Evaluasi transisi status
+
+alt transisi tidak valid
+  Workflow --> API : Tolak transisi
+  API --> UI : Status dokumen tidak dapat diproses
+else minta revisi ke Pegawai
+  Workflow -> DB : Set status NEED_REVISION dan target Pegawai
+  Workflow -> DB : Tambah log aktivitas
+  DB --> Workflow : Perubahan tersimpan
+  Workflow --> API : Revisi diminta
+  API --> UI : Dokumen dikembalikan ke Pegawai
+else setujui ke PPSPM
+  Workflow -> DB : Pindahkan ke tahap persetujuan PPSPM
+  Workflow -> DB : Tambah log aktivitas
+  DB --> Workflow : Perubahan tersimpan
+  Workflow --> API : Diteruskan ke PPSPM
+  API --> UI : Validasi PPK berhasil
+end
+
+@enduml

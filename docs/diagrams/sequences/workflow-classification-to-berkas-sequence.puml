@@ -1,0 +1,48 @@
+@startuml
+title Pengklasifikasian Dokumen Workflow ke Berkas
+
+actor "Kepala Sub Bagian Umum" as KSB
+participant "UI Pengklasifikasian Dokumen" as UI
+participant "API Arsip" as API
+participant "Auth / RBAC" as Auth
+participant "Archive Service" as Archive
+database "Database" as DB
+
+KSB -> UI : Buka dokumen workflow selesai
+UI -> API : Minta detail dokumen siap klasifikasi
+API -> Auth : Validasi dms_session dan role Kepala Sub Bagian Umum
+
+alt role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> Archive : Validasi dokumen selesai dan eligible
+  alt dokumen belum selesai atau tidak eligible
+    Archive --> API : Tolak klasifikasi
+    API --> UI : Dokumen tidak dapat diklasifikasikan
+  else dokumen eligible
+    API --> UI : Tampilkan pilihan Jenis Pembayaran
+  end
+end
+
+KSB -> UI : Pilih Jenis Pembayaran leaf node
+UI -> API : Simpan klasifikasi dokumen
+API -> Auth : Validasi ulang role dan session
+API -> Archive : Cari atau buat berkas OPEN
+
+alt Jenis Pembayaran sudah tertutup dan tidak tersedia
+  Archive --> API : Tidak ada berkas OPEN yang boleh dipakai
+  API --> UI : Jenis Pembayaran tidak tersedia
+else dokumen sudah pernah diklasifikasikan
+  Archive --> API : Duplikasi ditolak
+  API --> UI : Dokumen sudah masuk berkas
+else berkas OPEN tersedia
+  Archive -> DB : Buat / gunakan BerkasArsip OPEN
+  Archive -> DB : Tambah BerkasArsipItem sumber WORKFLOW
+  Archive -> DB : Tambah log aktivitas
+  DB --> Archive : Item berkas tercatat
+  Archive --> API : Hasil berkas dan item
+  API --> UI : Klasifikasi berhasil
+end
+
+@enduml

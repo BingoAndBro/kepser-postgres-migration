@@ -1,0 +1,60 @@
+@startuml
+title Penambahan Dokumen Manual ke Berkas
+
+actor "Kepala Sub Bagian Umum" as KSB
+participant "UI Penambahan Dokumen" as UI
+participant "API Manual Arsip" as API
+participant "Auth / RBAC" as Auth
+participant "Archive Service" as Archive
+participant "Upload / File Service" as FileSvc
+database "Database" as DB
+collections "Local File Storage" as Storage
+
+KSB -> UI : Isi Penambahan Dokumen
+note right of UI
+  Field utama: nama dokumen, kategori,
+  tanggal, Jenis Pembayaran, nominal realisasi,
+  keterangan, dan lampiran opsional.
+end note
+UI -> API : Kirim data manual dan lampiran opsional
+API -> Auth : Validasi dms_session dan role Kepala Sub Bagian Umum
+
+alt role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> Archive : Validasi field wajib
+  alt keterangan atau field wajib belum lengkap
+    Archive --> API : Validasi gagal
+    API --> UI : Tampilkan error validasi
+  else validasi berhasil
+    opt ada lampiran
+      API -> FileSvc : Formalisasi lampiran manual
+      FileSvc -> Storage : Simpan file lampiran
+      alt pemindahan file gagal
+        Storage --> FileSvc : Gagal
+        FileSvc -> Storage : Kompensasi file yang sempat dipindah
+        FileSvc --> API : Gagal aman
+        API --> UI : Penambahan gagal tanpa data parsial
+      else lampiran berhasil
+        Storage --> FileSvc : File tersimpan
+        FileSvc --> API : Metadata lampiran aman
+      end
+    end
+
+    API -> Archive : Cari atau buat berkas OPEN untuk Jenis Pembayaran
+    alt Jenis Pembayaran sudah tertutup dan tidak tersedia
+      Archive --> API : Tidak ada berkas OPEN yang boleh dipakai
+      API --> UI : Jenis Pembayaran tidak tersedia
+    else berkas OPEN tersedia
+      Archive -> DB : Simpan ManualArsip
+      Archive -> DB : Link ManualArsip ke BerkasArsipItem sumber MANUAL
+      Archive -> DB : Tambah log aktivitas
+      DB --> Archive : Dokumen manual dan item tercatat
+      Archive --> API : Hasil dokumen dan berkas
+      API --> UI : Penambahan Dokumen berhasil
+    end
+  end
+end
+
+@enduml

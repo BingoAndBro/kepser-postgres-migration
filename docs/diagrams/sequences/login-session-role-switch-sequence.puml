@@ -1,0 +1,57 @@
+@startuml
+title Login, Session Check, Role Switch, dan Logout
+
+actor "Pengguna" as User
+participant "UI Login / Topbar" as UI
+participant "API Auth" as API
+participant "Auth Service" as Auth
+database "Session Store / Database" as DB
+participant "Role Guard" as Guard
+
+User -> UI : Isi kredensial login
+UI -> API : Kirim permintaan login
+API -> Auth : Validasi kredensial secara aman
+
+alt kredensial tidak valid
+  Auth --> API : Tolak login
+  API --> UI : Tampilkan pesan gagal
+else kredensial valid
+  Auth -> DB : Buat session server
+  DB --> Auth : Session tersimpan
+  Auth --> API : Session aktif
+  API --> UI : Set dms_session sebagai batas auth
+end
+
+UI -> API : Cek session aktif
+API -> Auth : Baca session dari dms_session
+Auth -> DB : Verifikasi session
+DB --> Auth : User dan role terdaftar
+Auth --> API : Data user aman
+API --> UI : User + daftar role
+
+opt pengguna memiliki lebih dari satu role
+  User -> UI : Pilih role aktif
+  UI -> API : Permintaan ganti role
+  API -> Guard : Validasi role terdaftar untuk user
+  alt role tidak terdaftar atau Admin Sistem diminta sebagai pengganti operasional
+    Guard --> API : Tolak ganti role
+    API --> UI : Role tidak dapat digunakan
+  else role valid
+    Guard --> API : Role boleh dipilih
+    API --> UI : Set dms_active_role sebagai state UX
+    note right of UI
+      dms_active_role bukan bukti otorisasi.
+      Server/API RBAC tetap otoritatif.
+    end note
+  end
+end
+
+User -> UI : Logout
+UI -> API : Permintaan logout
+API -> Auth : Invalidasi session server
+Auth -> DB : Cabut session aktif
+DB --> Auth : Session dicabut
+Auth --> API : Logout berhasil
+API --> UI : Bersihkan state pengguna
+
+@enduml

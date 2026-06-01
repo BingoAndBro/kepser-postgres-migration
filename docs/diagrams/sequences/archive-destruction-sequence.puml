@@ -1,0 +1,63 @@
+@startuml
+title Musnahkan Data Berkas Arsip
+
+actor "Kepala Sub Bagian Umum" as KSB
+participant "UI Usul Musnah" as UI
+participant "API Berkas Arsip" as API
+participant "Auth / RBAC" as Auth
+participant "Archive Service" as Archive
+participant "Physical Destruction Service" as Destroy
+database "Database" as DB
+collections "Local File Storage" as Storage
+
+KSB -> UI : Buka berkas USUL_MUSNAH
+UI -> API : Minta detail / daftar Usul Musnah
+API -> Auth : Validasi dms_session dan role Kepala Sub Bagian Umum
+
+alt role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> Archive : Ambil berkas eligible
+  Archive -> DB : Baca status arsip
+  DB --> Archive : Status ditemukan
+  Archive --> API : Data aman untuk ditampilkan
+  API --> UI : Tampilkan aksi Musnahkan Data
+end
+
+KSB -> UI : Konfirmasi Musnahkan Data
+UI -> API : Permintaan approve_destruction
+API -> Auth : Validasi ulang role dan session
+API -> Archive : Validasi eligible untuk pemusnahan
+
+alt berkas bukan USUL_MUSNAH
+  Archive --> API : Tolak aksi
+  API --> UI : Berkas tidak eligible
+else eligible
+  Archive -> DB : Set status_arsip DIMUSNAHKAN
+  DB --> Archive : Status tersimpan
+  Archive -> Destroy : Hapus file folder-first untuk berkas
+  Destroy -> Storage : Hapus kandidat file saat ini
+  alt penghapusan file parsial atau gagal
+    Storage --> Destroy : Sebagian gagal / sudah tidak ada
+    Destroy --> Archive : Ringkasan aman kategori/count
+    Archive -> DB : Tambah log aktivitas dengan ringkasan aman
+    Archive --> API : Status tetap DIMUSNAHKAN dan akses file diblokir
+    API --> UI : Pemusnahan selesai dengan catatan aman
+  else penghapusan file selesai
+    Storage --> Destroy : File kandidat diproses
+    Destroy --> Archive : Ringkasan aman kategori/count
+    Archive -> DB : Tambah log aktivitas
+    Archive --> API : Metadata tetap, file access diblokir
+    API --> UI : Berkas DIMUSNAHKAN
+  end
+end
+
+opt akses file setelah pemusnahan
+  UI -> API : Preview / download lampiran
+  API -> Archive : Cek status berkas
+  Archive --> API : DIMUSNAHKAN
+  API --> UI : Data file sudah dimusnahkan
+end
+
+@enduml

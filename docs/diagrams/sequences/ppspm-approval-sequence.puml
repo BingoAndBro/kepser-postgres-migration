@@ -1,0 +1,54 @@
+@startuml
+title Persetujuan Dokumen oleh PPSPM
+
+actor "PPSPM" as PPSPM
+participant "UI Persetujuan PPSPM" as UI
+participant "API PPSPM" as API
+participant "Auth / RBAC" as Auth
+participant "Workflow Service" as Workflow
+database "Database" as DB
+participant "File Access Service" as FileAccess
+
+PPSPM -> UI : Buka inbox persetujuan
+UI -> API : Minta daftar dokumen persetujuan
+API -> Auth : Validasi dms_session dan role PPSPM
+
+alt akses tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> DB : Ambil dokumen yang menunggu persetujuan PPSPM
+  DB --> API : Daftar dokumen
+  API --> UI : Tampilkan inbox
+end
+
+PPSPM -> UI : Buka detail dokumen
+UI -> API : Minta detail dan lampiran terotorisasi
+API -> Auth : Validasi akses dokumen
+API -> FileAccess : Siapkan akses lampiran setelah cek otorisasi dan status
+FileAccess --> API : Akses lampiran aman
+API --> UI : Detail dokumen dan aksi persetujuan
+
+PPSPM -> UI : Pilih aksi
+UI -> API : Kirim keputusan persetujuan
+API -> Auth : Validasi role PPSPM
+API -> Workflow : Evaluasi transisi status
+
+alt transisi tidak valid
+  Workflow --> API : Tolak transisi
+  API --> UI : Status dokumen tidak dapat diproses
+else kembalikan ke PPK
+  Workflow -> DB : Set status NEED_REVISION dan target PPK
+  Workflow -> DB : Tambah log aktivitas
+  DB --> Workflow : Perubahan tersimpan
+  Workflow --> API : Revisi ke PPK
+  API --> UI : Dokumen dikembalikan ke PPK
+else setujui dokumen
+  Workflow -> DB : Set status COMPLETED
+  Workflow -> DB : Tambah log aktivitas
+  DB --> Workflow : Perubahan tersimpan
+  Workflow --> API : Dokumen selesai
+  API --> UI : Persetujuan berhasil
+end
+
+@enduml

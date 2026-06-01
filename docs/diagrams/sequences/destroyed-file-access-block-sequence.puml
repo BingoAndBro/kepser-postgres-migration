@@ -1,0 +1,42 @@
+@startuml
+title Blokir Preview / Download File Berkas Dimusnahkan
+
+actor "Pengguna Terotorisasi" as User
+participant "UI Preview / Download" as UI
+participant "API File Access" as API
+participant "Auth / RBAC" as Auth
+participant "File Access Service" as FileAccess
+participant "Archive Service" as Archive
+database "Database" as DB
+collections "Local File Storage" as Storage
+
+User -> UI : Klik preview / download lampiran
+UI -> API : Permintaan akses file
+API -> Auth : Validasi dms_session dan role
+
+alt role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> FileAccess : Revalidasi dokumen, berkas, item, dan status
+  FileAccess -> Archive : Cek status berkas saat ini
+  Archive -> DB : Baca metadata berkas dan item
+  DB --> Archive : Status ditemukan
+
+  alt file pada berkas DIMUSNAHKAN
+    Archive --> FileAccess : Akses harus diblokir
+    FileAccess --> API : Data file sudah dimusnahkan
+    API --> UI : Data file sudah dimusnahkan
+    note right of Storage
+      Local File Storage tidak dilayani.
+    end note
+  else file valid dan tidak dimusnahkan
+    Archive --> FileAccess : Akses boleh dilayani
+    FileAccess -> Storage : Ambil konten file
+    Storage --> FileAccess : Konten file
+    FileAccess --> API : Stream aman
+    API --> UI : Preview / download berjalan
+  end
+end
+
+@enduml

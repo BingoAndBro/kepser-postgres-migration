@@ -1,0 +1,61 @@
+@startuml
+title Tutup Berkas dan Isi Metadata Arsip Final
+
+actor "Kepala Sub Bagian Umum" as KSB
+participant "UI Detail Berkas" as UI
+participant "API Berkas Arsip" as API
+participant "Auth / RBAC" as Auth
+participant "Archive Service" as Archive
+database "Database" as DB
+
+KSB -> UI : Buka detail berkas OPEN
+UI -> API : Minta detail berkas
+API -> Auth : Validasi dms_session dan role Kepala Sub Bagian Umum
+
+alt role tidak sah
+  Auth --> API : Tolak akses
+  API --> UI : Unauthorized / Forbidden
+else akses sah
+  API -> Archive : Ambil detail berkas
+  Archive -> DB : Baca status berkas
+  DB --> Archive : Berkas ditemukan
+  Archive --> API : Detail berkas
+  API --> UI : Tampilkan form Tutup Berkas
+end
+
+note right of UI
+  Berkas OPEN belum memiliki metadata arsip final.
+  Nomor SPM diisi saat penutupan.
+end note
+
+KSB -> UI : Submit Nomor SPM, retensi, metadata final
+UI -> API : Permintaan Tutup Berkas
+API -> Auth : Validasi ulang role dan session
+API -> Archive : Validasi metadata penutupan
+
+alt metadata penutupan tidak valid
+  Archive --> API : Validasi gagal
+  API --> UI : Tampilkan error validasi
+else berkas sudah CLOSED
+  Archive --> API : Tolak karena status sudah final
+  API --> UI : Berkas sudah ditutup
+else concurrent closure / stale state
+  Archive -> DB : Coba update dengan status OPEN
+  DB --> Archive : Tidak ada row yang berubah
+  Archive --> API : Tolak karena state berubah
+  API --> UI : Muat ulang detail berkas
+else berkas masih OPEN
+  Archive -> DB : Set status_berkas CLOSED
+  Archive -> DB : Set status_arsip AKTIF
+  Archive -> DB : Simpan metadata arsip final
+  Archive -> DB : Tambah log aktivitas
+  DB --> Archive : Penutupan tersimpan
+  Archive --> API : Berkas CLOSED / AKTIF
+  API --> UI : Tutup Berkas berhasil
+  note right of Archive
+    Jenis Pembayaran pada berkas CLOSED
+    tidak tersedia untuk dokumen baru.
+  end note
+end
+
+@enduml
