@@ -359,7 +359,7 @@ Catatan:
 - migrasi lama pernah mengenal `VERIFIKASI_PENYUSUTAN`
 - status itu sudah dihapus oleh migrasi berikutnya
 - `DIMUSNAHKAN` must block preview/download/file access
-- After Phase 13K, target lifecycle authority moves to folder/berkas level for new runtime; current `arsip.arsip` lifecycle remains transitional compatibility until de-transitionalization.
+- After Phase 13K, target lifecycle authority moves to folder/berkas level for new runtime. Superseded by Phase 14I: active schema/runtime no longer keeps `arsip.arsip`.
 
 ### Status Berkas
 
@@ -422,6 +422,7 @@ Rules:
 - Phase 14J.2 hardens local development seed password-hash handling so `db:local:seed` loads `.env.migration` with dotenv expansion disabled, validates a present `DMS_DEV_SEED_PASSWORD_HASH` as an Argon2id PHC-shaped value before user inserts, skips development users when the hash is absent, and fails safely for invalid/empty values without printing the hash.
 - Phase 14K completes final folder-first archive regression and handoff for local/development after Phase 14 cleanup. Folder-first archive cleanup is implemented and targeted-tested for local/dev, the user has human-smoked the core login/workflow/classification flow, and this is not production/go-live/security certification. Active archive authority remains `berkas_arsip`, `berkas_arsip_item`, `dokumen_transaksi`, `manual_arsip`, and `manual_arsip_attachment`; removed legacy canonical archive runtime/schema surfaces must not be restored.
 - Phase 14L adds `docs/migration/README.md` as the navigation/index for migration docs. Phase 15 frontend work should read that active docs index before older phase docs. Historical docs are retained for traceability and may describe removed behavior; do not treat them as current authority without cross-checking the index and this file.
+- Phase 14I supersedes older Phase 12/13 transitional canonical archive notes: active Drizzle/runtime authority no longer exports or uses `arsip.arsip`, `arsip.arsip_usul_musnah`, `arsip.lampiran_snapshot`, `manual_arsip.canonical_arsip_id`, or `berkas_arsip_item.canonical_arsip_id`.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
 
@@ -464,14 +465,17 @@ Workflow Dokumen:
 
 Arsip:
 
-- `arsip.arsip`
 - `arsip.berkas_arsip`
 - `arsip.berkas_arsip_item`
 - `arsip.master_klasifikasi_arsip`
-- `arsip.arsip_usul_musnah`
-- `arsip.manual_arsip_category`
 - `arsip.manual_arsip`
 - `arsip.manual_arsip_attachment`
+- `arsip.manual_arsip_category`
+
+Active folder-first archive authority spans the Arsip tables above plus:
+
+- `dokumen.dokumen_transaksi`
+- `dokumen.log_aktivitas`
 
 ### Schema Rules
 
@@ -479,12 +483,10 @@ Arsip:
 - `dokumen_transaksi` includes `nominal_realisasi`, `is_non_material`, `jenis_dokumen_id`, and material request-chain columns.
 - `nominal_realisasi` is only for Material documents.
 - Non-Material documents do not have `nominal_realisasi`.
-- `arsip.lampiran_snapshot` stores attachment metadata snapshot.
+- `arsip.lampiran_snapshot` is removed from active Drizzle schema after Phase 14I; use current source references and folder-first item membership for attachment/file authority.
 - `log_aktivitas` is append-only by contract.
 - Manual archive for Penambahan Arsip uses separate tables and must not be forced into `dokumen_transaksi`.
-- Phase 12L.2 extends `arsip.arsip` as the transitional canonical archive parent foundation with `source_type: 'WORKFLOW' | 'MANUAL'`; existing Manual Archive rows are not migrated into it yet.
-- `arsip.arsip.dokumen_id` is nullable overall after Phase 12L.2 so future canonical `MANUAL` rows do not require `dokumen_transaksi`; current workflow archive writes still provide it.
-- Strict `WORKFLOW`/`MANUAL` relationship checks for `dokumen_id` are future constraints after report-first backfill and write alignment.
+- Older Phase 12L.2 transitional canonical `arsip.arsip` notes are historical only after Phase 14I; do not treat `arsip.arsip` fields or canonical bridge columns as active runtime/schema authority.
 - `manual_arsip_category` is separate from `master_klasifikasi_arsip`; `master_klasifikasi_arsip` remains the archival classification hierarchy.
 - One `manual_arsip` parent row represents one report/archive record. `manual_arsip_attachment` child rows must not be counted as additional reports in future aggregates.
 - Manual archive attachments are optional, and the schema supports many attachments per parent row.
@@ -640,7 +642,7 @@ After document `COMPLETED`:
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
-- Until folder-first lifecycle implementation replaces it, existing transitional archive lifecycle continues on `arsip.arsip`:
+- Phase 14I supersedes the older transitional `arsip.arsip` lifecycle authority. Current folder-first lifecycle is stored on `berkas_arsip.status_arsip`:
 
 ```text
 AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
@@ -648,9 +650,9 @@ AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
 
 Rules:
 
-- `arsip.lampiran_snapshot` stores attachment metadata snapshot.
-- After Phase 12L.2, `arsip.arsip` is the transitional canonical archive parent foundation and uses `source_type='WORKFLOW'` for workflow archive rows. After Phase 12L.14, new Manual Archive POST creates also create canonical `source_type='MANUAL'` rows and link them through `manual_arsip.canonical_arsip_id`.
-- After Phase 12L.7, new workflow archive writes explicitly populate canonical workflow fields on `arsip.arsip`, including derived `nama_arsip`, `klasifikasi_id`, classification snapshots from `master_klasifikasi_arsip`, `created_by` from `dokumen_transaksi.created_by`, and `archived_by` from the current `KEPALA_SUB_BAGIAN_UMUM` session user.
+- `arsip.lampiran_snapshot` is removed from active Drizzle schema after Phase 14I and must not be used as active attachment authority.
+- Older Phase 12L transitional `arsip.arsip` and `manual_arsip.canonical_arsip_id` write/link notes are historical only after Phase 14I.
+- New runtime archive writes must use folder-first `berkas_arsip` plus `berkas_arsip_item` and current source tables.
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
 
