@@ -40,3 +40,34 @@ No Miro items were created.
 Configure Miro MCP and authentication first, then retry Phase D6J.
 
 Do not proceed to D6K until D6J succeeds on the target Miro board.
+
+## 7. Retry Result After MCP OAuth Setup
+
+Retry date: 2026-06-02.
+
+MCP available: yes.
+
+Target board accessible: yes. The retry used only the provided target Miro board.
+
+Test frame created: yes.
+
+- Frame name: `D6J MCP Feasibility Test - Safe To Delete`
+- Object types created inside the frame: text title, sticky note, rounded rectangle shape, oval/circle shape
+- Text title: `D6J MCP Feasibility Test`
+- Sticky note: `Safe test frame. Can be deleted after validation.`
+- Rounded rectangle label: `System Boundary Test`
+- Oval label: `Use Case Shape Test`
+
+Connector creation worked: not created. The available Miro layout DSL for this environment supports `FRAME`, `TEXT`, `STICKY`, `SHAPE`, and related item types, but it does not expose a connector item type. No aggressive workaround was attempted.
+
+Safety result:
+
+- No existing board content was intentionally modified.
+- No existing board content was deleted.
+- No existing board content was moved.
+- No real DMS diagrams were created.
+- No secrets, tokens, API keys, environment values, credentials, cookies, sessions, storage roots, physical paths, logical paths, or database URLs are included in this report.
+
+Recommendation for D6K:
+
+D6K may proceed after human visual confirmation of the test frame.
