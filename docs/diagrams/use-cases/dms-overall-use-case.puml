@@ -1,0 +1,104 @@
+@startuml
+title DMS - Use Case Keseluruhan
+
+left to right direction
+
+actor "Pegawai" as Pegawai
+actor "PPK" as PPK
+actor "PPSPM" as PPSPM
+actor "Kepala Sub Bagian Umum" as KSB
+actor "Penanggung Jawab Kinerja" as PJK
+actor "Admin Sistem" as Admin
+
+rectangle "Dynamic Document Workflow Management System" {
+  package "Akses Pengguna" {
+    usecase "Login / Logout" as UCLogin
+    usecase "Ganti Peran" as UCSwitchRole
+  }
+
+  package "Pengajuan Dokumen" {
+    usecase "Ajukan Dokumen Material" as UCAjukanMaterial
+    usecase "Simpan Dokumen Non-Material" as UCSimpanNonMaterial
+    usecase "Revisi / Ajukan Ulang Dokumen" as UCRevisi
+    usecase "Lihat Status dan Riwayat Dokumen" as UCRiwayat
+  }
+
+  package "Validasi dan Persetujuan" {
+    usecase "Validasi Dokumen" as UCValidasi
+    usecase "Minta Revisi ke Pegawai" as UCMintaRevisi
+    usecase "Teruskan ke PPSPM" as UCTeruskan
+    usecase "Setujui Dokumen" as UCSetujui
+    usecase "Kembalikan ke PPK" as UCKembalikan
+  }
+
+  package "Pemberkasan Arsip" {
+    usecase "Klasifikasikan Dokumen Selesai" as UCKlasifikasi
+    usecase "Tambah Dokumen Manual" as UCTambahManual
+    usecase "Kelola Berkas Arsip" as UCKelolaBerkas
+    usecase "Tutup Berkas" as UCTutupBerkas
+    usecase "Pindahkan Status Arsip" as UCPindahStatus
+    usecase "Musnahkan Data" as UCMusnahkan
+    usecase "Export CSV" as UCExport
+  }
+
+  package "Akses File Terotorisasi" {
+    usecase "Preview / Download Lampiran Terotorisasi" as UCFile
+  }
+
+  package "Laporan Kinerja" {
+    usecase "Lihat Laporan Kinerja Metadata" as UCLaporanKinerja
+    usecase "Lihat Dokumen Final Tanpa Akses File" as UCDokumenFinalMetadata
+  }
+
+  package "Administrasi Sistem" {
+    usecase "Kelola User" as UCKelolaUser
+    usecase "Reset Password User" as UCResetPassword
+    usecase "Kelola Master Data" as UCMasterData
+    usecase "Kelola Kelengkapan Dokumen" as UCKelengkapan
+  }
+}
+
+Pegawai --> UCLogin
+Pegawai --> UCSwitchRole
+Pegawai --> UCAjukanMaterial
+Pegawai --> UCSimpanNonMaterial
+Pegawai --> UCRevisi
+Pegawai --> UCRiwayat
+Pegawai --> UCFile
+
+PPK --> UCValidasi
+PPK --> UCMintaRevisi
+PPK --> UCTeruskan
+PPK --> UCFile
+
+PPSPM --> UCSetujui
+PPSPM --> UCKembalikan
+PPSPM --> UCFile
+
+KSB --> UCKlasifikasi
+KSB --> UCTambahManual
+KSB --> UCKelolaBerkas
+KSB --> UCTutupBerkas
+KSB --> UCPindahStatus
+KSB --> UCMusnahkan
+KSB --> UCExport
+KSB --> UCFile
+
+PJK --> UCLaporanKinerja
+PJK --> UCDokumenFinalMetadata
+
+Admin --> UCKelolaUser
+Admin --> UCResetPassword
+Admin --> UCMasterData
+Admin --> UCKelengkapan
+
+note right of Admin
+  Admin Sistem hanya untuk administrasi konfigurasi.
+  Admin tidak menjadi pengganti aktor operasional.
+end note
+
+note right of PJK
+  Penanggung Jawab Kinerja melihat metadata laporan saja.
+end note
+
+@enduml

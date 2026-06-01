@@ -1,0 +1,44 @@
+@startuml
+title DMS - Use Case Laporan Kinerja
+
+left to right direction
+
+actor "Penanggung Jawab Kinerja" as PJK
+
+rectangle "Laporan Kinerja Metadata" {
+  usecase "Lihat Dashboard Kinerja" as UCDashboard
+  usecase "Lihat Total Dokumen Final" as UCTotalDokumen
+  usecase "Lihat Total Nominal Realisasi" as UCTotalNominal
+  usecase "Lihat Distribusi Selesai / Tersimpan / Diarsipkan" as UCDistribusi
+  usecase "Lihat Daftar Fungsi" as UCDaftarFungsi
+  usecase "Lihat Detail Fungsi" as UCDetailFungsi
+  usecase "Lihat Kegiatan dalam Fungsi" as UCKegiatan
+  usecase "Lihat Dokumen Final per Kegiatan" as UCDokumenKegiatan
+  usecase "Lihat Metadata Dokumen Final" as UCMetadataDokumen
+}
+
+PJK --> UCDashboard
+PJK --> UCTotalDokumen
+PJK --> UCTotalNominal
+PJK --> UCDistribusi
+PJK --> UCDaftarFungsi
+PJK --> UCDetailFungsi
+PJK --> UCKegiatan
+PJK --> UCDokumenKegiatan
+PJK --> UCMetadataDokumen
+
+UCDashboard ..> UCTotalDokumen : <<include>>
+UCDashboard ..> UCTotalNominal : <<include>>
+UCDashboard ..> UCDistribusi : <<include>>
+UCDaftarFungsi ..> UCDetailFungsi : <<include>>
+UCDetailFungsi ..> UCKegiatan : <<include>>
+UCKegiatan ..> UCDokumenKegiatan : <<include>>
+UCDokumenKegiatan ..> UCMetadataDokumen : <<include>>
+
+note bottom
+  Laporan Kinerja hanya metadata.
+  Tidak ada aksi preview, download, lampiran, atau file.
+  Dashboard berfokus pada metrik dokumen, nominal, dan status.
+end note
+
+@enduml

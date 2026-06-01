@@ -1,0 +1,73 @@
+@startuml
+title DMS - Use Case Pemberkasan Arsip Folder-First
+
+left to right direction
+
+actor "Kepala Sub Bagian Umum" as KSB
+
+rectangle "Pemberkasan Arsip Folder-First" {
+  package "Klasifikasi dan Penambahan" {
+    usecase "Klasifikasikan Dokumen Selesai" as UCKlasifikasi
+    usecase "Pilih Jenis Pembayaran" as UCPilihJenis
+    usecase "Tambah Dokumen Manual" as UCTambahManual
+    usecase "Upload Lampiran Manual" as UCUploadManual
+  }
+
+  package "Berkas dan Detail" {
+    usecase "Lihat Berkas Terbuka" as UCBerkasTerbuka
+    usecase "Lihat Arsip Aktif" as UCArsipAktif
+    usecase "Lihat Arsip Inaktif" as UCArsipInaktif
+    usecase "Lihat Usul Musnah" as UCUsulMusnah
+    usecase "Lihat Detail Berkas" as UCDetail
+    usecase "Tutup Berkas" as UCTutup
+    usecase "Isi Metadata Arsip Final" as UCMetadataFinal
+  }
+
+  package "Lifecycle Arsip" {
+    usecase "Pindahkan ke Inaktif" as UCInaktif
+    usecase "Pindahkan ke Usul Musnah" as UCUsul
+    usecase "Musnahkan Data" as UCMusnahkan
+  }
+
+  package "Akses dan Ekspor" {
+    usecase "Export CSV" as UCExport
+    usecase "Preview / Download Lampiran Terotorisasi" as UCFile
+    usecase "Blokir Akses File Dimusnahkan" as UCBlokir
+  }
+}
+
+KSB --> UCKlasifikasi
+KSB --> UCPilihJenis
+KSB --> UCTambahManual
+KSB --> UCUploadManual
+KSB --> UCBerkasTerbuka
+KSB --> UCArsipAktif
+KSB --> UCArsipInaktif
+KSB --> UCUsulMusnah
+KSB --> UCDetail
+KSB --> UCTutup
+KSB --> UCMetadataFinal
+KSB --> UCInaktif
+KSB --> UCUsul
+KSB --> UCMusnahkan
+KSB --> UCExport
+KSB --> UCFile
+KSB --> UCBlokir
+
+UCKlasifikasi ..> UCPilihJenis : <<include>>
+UCTambahManual ..> UCPilihJenis : <<include>>
+UCTambahManual ..> UCUploadManual : <<include>>
+UCTutup ..> UCMetadataFinal : <<include>>
+UCMusnahkan ..> UCBlokir : <<include>>
+
+note bottom
+  Klasifikasi awal hanya memilih Jenis Pembayaran.
+  Klasifikasi awal tidak mengisi Nomor SPM, retensi, atau metadata arsip final.
+  Nomor SPM diisi saat Tutup Berkas.
+  Berkas terbuka belum memiliki metadata arsip final.
+  Metadata Closed/Inaktif/Usul Musnah bersifat baca-saja sesuai konteks.
+  DIMUSNAHKAN mempertahankan metadata dan memblokir akses file.
+  Pesan file dimusnahkan: Data file sudah dimusnahkan
+end note
+
+@enduml

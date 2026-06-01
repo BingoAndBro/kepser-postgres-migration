@@ -1,0 +1,68 @@
+@startuml
+title DMS - Use Case Workflow Dokumen
+
+left to right direction
+
+actor "Pegawai" as Pegawai
+actor "PPK" as PPK
+actor "PPSPM" as PPSPM
+
+rectangle "Workflow Dokumen" {
+  package "Pengajuan Pegawai" {
+    usecase "Ajukan Dokumen Material" as UCAjukanMaterial
+    usecase "Simpan Dokumen Non-Material" as UCSimpanNonMaterial
+    usecase "Upload Lampiran" as UCUpload
+    usecase "Revisi Dokumen" as UCRevisi
+    usecase "Ajukan Ulang Dokumen" as UCAjukanUlang
+  }
+
+  package "Pemantauan Dokumen" {
+    usecase "Lihat Status Dokumen" as UCStatus
+    usecase "Lihat Riwayat Aktivitas" as UCRiwayat
+    usecase "Preview / Download Lampiran Terotorisasi" as UCFile
+  }
+
+  package "Validasi PPK" {
+    usecase "Lihat Inbox Validasi" as UCInboxPPK
+    usecase "Validasi Dokumen" as UCValidasi
+    usecase "Minta Revisi ke Pegawai" as UCMintaRevisi
+    usecase "Teruskan ke PPSPM" as UCTeruskan
+  }
+
+  package "Persetujuan PPSPM" {
+    usecase "Lihat Inbox Persetujuan" as UCInboxPPSPM
+    usecase "Setujui Dokumen" as UCSetujui
+    usecase "Kembalikan ke PPK" as UCKembalikan
+  }
+}
+
+Pegawai --> UCAjukanMaterial
+Pegawai --> UCSimpanNonMaterial
+Pegawai --> UCUpload
+Pegawai --> UCRevisi
+Pegawai --> UCAjukanUlang
+Pegawai --> UCStatus
+Pegawai --> UCRiwayat
+Pegawai --> UCFile
+
+PPK --> UCInboxPPK
+PPK --> UCValidasi
+PPK --> UCMintaRevisi
+PPK --> UCTeruskan
+PPK --> UCRiwayat
+PPK --> UCFile
+
+PPSPM --> UCInboxPPSPM
+PPSPM --> UCSetujui
+PPSPM --> UCKembalikan
+PPSPM --> UCRiwayat
+PPSPM --> UCFile
+
+note bottom
+  Material: DRAFT -> IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL -> COMPLETED.
+  Label pengguna tetap PPSPM meskipun status internal memakai IN_BENDAHARA_APPROVAL.
+  Non-material: DRAFT -> TERSIMPAN.
+  Metadata dokumen material selesai, seperti nominal_realisasi, tidak diedit.
+end note
+
+@enduml

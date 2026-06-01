@@ -1,0 +1,77 @@
+@startuml
+title DMS - Use Case Administrasi dan Konfigurasi
+
+left to right direction
+
+actor "Admin Sistem" as Admin
+
+rectangle "Administrasi Sistem" {
+  package "Akses Admin" {
+    usecase "Login / Logout" as UCLogin
+  }
+
+  package "Manajemen User" {
+    usecase "Kelola User" as UCKelolaUser
+    usecase "Filter User berdasarkan Status" as UCFilterStatus
+    usecase "Filter User berdasarkan Role" as UCFilterRole
+    usecase "Filter User berdasarkan Ketua Tim" as UCFilterKetuaTim
+    usecase "Tambah User" as UCTambahUser
+    usecase "Edit User" as UCEditUser
+    usecase "Aktifkan / Nonaktifkan User" as UCAktivasiUser
+    usecase "Reset Password User" as UCResetPassword
+  }
+
+  package "Master Data" {
+    usecase "Kelola Master Data" as UCMasterData
+    usecase "Pilih Fungsi" as UCPilihFungsi
+    usecase "Pilih Kegiatan" as UCPilihKegiatan
+    usecase "Pilih Jenis Permintaan" as UCPilihJenis
+    usecase "Pilih Kategori" as UCPilihKategori
+    usecase "Pilih Detail / Leaf" as UCPilihDetail
+  }
+
+  package "Kelengkapan Dokumen" {
+    usecase "Kelola Kelengkapan Dokumen" as UCKelengkapan
+    usecase "Atur Kelengkapan Ketua Tim" as UCKetuaTim
+    usecase "Atur Kelengkapan Anggota" as UCAnggota
+  }
+}
+
+Admin --> UCLogin
+Admin --> UCKelolaUser
+Admin --> UCFilterStatus
+Admin --> UCFilterRole
+Admin --> UCFilterKetuaTim
+Admin --> UCTambahUser
+Admin --> UCEditUser
+Admin --> UCAktivasiUser
+Admin --> UCResetPassword
+Admin --> UCMasterData
+Admin --> UCKelengkapan
+
+UCKelolaUser ..> UCFilterStatus : <<include>>
+UCKelolaUser ..> UCFilterRole : <<include>>
+UCKelolaUser ..> UCFilterKetuaTim : <<include>>
+UCKelolaUser ..> UCTambahUser : <<include>>
+UCKelolaUser ..> UCEditUser : <<include>>
+UCKelolaUser ..> UCAktivasiUser : <<include>>
+UCKelolaUser ..> UCResetPassword : <<include>>
+
+UCMasterData ..> UCPilihFungsi : <<include>>
+UCMasterData ..> UCPilihKegiatan : <<include>>
+UCMasterData ..> UCPilihJenis : <<include>>
+UCMasterData ..> UCPilihKategori : <<include>>
+UCMasterData ..> UCPilihDetail : <<include>>
+
+UCKelengkapan ..> UCKetuaTim : <<include>>
+UCKelengkapan ..> UCAnggota : <<include>>
+
+note bottom
+  Reset Password User oleh Admin membutuhkan Password Baru dan Konfirmasi saja.
+  Ganti password profil terpisah dan membutuhkan password saat ini.
+  Satu kegiatan hanya memiliki satu Ketua Tim.
+  Satu user dapat memimpin banyak kegiatan.
+  Admin Sistem bukan aktor workflow operasional.
+end note
+
+@enduml
