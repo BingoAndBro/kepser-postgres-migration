@@ -1,0 +1,77 @@
+@startuml
+title DMS - Domain Workflow Dokumen
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Workflow Dokumen" {
+  class User <<external auth>> {
+    id
+    displayName
+  }
+
+  class DokumenTransaksi {
+    id
+    status
+    currentStep
+    revisionTarget
+    nominalRealisasi
+    createdAt
+    updatedAt
+  }
+
+  class LampiranMetadata {
+    id
+    displayName
+    createdAt
+  }
+
+  class LogAktivitas {
+    id
+    action
+    createdAt
+  }
+
+  enum WorkflowStatus {
+    DRAFT
+    IN_PPK_VALIDATION
+    IN_BENDAHARA_APPROVAL
+    NEED_REVISION
+    COMPLETED
+    TERSIMPAN
+  }
+
+  enum RevisionTarget {
+    USER
+    PPK
+  }
+}
+
+User "1" --> "0..*" DokumenTransaksi : creates
+DokumenTransaksi "1" *-- "0..*" LampiranMetadata : attachments
+DokumenTransaksi "1" *-- "0..*" LogAktivitas : audit trail
+LogAktivitas "0..*" --> "1" User : actor
+DokumenTransaksi ..> WorkflowStatus
+DokumenTransaksi ..> RevisionTarget
+
+note right of WorkflowStatus
+  Material:
+  DRAFT -> IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL -> COMPLETED
+
+  Label pengguna untuk tahap IN_BENDAHARA_APPROVAL adalah persetujuan PPSPM.
+
+  Non-material:
+  DRAFT -> TERSIMPAN
+end note
+
+note bottom of DokumenTransaksi
+  Dokumen material memakai nominalRealisasi.
+  Dokumen non-material tidak memakai nominalRealisasi.
+  Setelah COMPLETED/SELESAI, metadata material seperti nominalRealisasi tidak diedit.
+end note
+
+note bottom of LogAktivitas
+  log_aktivitas bersifat append-only.
+end note
+
+@enduml

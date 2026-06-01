@@ -1,0 +1,70 @@
+@startuml
+title DMS - Domain Auth, Session, dan RBAC
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Auth & RBAC" {
+  class User {
+    id
+    displayName
+    createdAt
+    updatedAt
+  }
+
+  class Role {
+    id
+    roleName
+    displayName
+  }
+
+  class UserRole {
+    id
+    createdAt
+  }
+
+  class Session {
+    id
+    createdAt
+    updatedAt
+  }
+
+  class ActiveRoleState {
+    selectedRole
+    updatedAt
+  }
+
+  enum RoleName {
+    PEGAWAI
+    PPK
+    BENDAHARA
+    KEPALA_SUB_BAGIAN_UMUM
+    PENANGGUNG_JAWAB_KINERJA
+    ADMIN
+  }
+}
+
+User "1" *-- "1..*" UserRole : assigned roles
+Role "1" *-- "1..*" UserRole : role membership
+User "1" o-- "0..*" Session : active sessions
+ActiveRoleState "0..1" --> "1" User : for user
+ActiveRoleState "0..1" --> "1" Role : selected role
+Role ..> RoleName
+
+note right of Session
+  dms_session adalah batas autentikasi.
+  Nilai internal sesi tidak dimodelkan di diagram.
+end note
+
+note right of ActiveRoleState
+  dms_active_role hanya state UX.
+  Ini bukan bukti otorisasi.
+end note
+
+note bottom of Role
+  Server/API RBAC adalah otoritas.
+  ADMIN adalah Admin Sistem saja, bukan pengganti aktor operasional.
+  Role internal BENDAHARA ditampilkan ke pengguna sebagai PPSPM.
+end note
+
+@enduml

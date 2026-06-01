@@ -1,0 +1,99 @@
+@startuml
+title DMS - Domain Pemberkasan Arsip Folder-First
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Master Klasifikasi" {
+  class MasterKlasifikasiArsip {
+    id
+    displayName
+    createdAt
+    updatedAt
+  }
+}
+
+package "Berkas Arsip" {
+  class BerkasArsip {
+    id
+    statusBerkas
+    statusArsip
+    nomorSpm
+    retensiAktif
+    retensiInaktif
+    closedAt
+    createdAt
+    updatedAt
+  }
+
+  class BerkasArsipItem {
+    id
+    sourceType
+    createdAt
+  }
+
+  enum SourceType {
+    WORKFLOW
+    MANUAL
+  }
+
+  enum StatusBerkas {
+    OPEN
+    CLOSED
+  }
+
+  enum StatusArsip {
+    AKTIF
+    INAKTIF
+    USUL_MUSNAH
+    DIMUSNAHKAN
+  }
+}
+
+package "Source References" {
+  class DokumenTransaksi <<source reference>> {
+    id
+    status
+  }
+
+  class ManualArsip <<source reference>> {
+    id
+    displayName
+  }
+}
+
+MasterKlasifikasiArsip "1" o-- "1..*" BerkasArsip : jenis pembayaran
+BerkasArsip "1" *-- "1..*" BerkasArsipItem : grouped items
+BerkasArsipItem ..> SourceType
+BerkasArsip ..> StatusBerkas
+BerkasArsip ..> StatusArsip
+BerkasArsipItem "0..*" --> "0..1" DokumenTransaksi : when WORKFLOW
+BerkasArsipItem "0..*" --> "0..1" ManualArsip : when MANUAL
+
+note right of MasterKlasifikasiArsip
+  Klasifikasi awal hanya memilih leaf Jenis Pembayaran.
+  Klasifikasi awal tidak mengisi Nomor SPM, retensi,
+  atau metadata arsip final.
+end note
+
+note bottom of BerkasArsip
+  Nomor SPM dan metadata arsip final diisi saat Tutup Berkas.
+  Setelah CLOSED, Jenis Pembayaran tidak tersedia untuk dokumen baru.
+  Inaktif dan Usul Musnah bersifat baca-saja.
+end note
+
+note bottom of StatusArsip
+  Lifecycle:
+  OPEN/null -> CLOSED/AKTIF -> CLOSED/INAKTIF
+  -> CLOSED/USUL_MUSNAH -> CLOSED/DIMUSNAHKAN
+
+  DIMUSNAHKAN mempertahankan metadata dan memblokir akses file.
+  Pesan aman: Data file sudah dimusnahkan
+end note
+
+note bottom
+  Runtime archive authority adalah folder-first BerkasArsip dan BerkasArsipItem.
+  Legacy canonical archive runtime tidak dimodelkan sebagai aktif.
+end note
+
+@enduml

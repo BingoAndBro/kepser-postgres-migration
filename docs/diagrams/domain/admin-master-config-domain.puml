@@ -1,0 +1,98 @@
+@startuml
+title DMS - Domain Admin dan Master Configuration
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "User & Role Configuration" {
+  class User {
+    id
+    displayName
+    createdAt
+    updatedAt
+  }
+
+  class Role {
+    id
+    roleName
+    displayName
+  }
+
+  class UserRole {
+    id
+    createdAt
+  }
+
+  class KetuaTimAssignment {
+    id
+    createdAt
+  }
+}
+
+package "Master Data" {
+  class MasterFungsi {
+    id
+    displayName
+  }
+
+  class MasterKegiatan {
+    id
+    displayName
+  }
+
+  class MasterJenisDokumen {
+    id
+    displayName
+  }
+
+  class MasterJenisPermintaan {
+    id
+    displayName
+  }
+
+  class MasterKategoriPermintaan {
+    id
+    displayName
+  }
+
+  class MasterDetailPermintaan {
+    id
+    displayName
+  }
+
+  class MasterKelengkapanDokumen {
+    id
+    displayName
+    appliesTo
+  }
+}
+
+User "1" *-- "0..*" UserRole : assigned roles
+Role "1" *-- "0..*" UserRole : role membership
+MasterFungsi "1" *-- "0..*" MasterKegiatan : kegiatan
+MasterKegiatan "1" *-- "0..*" MasterJenisDokumen : jenis dokumen
+MasterKegiatan "1" *-- "0..*" MasterJenisPermintaan : jenis permintaan
+MasterJenisPermintaan "1" *-- "0..*" MasterKategoriPermintaan : kategori
+MasterKategoriPermintaan "1" *-- "0..*" MasterDetailPermintaan : detail leaf
+MasterDetailPermintaan "1" o-- "0..*" MasterKelengkapanDokumen : kelengkapan
+MasterKegiatan "1" o-- "0..1" KetuaTimAssignment : active lead
+KetuaTimAssignment "0..*" --> "1" User : ketua tim
+
+note right of MasterKelengkapanDokumen
+  Kelengkapan dapat berlaku untuk Ketua Tim atau Anggota.
+end note
+
+note bottom of KetuaTimAssignment
+  Satu Kegiatan hanya memiliki satu Ketua Tim aktif.
+  Satu User dapat memimpin banyak Kegiatan.
+end note
+
+note bottom
+  Admin Sistem mengelola user, role, master data, kelengkapan,
+  dan reset password user.
+  Reset Password Admin membutuhkan Password Baru dan Konfirmasi saja.
+  Ganti password profil terpisah dan membutuhkan password saat ini.
+  Admin Sistem bukan aktor workflow operasional.
+end note
+
+@enduml

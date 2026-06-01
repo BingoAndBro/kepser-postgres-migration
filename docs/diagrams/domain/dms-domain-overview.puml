@@ -1,0 +1,98 @@
+@startuml
+title DMS - Domain Overview
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Auth & RBAC" {
+  class AuthRbacContext {
+    dmsSession
+    serverRbac
+  }
+}
+
+package "Document Workflow" {
+  class DocumentWorkflowContext {
+    workflowStatus
+    finalDocumentMetadata
+  }
+}
+
+package "Folder-First Archive" {
+  class FolderFirstArchiveContext {
+    statusBerkas
+    statusArsip
+  }
+
+  class FileAccessPolicy {
+    authorizedAccess
+    destroyedBlock
+  }
+}
+
+package "Manual Document Source" {
+  class ManualDocumentSourceContext {
+    manualDocumentMetadata
+    attachmentMetadata
+  }
+}
+
+package "Admin & Master Configuration" {
+  class AdminMasterConfigContext {
+    userConfig
+    masterData
+    kelengkapan
+  }
+}
+
+package "Reporting" {
+  class ReportingContext {
+    finalMetadataOnly
+    noFileAccess
+  }
+}
+
+AuthRbacContext ..> DocumentWorkflowContext : authorizes actors
+AuthRbacContext ..> FolderFirstArchiveContext : authorizes actors
+AuthRbacContext ..> ManualDocumentSourceContext : authorizes actors
+AuthRbacContext ..> AdminMasterConfigContext : authorizes Admin Sistem
+AuthRbacContext ..> ReportingContext : authorizes Penanggung Jawab Kinerja
+
+AdminMasterConfigContext ..> DocumentWorkflowContext : user, role, master, kelengkapan
+AdminMasterConfigContext ..> FolderFirstArchiveContext : master classification
+
+DocumentWorkflowContext --> FolderFirstArchiveContext : completed workflow documents
+ManualDocumentSourceContext --> FolderFirstArchiveContext : manual documents enter berkas
+FolderFirstArchiveContext o-- FileAccessPolicy : preview/download policy
+ReportingContext ..> DocumentWorkflowContext : reads final metadata
+ReportingContext ..> FolderFirstArchiveContext : reads archive metadata
+
+note right of AuthRbacContext
+  dms_session adalah batas autentikasi.
+  dms_active_role hanya state UX.
+  Server/API RBAC adalah otoritas.
+end note
+
+note bottom of ReportingContext
+  Penanggung Jawab Kinerja hanya membaca metadata.
+  Tidak ada akses file dari domain reporting.
+end note
+
+note bottom of AdminMasterConfigContext
+  ADMIN adalah Admin Sistem.
+  ADMIN tidak menggantikan Pegawai, PPK, PPSPM,
+  Kepala Sub Bagian Umum, atau Penanggung Jawab Kinerja.
+end note
+
+note bottom of FileAccessPolicy
+  File access selalu melewati otorisasi.
+  Jika status DIMUSNAHKAN, akses file diblokir.
+  Pesan aman: Data file sudah dimusnahkan
+end note
+
+note bottom
+  Runtime archive authority memakai folder-first berkas.
+  Removed legacy archive runtime bukan active authority.
+end note
+
+@enduml

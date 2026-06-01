@@ -1,0 +1,84 @@
+@startuml
+title DMS - Domain Penambahan Dokumen Manual
+
+skinparam classAttributeIconSize 0
+hide circle
+
+package "Penambahan Dokumen" {
+  class ManualArsip {
+    id
+    namaDokumen
+    kategori
+    tanggalDokumen
+    nominalRealisasi
+    keterangan
+    createdAt
+    updatedAt
+  }
+
+  class ManualArsipAttachment {
+    id
+    judulLampiran
+    createdAt
+  }
+
+  class ManualArsipCategory {
+    id
+    displayName
+  }
+}
+
+package "Folder-First Archive" {
+  class MasterKlasifikasiArsip {
+    id
+    displayName
+  }
+
+  class BerkasArsip {
+    id
+    statusBerkas
+    statusArsip
+  }
+
+  class BerkasArsipItem {
+    id
+    sourceType
+    createdAt
+  }
+
+  enum SourceType {
+    WORKFLOW
+    MANUAL
+  }
+}
+
+ManualArsip "1" *-- "0..*" ManualArsipAttachment : attachments
+ManualArsip "0..*" --> "0..1" ManualArsipCategory : category
+ManualArsip "0..*" --> "1" MasterKlasifikasiArsip : jenis pembayaran
+MasterKlasifikasiArsip "1" o-- "1..*" BerkasArsip : groups by leaf
+BerkasArsip "1" *-- "1..*" BerkasArsipItem : manual and workflow items
+BerkasArsipItem "0..*" --> "0..1" ManualArsip : when MANUAL
+BerkasArsipItem ..> SourceType
+
+note right of ManualArsip
+  Nama fitur pengguna: Penambahan Dokumen.
+  Bukan Penambahan Arsip.
+
+  Field wajib:
+  nama dokumen, kategori, tanggal dokumen/sumber,
+  jenis pembayaran, nominal realisasi, keterangan.
+  Lampiran bersifat opsional.
+end note
+
+note bottom of BerkasArsip
+  Dokumen manual masuk ke berkas folder-first yang sama
+  berdasarkan Jenis Pembayaran.
+  Berkas dapat berisi item MANUAL dan WORKFLOW.
+end note
+
+note bottom of ManualArsipAttachment
+  Detail penyimpanan lampiran tetap internal
+  dan tidak diekspos di diagram domain.
+end note
+
+@enduml
