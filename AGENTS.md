@@ -28,6 +28,7 @@ Partial / bounded release handoff: local/LAN target is ready for human-controlle
 - Jangan menulis atau menyimpulkan bahwa Supabase sudah fully removed from repository.
 - No old Supabase data/file recovery, migration, copy, download, backfill, sync, or fallback is expected.
 - Setelah 11H.3, recommended state adalah human-controlled maintenance/backlog governance.
+- Phase 14M moved historical migration docs into `docs/migration/_archive/`; Phase 15/frontend work must not treat `_archive` docs as current authority.
 
 Referensi utama:
 
