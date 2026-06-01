@@ -1,0 +1,130 @@
+@startuml
+title DMS - ERD Penambahan Dokumen Manual Source
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "auth.users" as AuthUsers {
+  * id : uuid <<PK>>
+  --
+  display_name : text
+  nama_lengkap : text
+}
+
+entity "arsip.manual_arsip_category" as ManualArsipCategory {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "arsip.master_klasifikasi_arsip" as MasterKlasifikasiArsip {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  kode : text
+  parent_id : uuid <<FK nullable>>
+  is_active : boolean
+}
+
+entity "arsip.manual_arsip" as ManualArsip {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  tanggal : date
+  nomor_surat : text
+  tanggal_diarsipkan : date
+  keterangan : text
+  nominal_realisasi : numeric
+  category_id : uuid <<FK>>
+  klasifikasi_id : uuid <<FK nullable>>
+  klasifikasi_kode_snapshot : text
+  klasifikasi_nama_snapshot : text
+  retensi_aktif : text
+  retensi_inaktif : text
+  masa_aktif_berakhir : date
+  masa_inaktif_berakhir : date
+  status_arsip : text
+  archived_by : uuid <<FK nullable>>
+  created_by : uuid <<FK>>
+  created_at : timestamptz
+  updated_at : timestamptz
+  inactivated_by : uuid <<FK nullable>>
+  proposed_destroy_by : uuid <<FK nullable>>
+  destroyed_by : uuid <<FK nullable>>
+}
+
+entity "arsip.manual_arsip_attachment" as ManualArsipAttachment {
+  * id : uuid <<PK>>
+  --
+  manual_arsip_id : uuid <<FK>>
+  original_filename : text
+  judul_lampiran : text
+  content_type : text
+  size_bytes : bigint
+  created_by : uuid <<FK>>
+  created_at : timestamptz
+}
+
+entity "arsip.berkas_arsip_item" as BerkasArsipItem {
+  * id : uuid <<PK>>
+  --
+  source_type : text
+  manual_arsip_id : uuid <<FK nullable>>
+  berkas_id : uuid <<FK>>
+}
+
+entity "arsip.berkas_arsip" as BerkasArsip {
+  * id : uuid <<PK>>
+  --
+  klasifikasi_id : uuid <<FK>>
+  status_berkas : text
+  status_arsip : text
+}
+
+ManualArsipCategory ||--o{ ManualArsip : category_id
+MasterKlasifikasiArsip ||--o{ MasterKlasifikasiArsip : parent_id
+MasterKlasifikasiArsip ||--o{ ManualArsip : klasifikasi_id
+MasterKlasifikasiArsip ||--o{ BerkasArsip : klasifikasi_id
+ManualArsip ||--o{ ManualArsipAttachment : manual_arsip_id
+ManualArsip ||--o| BerkasArsipItem : manual_arsip_id
+BerkasArsip ||--o{ BerkasArsipItem : berkas_id
+AuthUsers ||--o{ ManualArsip : created_by
+AuthUsers ||--o{ ManualArsip : archived_by
+AuthUsers ||--o{ ManualArsip : inactivated_by
+AuthUsers ||--o{ ManualArsip : proposed_destroy_by
+AuthUsers ||--o{ ManualArsip : destroyed_by
+AuthUsers ||--o{ ManualArsipAttachment : created_by
+
+note right of ManualArsip
+  Nama fitur pengguna: Penambahan Dokumen.
+  Tabel ini adalah sumber dokumen manual dan metadata asal:
+  nama, tanggal, kategori, Jenis Pembayaran,
+  nominal_realisasi, keterangan, dan snapshot klasifikasi.
+
+  Kolom lifecycle-like pada manual_arsip dipertahankan
+  sebagai field historis/transisional/internal schema.
+  Kolom tersebut tidak mendefinisikan authority lifecycle arsip aktif.
+end note
+
+note bottom of ManualArsipAttachment
+  Detail lokasi berkas dan storage internals tidak dirinci di ERD.
+  Judul lampiran resmi disimpan di judul_lampiran.
+end note
+
+note right of BerkasArsipItem
+  Untuk source_type MANUAL, manual_arsip_id harus terisi
+  dan dokumen workflow tidak menjadi source row ini.
+end note
+
+note bottom
+  Manual source persistence tetap terpisah dari grouping folder-first.
+  Folder-first lifecycle authority adalah berkas_arsip.status_berkas
+  dan berkas_arsip.status_arsip melalui berkas_arsip_item source MANUAL.
+end note
+
+@enduml

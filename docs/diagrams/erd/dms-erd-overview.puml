@@ -1,0 +1,176 @@
+@startuml
+title DMS - ERD Overview Relasional Aktif
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "Auth / RBAC" {
+  entity "auth.users" as AuthUsers {
+    * id : uuid <<PK>>
+  }
+
+  entity "auth.roles" as AuthRoles {
+    * id : uuid <<PK>>
+  }
+
+  entity "auth.user_roles" as AuthUserRoles {
+    * user_id : uuid <<PK, FK>>
+    * role_id : uuid <<PK, FK>>
+  }
+
+  entity "auth.sessions" as AuthSessions {
+    * id : uuid <<PK>>
+    --
+    user_id : uuid <<FK>>
+  }
+}
+
+package "Workflow Dokumen" {
+  entity "dokumen.dokumen_transaksi" as DokumenTransaksi {
+    * id : uuid <<PK>>
+    --
+    created_by : uuid <<FK>>
+    fungsi_id : uuid <<FK>>
+    kegiatan_jenis_id : uuid <<FK>>
+    jenis_dokumen_id : uuid <<FK nullable>>
+  }
+
+  entity "dokumen.log_aktivitas" as LogAktivitas {
+    * id : uuid <<PK>>
+    --
+    dokumen_id : uuid <<FK>>
+    user_id : uuid <<FK>>
+  }
+}
+
+package "Folder-First Archive" {
+  entity "arsip.master_klasifikasi_arsip" as MasterKlasifikasiArsip {
+    * id : uuid <<PK>>
+  }
+
+  entity "arsip.berkas_arsip" as BerkasArsip {
+    * id : uuid <<PK>>
+    --
+    klasifikasi_id : uuid <<FK>>
+    created_by : uuid <<FK>>
+    closed_by : uuid <<FK nullable>>
+  }
+
+  entity "arsip.berkas_arsip_item" as BerkasArsipItem {
+    * id : uuid <<PK>>
+    --
+    berkas_id : uuid <<FK>>
+    dokumen_id : uuid <<FK nullable>>
+    manual_arsip_id : uuid <<FK nullable>>
+    added_by : uuid <<FK>>
+  }
+}
+
+package "Manual Document Source" {
+  entity "arsip.manual_arsip_category" as ManualArsipCategory {
+    * id : uuid <<PK>>
+  }
+
+  entity "arsip.manual_arsip" as ManualArsip {
+    * id : uuid <<PK>>
+    --
+    category_id : uuid <<FK>>
+    klasifikasi_id : uuid <<FK nullable>>
+    created_by : uuid <<FK>>
+  }
+
+  entity "arsip.manual_arsip_attachment" as ManualArsipAttachment {
+    * id : uuid <<PK>>
+    --
+    manual_arsip_id : uuid <<FK>>
+    created_by : uuid <<FK>>
+  }
+}
+
+package "Admin / Master Config" {
+  entity "master.master_fungsi" as MasterFungsi {
+    * id : uuid <<PK>>
+  }
+
+  entity "master.master_kegiatan" as MasterKegiatan {
+    * id : uuid <<PK>>
+    --
+    fungsi_id : uuid <<FK>>
+  }
+
+  entity "master.master_jenis_dokumen" as MasterJenisDokumen {
+    * id : uuid <<PK>>
+  }
+
+  entity "master.master_jenis_permintaan" as MasterJenisPermintaan {
+    * id : uuid <<PK>>
+  }
+
+  entity "master.master_kategori_permintaan" as MasterKategoriPermintaan {
+    * id : uuid <<PK>>
+    --
+    jenis_permintaan_id : uuid <<FK>>
+  }
+
+  entity "master.master_detail_permintaan" as MasterDetailPermintaan {
+    * id : uuid <<PK>>
+    --
+    kategori_permintaan_id : uuid <<FK>>
+  }
+
+  entity "master.master_kelengkapan_dokumen" as MasterKelengkapanDokumen {
+    * id : uuid <<PK>>
+    --
+    kegiatan_id : uuid <<FK>>
+  }
+
+  entity "master.ketua_tim_assignments" as KetuaTimAssignments {
+    * id : uuid <<PK>>
+    --
+    user_id : uuid <<FK>>
+    kegiatan_id : uuid <<FK>>
+  }
+}
+
+AuthUsers ||--o{ AuthSessions : user_id
+AuthUsers ||--o{ AuthUserRoles : user_id
+AuthRoles ||--o{ AuthUserRoles : role_id
+
+AuthUsers ||--o{ DokumenTransaksi : created_by
+AuthUsers ||--o{ LogAktivitas : user_id
+DokumenTransaksi ||--o{ LogAktivitas : dokumen_id
+MasterFungsi ||--o{ MasterKegiatan : fungsi_id
+MasterFungsi ||--o{ DokumenTransaksi : fungsi_id
+MasterKegiatan ||--o{ DokumenTransaksi : kegiatan_jenis_id
+MasterJenisDokumen ||--o{ DokumenTransaksi : jenis_dokumen_id
+
+MasterKlasifikasiArsip ||--o{ BerkasArsip : klasifikasi_id
+BerkasArsip ||--o{ BerkasArsipItem : berkas_id
+DokumenTransaksi ||--o| BerkasArsipItem : dokumen_id
+ManualArsip ||--o| BerkasArsipItem : manual_arsip_id
+AuthUsers ||--o{ BerkasArsip : created_by
+AuthUsers ||--o{ BerkasArsipItem : added_by
+
+ManualArsipCategory ||--o{ ManualArsip : category_id
+MasterKlasifikasiArsip ||--o{ ManualArsip : klasifikasi_id
+ManualArsip ||--o{ ManualArsipAttachment : manual_arsip_id
+AuthUsers ||--o{ ManualArsip : created_by
+AuthUsers ||--o{ ManualArsipAttachment : created_by
+
+MasterJenisPermintaan ||--o{ MasterKategoriPermintaan : jenis_permintaan_id
+MasterKategoriPermintaan ||--o{ MasterDetailPermintaan : kategori_permintaan_id
+MasterKegiatan ||--o{ MasterKelengkapanDokumen : kegiatan_id
+MasterJenisPermintaan ||--o{ MasterKelengkapanDokumen : jenis_permintaan_id
+MasterKategoriPermintaan ||--o{ MasterKelengkapanDokumen : kategori_permintaan_id
+MasterDetailPermintaan ||--o{ MasterKelengkapanDokumen : detail_permintaan_id
+AuthUsers ||--o{ KetuaTimAssignments : user_id
+MasterKegiatan ||--o| KetuaTimAssignments : kegiatan_id
+
+note bottom
+  Diagram ini adalah overview ringkas dari tabel aktif di src/db/schema/**.
+  Detail atribut, constraint, dan catatan keamanan dipisah ke ERD per domain.
+  Runtime archive authority aktif memakai folder-first berkas dan item.
+end note
+
+@enduml

@@ -1,0 +1,173 @@
+@startuml
+title DMS - ERD Admin dan Master Configuration
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "auth.users" as AuthUsers {
+  * id : uuid <<PK>>
+  --
+  email : text <<UQ>>
+  display_name : text
+  nama_lengkap : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "auth.roles" as AuthRoles {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  description : text
+}
+
+entity "auth.user_roles" as AuthUserRoles {
+  * user_id : uuid <<PK, FK>>
+  * role_id : uuid <<PK, FK>>
+  --
+  created_at : timestamptz
+}
+
+entity "master.master_fungsi" as MasterFungsi {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_kegiatan" as MasterKegiatan {
+  * id : uuid <<PK>>
+  --
+  fungsi_id : uuid <<FK>>
+  nama : text
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_jenis_dokumen" as MasterJenisDokumen {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_jenis_permintaan" as MasterJenisPermintaan {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_kategori_permintaan" as MasterKategoriPermintaan {
+  * id : uuid <<PK>>
+  --
+  jenis_permintaan_id : uuid <<FK>>
+  nama : text
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_detail_permintaan" as MasterDetailPermintaan {
+  * id : uuid <<PK>>
+  --
+  kategori_permintaan_id : uuid <<FK>>
+  nama : text
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.master_kelengkapan_dokumen" as MasterKelengkapanDokumen {
+  * id : uuid <<PK>>
+  --
+  kegiatan_id : uuid <<FK>>
+  is_ketua_tim : boolean
+  nama_dokumen : text
+  required : boolean
+  jenis_permintaan_id : uuid <<FK nullable>>
+  kategori_permintaan_id : uuid <<FK nullable>>
+  detail_permintaan_id : uuid <<FK nullable>>
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "master.ketua_tim_assignments" as KetuaTimAssignments {
+  * id : uuid <<PK>>
+  --
+  user_id : uuid <<FK>>
+  kegiatan_id : uuid <<FK, UQ>>
+  created_at : timestamptz
+  created_by : uuid <<FK nullable>>
+}
+
+entity "dokumen.dokumen_transaksi" as DokumenTransaksi {
+  * id : uuid <<PK>>
+  --
+  fungsi_id : uuid <<FK>>
+  kegiatan_jenis_id : uuid <<FK>>
+  jenis_dokumen_id : uuid <<FK nullable>>
+}
+
+AuthUsers ||--o{ AuthUserRoles : user_id
+AuthRoles ||--o{ AuthUserRoles : role_id
+
+MasterFungsi ||--o{ MasterKegiatan : fungsi_id
+MasterFungsi ||--o{ DokumenTransaksi : fungsi_id
+MasterKegiatan ||--o{ DokumenTransaksi : kegiatan_jenis_id
+MasterJenisDokumen ||--o{ DokumenTransaksi : jenis_dokumen_id
+
+MasterJenisPermintaan ||--o{ MasterKategoriPermintaan : jenis_permintaan_id
+MasterKategoriPermintaan ||--o{ MasterDetailPermintaan : kategori_permintaan_id
+
+MasterKegiatan ||--o{ MasterKelengkapanDokumen : kegiatan_id
+MasterJenisPermintaan ||--o{ MasterKelengkapanDokumen : jenis_permintaan_id
+MasterKategoriPermintaan ||--o{ MasterKelengkapanDokumen : kategori_permintaan_id
+MasterDetailPermintaan ||--o{ MasterKelengkapanDokumen : detail_permintaan_id
+
+AuthUsers ||--o{ KetuaTimAssignments : user_id
+AuthUsers ||--o{ KetuaTimAssignments : created_by
+MasterKegiatan ||--o| KetuaTimAssignments : kegiatan_id
+
+note right of MasterKegiatan
+  Unique partial aktif: fungsi_id + nama saat is_active = true.
+end note
+
+note right of MasterKelengkapanDokumen
+  is_ketua_tim menentukan berlaku untuk Ketua Tim atau Anggota.
+  Check constraint: kategori membutuhkan jenis;
+  detail membutuhkan kategori.
+end note
+
+note bottom of KetuaTimAssignments
+  Unique kegiatan_id: satu kegiatan memiliki satu Ketua Tim aktif.
+  Satu user dapat memimpin banyak kegiatan.
+end note
+
+note bottom of AuthRoles
+  Admin Sistem adalah aktor konfigurasi dan administrasi.
+  ERD ini tidak menyiratkan akses operasional Admin Sistem.
+end note
+
+note bottom
+  MasterJenisDokumen berdiri sebagai referensi dokumen eksplisit.
+  Relasi jenis/kategori/detail permintaan ke dokumen transaksi tidak digambar
+  karena schema Drizzle aktif tidak mendefinisikan FK langsung dari tabel workflow.
+end note
+
+@enduml

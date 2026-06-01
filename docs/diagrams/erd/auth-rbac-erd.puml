@@ -1,0 +1,83 @@
+@startuml
+title DMS - ERD Auth, Session, dan RBAC
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "auth.users" as AuthUsers {
+  * id : uuid <<PK>>
+  --
+  email : text <<UQ>>
+  display_name : text
+  nama_lengkap : text
+  nip_nrp : text
+  departemen : text
+  is_active : boolean
+  inactive_reason : text
+  deactivated_at : timestamptz
+  deactivated_by : uuid
+  last_login_at : timestamptz
+  password_updated_at : timestamptz
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "auth.roles" as AuthRoles {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  description : text
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "auth.user_roles" as AuthUserRoles {
+  * user_id : uuid <<PK, FK>>
+  * role_id : uuid <<PK, FK>>
+  --
+  created_at : timestamptz
+}
+
+entity "auth.sessions" as AuthSessions {
+  * id : uuid <<PK>>
+  --
+  user_id : uuid <<FK>>
+  expires_at : timestamptz
+  created_at : timestamptz
+  last_used_at : timestamptz
+  revoked_at : timestamptz
+  remember_me : boolean
+  user_agent : text
+  ip_address : text
+}
+
+AuthUsers ||--o{ AuthSessions : user_id
+AuthUsers ||--o{ AuthUserRoles : user_id
+AuthRoles ||--o{ AuthUserRoles : role_id
+AuthUsers ||--o{ AuthUsers : deactivated_by
+
+note right of AuthUsers
+  Kolom credential secret disimpan internal dan sengaja tidak dirinci.
+  dms_session adalah batas autentikasi.
+end note
+
+note right of AuthSessions
+  Rahasia sesi disimpan sebagai digest internal.
+  Nilai sesi tidak pernah dimodelkan di ERD publik.
+end note
+
+note bottom of AuthRoles
+  ADMIN direpresentasikan sebagai data role Admin Sistem.
+  ADMIN bukan pengganti operasional untuk Pegawai, PPK, PPSPM,
+  Kepala Sub Bagian Umum, atau Penanggung Jawab Kinerja.
+  dms_active_role hanya state UX; Server/API RBAC tetap otoritatif.
+end note
+
+note bottom of AuthUserRoles
+  Primary key gabungan: user_id + role_id.
+  Invariant eksklusivitas ADMIN ditegakkan oleh service/seed/admin mutation,
+  bukan oleh check constraint sederhana pada join table.
+end note
+
+@enduml

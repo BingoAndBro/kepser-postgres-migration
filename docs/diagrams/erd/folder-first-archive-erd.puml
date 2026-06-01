@@ -1,0 +1,108 @@
+@startuml
+title DMS - ERD Folder-First Archive
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "auth.users" as AuthUsers {
+  * id : uuid <<PK>>
+  --
+  display_name : text
+  nama_lengkap : text
+}
+
+entity "arsip.master_klasifikasi_arsip" as MasterKlasifikasiArsip {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  kode : text <<UQ nullable>>
+  parent_id : uuid <<FK nullable>>
+  deskripsi : text
+  is_active : boolean
+  created_at : timestamp
+}
+
+entity "arsip.berkas_arsip" as BerkasArsip {
+  * id : uuid <<PK>>
+  --
+  klasifikasi_id : uuid <<FK>>
+  klasifikasi_kode_snapshot : text
+  klasifikasi_nama_snapshot : text
+  status_berkas : text
+  status_arsip : text
+  nomor_spm : text
+  retensi_aktif : text
+  retensi_inaktif : text
+  masa_aktif_berakhir : date
+  masa_inaktif_berakhir : date
+  closed_at : timestamptz
+  closed_by : uuid <<FK nullable>>
+  created_by : uuid <<FK>>
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "arsip.berkas_arsip_item" as BerkasArsipItem {
+  * id : uuid <<PK>>
+  --
+  berkas_id : uuid <<FK>>
+  source_type : text
+  dokumen_id : uuid <<FK nullable>>
+  manual_arsip_id : uuid <<FK nullable>>
+  added_by : uuid <<FK>>
+  added_at : timestamptz
+}
+
+entity "dokumen.dokumen_transaksi" as DokumenTransaksi {
+  * id : uuid <<PK>>
+  --
+  status : text
+  judul : text
+}
+
+entity "arsip.manual_arsip" as ManualArsip {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  klasifikasi_id : uuid <<FK nullable>>
+}
+
+MasterKlasifikasiArsip ||--o{ MasterKlasifikasiArsip : parent_id
+MasterKlasifikasiArsip ||--o{ BerkasArsip : klasifikasi_id
+BerkasArsip ||--o{ BerkasArsipItem : berkas_id
+DokumenTransaksi ||--o| BerkasArsipItem : dokumen_id
+ManualArsip ||--o| BerkasArsipItem : manual_arsip_id
+MasterKlasifikasiArsip ||--o{ ManualArsip : klasifikasi_id
+AuthUsers ||--o{ BerkasArsip : created_by
+AuthUsers ||--o{ BerkasArsip : closed_by
+AuthUsers ||--o{ BerkasArsipItem : added_by
+
+note right of BerkasArsip
+  status_berkas: OPEN, CLOSED.
+  status_arsip: null saat OPEN; AKTIF, INAKTIF, USUL_MUSNAH, DIMUSNAHKAN saat lifecycle arsip.
+  Unique partial: satu berkas OPEN per klasifikasi_id.
+end note
+
+note bottom of BerkasArsip
+  Lifecycle:
+  OPEN/null -> CLOSED/AKTIF -> CLOSED/INAKTIF
+  -> CLOSED/USUL_MUSNAH -> CLOSED/DIMUSNAHKAN
+
+  Jika DIMUSNAHKAN, file access diblokir dengan pesan:
+  Data file sudah dimusnahkan
+end note
+
+note right of BerkasArsipItem
+  source_type hanya WORKFLOW atau MANUAL.
+  Check constraint memastikan tepat satu source reference terisi.
+  dokumen_id unik jika source WORKFLOW.
+  manual_arsip_id unik jika source MANUAL.
+end note
+
+note bottom
+  ERD ini memakai tabel folder-first aktif: berkas_arsip dan berkas_arsip_item.
+  Model arsip lama tidak digambarkan sebagai authority runtime aktif.
+end note
+
+@enduml

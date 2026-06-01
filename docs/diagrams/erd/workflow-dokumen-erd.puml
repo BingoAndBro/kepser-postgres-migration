@@ -1,0 +1,109 @@
+@startuml
+title DMS - ERD Workflow Dokumen
+
+hide circle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+entity "auth.users" as AuthUsers {
+  * id : uuid <<PK>>
+  --
+  display_name : text
+  nama_lengkap : text
+}
+
+entity "master.master_fungsi" as MasterFungsi {
+  * id : uuid <<PK>>
+  --
+  nama : text <<UQ>>
+  is_active : boolean
+}
+
+entity "master.master_kegiatan" as MasterKegiatan {
+  * id : uuid <<PK>>
+  --
+  fungsi_id : uuid <<FK>>
+  nama : text
+  is_active : boolean
+}
+
+entity "master.master_jenis_dokumen" as MasterJenisDokumen {
+  * id : uuid <<PK>>
+  --
+  nama : text
+  is_active : boolean
+}
+
+entity "dokumen.dokumen_transaksi" as DokumenTransaksi {
+  * id : uuid <<PK>>
+  --
+  judul : text
+  fungsi_id : uuid <<FK>>
+  kegiatan_jenis_id : uuid <<FK>>
+  jenis_dokumen_id : uuid <<FK nullable>>
+  created_by : uuid <<FK>>
+  status : text
+  current_step : text
+  revision_target : text
+  tahun : integer
+  tanggal : text
+  is_ketua_tim : boolean
+  is_non_material : boolean
+  nominal_realisasi : numeric
+  jenis_permintaan_id : uuid
+  kategori_permintaan_id : uuid
+  detail_permintaan_id : uuid
+  keterangan_detail : text
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "dokumen.log_aktivitas" as LogAktivitas {
+  * id : uuid <<PK>>
+  --
+  dokumen_id : uuid <<FK>>
+  user_id : uuid <<FK>>
+  aksi : text
+  catatan : text
+  step_urutan : integer
+  timestamp : timestamptz
+}
+
+entity "arsip.berkas_arsip_item" as BerkasArsipItem {
+  * id : uuid <<PK>>
+  --
+  source_type : text
+  dokumen_id : uuid <<FK nullable>>
+}
+
+AuthUsers ||--o{ DokumenTransaksi : created_by
+AuthUsers ||--o{ LogAktivitas : user_id
+MasterFungsi ||--o{ MasterKegiatan : fungsi_id
+MasterFungsi ||--o{ DokumenTransaksi : fungsi_id
+MasterKegiatan ||--o{ DokumenTransaksi : kegiatan_jenis_id
+MasterJenisDokumen ||--o{ DokumenTransaksi : jenis_dokumen_id
+DokumenTransaksi ||--o{ LogAktivitas : dokumen_id
+DokumenTransaksi ||--o| BerkasArsipItem : dokumen_id
+
+note right of DokumenTransaksi
+  Status disimpan sebagai text dan dikendalikan oleh FSM aplikasi.
+  Material memakai nominal_realisasi dan alur PPK -> PPSPM.
+  Non-material ditandai is_non_material dan dapat berakhir TERSIMPAN.
+  Metadata lampiran berbentuk JSON dan detail lokasi file tidak dirinci.
+end note
+
+note bottom of LogAktivitas
+  log_aktivitas adalah audit trail append-only menurut kontrak aplikasi.
+end note
+
+note bottom of BerkasArsipItem
+  Cross-reference ke folder-first archive hanya untuk source_type WORKFLOW.
+  Detail berkas dimodelkan di folder-first archive ERD.
+end note
+
+note bottom
+  Kolom jenis_permintaan_id, kategori_permintaan_id, dan detail_permintaan_id
+  ada pada tabel workflow, tetapi schema Drizzle aktif tidak mendefinisikan FK eksplisit.
+end note
+
+@enduml
