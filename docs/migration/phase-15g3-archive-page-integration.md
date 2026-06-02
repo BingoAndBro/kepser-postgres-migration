@@ -45,7 +45,7 @@ The internal `/arsiparis` namespace remains for route compatibility. User-facing
   - open berkas: `Daftar Dokumen` and `Riwayat Aktivitas Berkas`;
   - closed/lifecycle berkas: `Metadata Arsip`, `Daftar Dokumen`, and `Riwayat Aktivitas`.
 - Adjusted open-folder detail metadata so `Nomor SPM`, retention fields, and final archive dates are not shown before closure.
-- Improved destruction confirmation wording around user-visible lifecycle effects: status becomes `Dimusnahkan`, preview/download is blocked, and metadata remains.
+- Improved destruction confirmation wording around user-visible lifecycle effects: status becomes `Dimusnahkan`, associated physical files are deleted by the existing approve-destruction endpoint, preview/download/file access is unavailable after destruction, metadata remains where designed, and the action is not easy to reverse.
 
 ## Shared Components Used
 
@@ -71,6 +71,7 @@ Unchanged:
 - Manual document create/upload/preview/download behavior.
 - Pengklasifikasian Dokumen leaf-node selection behavior.
 - Close berkas API behavior and required fields.
+- Existing approve-destruction backend behavior: the endpoint performs folder-first physical file deletion for associated files after moving the berkas to `Dimusnahkan`; Phase 15G.3 changed UI copy only and did not change backend lifecycle, file-access, or storage implementation.
 - Destruction typed confirmation phrase: `MUSNAHKAN DATA FILE`.
 - Destroyed-file UX phrase: `Data file sudah dimusnahkan`.
 

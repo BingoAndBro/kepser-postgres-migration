@@ -57,6 +57,7 @@ Preserved and unchanged:
 - `AttachmentViewer` behavior remains unchanged.
 - Preview/download API paths and file-token behavior remain unchanged.
 - Archive lifecycle transitions remain unchanged.
+- Archive approve-destruction behavior remains unchanged: the endpoint moves eligible folder-first berkas to `Dimusnahkan`, physically deletes associated files through the existing folder-first physical deletion helper, preserves metadata where designed, and leaves preview/download/file access unavailable after destruction.
 - Workflow lifecycle transitions remain unchanged.
 - API contracts remain unchanged.
 - Schema, migrations, package files, env files, DB folders, Drizzle folders, Supabase folders, and `src/routeTree.gen.ts` remain out of scope.
@@ -69,6 +70,7 @@ Required wording and behavior preserved:
 - "Active runtime/package Supabase dependency retired, historical Supabase artifacts remain."
 - Destructive typed confirmation phrase remains exactly `MUSNAHKAN DATA FILE`.
 - Destroyed-file UX phrase remains exactly `Data file sudah dimusnahkan`.
+- Archive destruction copy must not describe `Dimusnahkan` as access blocking only; `Musnahkan Data` physically deletes associated files while preserving metadata where designed.
 - Use `Profile`, not `Settings`, for account/profile behavior.
 - User-facing `BENDAHARA` display remains `PPSPM`.
 - User-facing archive-role display remains `Kepala Sub Bagian Umum`.
