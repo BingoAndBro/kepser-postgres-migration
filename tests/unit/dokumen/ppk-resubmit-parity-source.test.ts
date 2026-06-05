@@ -1,19 +1,17 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const source = readFileSync('src/routes/pegawai/dokumen/$id/revisi.tsx', 'utf8')
-const editorSource = readFileSync('src/components/dokumen/AttachmentEditor.tsx', 'utf8')
+const source = readFileSync('src/routes/ppk/dokumen/$id/resubmit.tsx', 'utf8')
 
-describe('Phase 15L.2 Revisi Dokumen parity source guard', () => {
-  it('uses sectioned Revisi presentation with review and history tabs', () => {
+describe('Phase 15L.2C PPK resubmit visual parity source guard', () => {
+  it('uses approved Revisi/Ajukan visual patterns on the PPK resubmit page', () => {
     expect(source).toContain("'Metadata & Ringkasan Revisi'")
     expect(source).toContain("'Metadata & Lampiran'")
     expect(source).toContain("'Riwayat'")
     expect(source).toContain("activeTab === 'edit' ? 'block' : 'hidden'")
-    expect(source).toContain('<ActivityLog dokumenId={id} />')
-    expect(source).toContain('Catatan dari PPK')
-    expect(source).toContain('Alur Dokumen')
-    expect(source).toContain('Aksi Revisi')
+    expect(source).toContain("{activeTab === 'history' && <ActivityLog dokumenId={id} />}")
+    expect(source).toContain('Catatan dari PPSPM')
+    expect(source).toContain('Aksi Revisi PPK')
     expect(source).toContain('min-h-full bg-[#FFF9F4] px-4 py-3 sm:px-5 lg:px-6 lg:py-3')
     expect(source).toContain('mx-auto max-w-[92rem] space-y-2.5')
     expect(source).toContain('flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-100')
@@ -25,7 +23,7 @@ describe('Phase 15L.2 Revisi Dokumen parity source guard', () => {
     expect(source).toContain('h-9 w-full gap-2 rounded-xl bg-[#FF5A00] text-xs font-bold')
     expect(source).toContain("label === 'Nominal Realisasi' ? 'text-[#FF5A00]' : 'text-zinc-950'")
     expect(source).toContain('showAsRevision ? \'text-rose-600\'')
-    expect(source).toContain('showAsRevisionDraft')
+    expect(source).toContain('showAsRevisionPpk')
     expect(source).not.toContain('rounded-t-[1.5rem] bg-gradient-to-r from-[#F97316] to-[#FB923C]')
     expect(source).not.toContain('rounded-b-[1.5rem] border border-t-0')
     expect(source).not.toContain("'Review & Ajukan'")
@@ -44,30 +42,30 @@ describe('Phase 15L.2 Revisi Dokumen parity source guard', () => {
     expect(source).toContain('Ajukan ulang dokumen?')
     expect(source).toContain('Ajukan ulang tanpa perubahan?')
     expect(source).toContain('Revisi Berhasil Dikirim')
-    expect(source).toContain('Revisi berhasil diajukan ulang')
+    expect(source).toContain('Revisi PPK berhasil diajukan ulang')
     expect(source).toContain('Lihat Daftar Revisi')
     expect(source).toContain('Lihat Detail Dokumen')
-    expect(source).toContain('Kembali ke Daftar Dokumen')
+    expect(source).toContain('Kembalikan ke Pegawai?')
     expect(source).toContain('setSubmitRequestSignal(current => current + 1)')
     expect(source).toContain('setCancelRequestSignal(current => current + 1)')
   })
 
-  it('preserves Revisi endpoint sequence and payload shape', () => {
-    const patchIndex = source.indexOf("apiMutation(`/api/dokumen/${id}`,")
-    const submitIndex = source.indexOf("apiMutation(`/api/dokumen/${id}/submit`,")
+  it('preserves PPK resubmit endpoint sequence and payload shape', () => {
+    const patchIndex = source.indexOf("apiMutation(`/api/ppk/resubmit/${id}`, {\n          method: 'PATCH'")
+    const submitIndex = source.indexOf("apiMutation(`/api/ppk/resubmit/${id}`, {\n          method: 'POST'")
 
+    expect(source).toContain("apiFetch<{ dokumen: DokumenRow }>(`/ppk/resubmit/${id}`)")
     expect(patchIndex).toBeGreaterThan(-1)
     expect(submitIndex).toBeGreaterThan(patchIndex)
-    expect(source).toContain("method: 'PATCH'")
-    expect(source).toContain('body: { lampiranUrls: data.lampiranUrls, nominalRealisasi: data.nominalRealisasi }')
-    expect(source).toContain("method: 'POST'")
-    expect(source).toContain("headers: { 'Content-Type': 'application/json' }")
-    expect(source).toContain("dokumen.status !== 'NEED_REVISION' || dokumen.revision_target !== 'USER'")
+    expect(source).toContain('body: {\n            lampiranUrls: data.lampiranUrls,\n            nominalRealisasi: data.nominalRealisasi,\n          }')
+    expect(source).toContain("apiMutation(`/api/ppk/kembalikan/${id}`, { method: 'POST' })")
+    expect(source).not.toContain('/api/dokumen/${id}/submit')
+    expect(source).not.toContain("apiMutation(`/api/dokumen/${id}`")
     expect(source).not.toContain('#/routes/api')
     expect(source).not.toContain('/api/upload')
   })
 
-  it('keeps AttachmentEditor as upload behavior authority with only a pre-submit visual confirmation hook', () => {
+  it('keeps AttachmentEditor as upload behavior authority', () => {
     expect(source).toContain('<AttachmentEditor')
     expect(source).toContain('confirmBeforeSubmit={confirmBeforeSubmit}')
     expect(source).toContain('hideDefaultActions')
@@ -75,33 +73,12 @@ describe('Phase 15L.2 Revisi Dokumen parity source guard', () => {
     expect(source).toContain('cancelRequestSignal={cancelRequestSignal}')
     expect(source).toContain('onDirtyChange={setAttachmentDirty}')
     expect(source).toContain('confirmIfDirty={confirmIfDirty}')
-    expect(editorSource).toContain('confirmBeforeSubmit?: (data: {')
-    expect(editorSource).toContain('hideDefaultActions?: boolean')
-    expect(editorSource).toContain('submitRequestSignal?: number')
-    expect(editorSource).toContain('cancelRequestSignal?: number')
-    expect(editorSource).toContain('const confirmed = await confirmBeforeSubmit({')
-    expect(editorSource).toContain('if (!confirmed) return')
-    expect(editorSource).toContain('void handleSubmit()')
-    expect(editorSource).toContain('void handleCancel()')
-    expect(editorSource).toContain("await cleanupUnreferencedSessionPendingUrls(finalLampirans, 'submit-before-persist')")
-    expect(editorSource).toContain('await onSubmit({')
-    expect(editorSource).toContain("fetch('/api/upload'")
+    expect(source).toContain('submitLabel="Ajukan Ulang ke PPSPM"')
+    expect(source).not.toContain('extraActions=')
+    expect(source).not.toContain('AttachmentViewer')
   })
 
-  it('keeps compact Revisi attachment polish for reset and replace actions', () => {
-    expect(editorSource).toContain('function ResetActionButton')
-    expect(editorSource).toContain('function UploadReplaceButton')
-    expect(editorSource).toContain('function FileActionButton')
-    expect(editorSource).toContain('border border-[#FF5A00] bg-white px-3 text-xs font-semibold text-[#FF5A00]')
-    expect(editorSource).toContain('Tambah Dokumen Pendukung')
-    expect(editorSource).toContain('border border-dashed border-orange-300')
-    expect(editorSource).toContain('rounded-xl border border-orange-200 bg-white')
-    expect(editorSource).not.toContain('text-red-700 bg-red-100')
-    expect(editorSource).not.toContain('border-blue-200')
-    expect(editorSource).not.toContain('text-blue-700')
-  })
-
-  it('does not introduce forbidden Revisi terminology or protected behavior changes', () => {
+  it('does not introduce forbidden PPK resubmit behavior changes', () => {
     expect(source).not.toContain('Simpan Draft')
     expect(source).not.toContain('Nomor Surat')
     expect(source).not.toContain('Nomor SPM')
