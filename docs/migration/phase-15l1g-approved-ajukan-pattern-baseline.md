@@ -38,6 +38,10 @@ Ajukan Dokumen establishes the approved interaction baseline for similar workflo
 - Revisi-style uploaded file row adapted for Ajukan's pending-document context;
 - filename visible on uploaded rows;
 - compact preview, edit/replace, and remove actions;
+- same feature, same treatment: repeated controls such as upload rows, add-supporting-document areas, reset buttons, replace buttons, delete icons, status pills, modals, and empty states should reuse the same or intentionally near-identical visual component treatment across pages;
+- prefer shared helpers/components for repeated actions instead of recreating similar controls with different size, padding, icon, color, or hover behavior;
+- clickable controls should communicate interactivity with pointer cursor on hover; custom clickable wrappers should include `cursor-pointer`, and shared button components should preserve pointer behavior for enabled states;
+- destructive icon actions should be visibly destructive at rest when the action is destructive, then become more explicit on hover;
 - uploaded state clearly visible;
 - form state retained across stages;
 - dirty/unsaved changes guard with:
