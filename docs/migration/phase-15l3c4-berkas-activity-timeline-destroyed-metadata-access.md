@@ -29,6 +29,8 @@ The timeline now starts with `Berkas dibuka`, then item insertion/classification
 
 No fake timestamps are generated. Missing timestamps show an unavailable-time label and explanatory limitation text. Date-only close input stored as UTC midnight is shown as date-only, not as a fabricated midnight event.
 
+Timeline sorting remains oldest-to-newest, but date-only or contradictory timestamps are constrained by folder-first domain order: berkas dibuka, document insertion/classification, berkas ditutup, Inaktif, Usul Musnah, then Dimusnahkan as terminal.
+
 ## 4. Visual Changes
 
 The berkas activity section now uses an icon-based vertical chronology with compact off-white rows, a subtle line, and restrained orange accents. It is intentionally distinct from generic workflow approval history.
