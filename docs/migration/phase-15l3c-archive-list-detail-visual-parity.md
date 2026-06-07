@@ -93,8 +93,13 @@ No prototype source was copied or imported.
 ## 9. Berkas List/Detail Visual Changes
 
 - Pemberkasan Arsip Aktif, Arsip Inaktif, and Usul Musnah tables now share refined archive table head, row, and action-link styling.
+- Sidebar-entry archive list pages use a direct list-page header: title, short description, search/filter shell, and table. Detail-style breadcrumb/header treatment is reserved for non-sidebar action/detail pages such as document detail, validation/classification detail, and berkas detail.
+- Pemberkasan Arsip Aktif includes a local sort control inside the search/filter shell.
+- CSV export uses the compact `Ekspor CSV` label and the shared warm outline action treatment.
 - Berkas detail uses the approved warm detail canvas.
 - Folder metadata/action panel uses compact off-white surface treatment.
+- Berkas metadata/arsip metadata follows the approved document-detail metadata rhythm: one inner metadata panel with label/value fields, no per-field mini cards, no total nominal field inside metadata, and `Nomor SPM` as the only orange-emphasis metadata value after close/finalization.
+- The detail right rail owns total nominal realization and lifecycle status treatment. The lifecycle card follows the prototype warm status panel direction.
 - Item cards, provenance blocks, metadata cells, attachment rows, and preview/download actions were refined.
 - Berkas item preview uses the approved dark overlay pattern.
 - Riwayat Aktivitas Berkas now uses a folder-first timeline presentation that is visually distinct from workflow approval history.
