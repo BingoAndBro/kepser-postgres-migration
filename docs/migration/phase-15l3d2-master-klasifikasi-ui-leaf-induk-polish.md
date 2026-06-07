@@ -16,6 +16,7 @@ Included:
 - Parent/leaf visual badges derived from child existence.
 - Active/nonaktif visual language using `is_active` when present in the UI data shape.
 - Detail panel clarity for type, status, hierarchy path, child count, and Jenis Pembayaran usability.
+- Prototype-aligned compact tree/detail composition, including always-visible add-child shortcuts in the tree and detail panel.
 - Soft-deactivate wording alignment for the current `DELETE` endpoint behavior.
 - Focused source guard.
 
@@ -37,8 +38,11 @@ Prototype direction used:
 
 - left tree and right detail panel;
 - explicit `Klasifikasi Induk` and `Pilihan Akhir` badges;
+- compact tree rows with a visible add-child shortcut icon;
 - hierarchy path in detail;
 - `Dipakai Jenis Pembayaran?` messaging;
+- one detail card with flat metadata ordering instead of per-field cards;
+- right-panel `Tambah Anak` shortcut plus edit/deactivate actions;
 - add-child modal parent context.
 
 Prototype permanent-delete language was not adopted because current real app behavior is soft deactivation.
@@ -63,6 +67,7 @@ Prototype permanent-delete language was not adopted because current real app beh
 - `Pilihan Akhir` is derived from `children.length === 0`.
 - No stored/manual type field was added or used.
 - Tree rows and detail panel both show the derived type.
+- Tree rows use the short prototype label `Pilihan Akhir`; the detail panel uses `Pilihan Akhir (Leaf)`.
 - Parent nodes are described as structural and not operationally selectable as Jenis Pembayaran.
 
 ## 7. Active/Nonaktif Display Behavior
@@ -75,6 +80,7 @@ Prototype permanent-delete language was not adopted because current real app beh
 ## 8. Delete/Deactivate Wording Changes
 
 - Visible action copy now says `Nonaktifkan`, not hard-delete `Hapus`.
+- The right-panel action now says `Nonaktifkan Klasifikasi`, preserving the prototype action placement while correcting the real-app soft-deactivate wording.
 - Confirmation modal title is `Nonaktifkan Klasifikasi?`.
 - Modal copy explains the classification is removed from operational selection while readable history remains.
 - Existing request method and endpoint are preserved: `DELETE /api/arsiparis/klasifikasi/$id`.
@@ -94,6 +100,7 @@ Prototype permanent-delete language was not adopted because current real app beh
 - Existing create, update, and soft-deactivate API calls remain unchanged.
 - Root `kode === '000'` remains fixed in UI.
 - Existing modal success refresh behavior remains.
+- Left-tree add-child shortcut and right-panel `Tambah Anak` both call the same existing create flow.
 - Operational Pengklasifikasian Dokumen and Penambahan Dokumen APIs were not changed.
 
 ## 11. API/Backend Changes
