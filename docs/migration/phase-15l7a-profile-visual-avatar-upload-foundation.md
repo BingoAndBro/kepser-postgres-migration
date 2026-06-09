@@ -64,6 +64,7 @@ No prototype source was copied or imported.
   - `avatar_mime_type`
   - `avatar_size_bytes`
   - `avatar_updated_at`
+- If the avatar metadata migration has not been applied yet, `GET /api/users/me` safely returns the normal profile DTO with no avatar instead of querying missing columns. Avatar upload/remove returns a safe service-unavailable message until the migration is applied.
 - Existing route file handles avatar operations without adding a new route file:
   - `GET /api/users/me?avatar=1` serves the current user's avatar image after session validation.
   - `POST /api/users/me?avatar=1` uploads/replaces the current user's avatar.
