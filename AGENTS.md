@@ -348,10 +348,11 @@ Lifecycle arsip setelah dokumen sudah `ARCHIVED`:
 type StatusArsip = 'AKTIF' | 'INAKTIF' | 'USUL_MUSNAH' | 'DIMUSNAHKAN'
 ```
 
-Alur aktif:
+Alur aktif (folder-first runtime, setelah RP-01):
 
 ```text
-AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+AKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+        (cancel_proposal: USUL_MUSNAH -> AKTIF)
 ```
 
 Catatan:
@@ -360,6 +361,8 @@ Catatan:
 - status itu sudah dihapus oleh migrasi berikutnya
 - `DIMUSNAHKAN` must block preview/download/file access
 - After Phase 13K, target lifecycle authority moves to folder/berkas level for new runtime. Superseded by Phase 14I: active schema/runtime no longer keeps `arsip.arsip`.
+- RP-01 memangkas alur folder-first jadi 2 tahap sesudah tutup: `INAKTIF` dibuang dari alur (relabel only), `propose_destruction` langsung `AKTIF -> USUL_MUSNAH`, dan aksi baru `cancel_proposal` mengembalikan `USUL_MUSNAH -> AKTIF`. Nilai enum `StatusArsip` (`INAKTIF` termasuk) dan CHECK constraint `berkas_arsip_status_arsip_check` dibiarkan utuh — tanpa migrasi. Label tampilan: `AKTIF` = "Tersimpan", `USUL_MUSNAH` = "Usul Pembersihan", `DIMUSNAHKAN` = "File Dibersihkan". Blok alur 4-tahap di atas superseded for folder-first runtime by RP-01.
+- RP-01 `cancel_proposal` memakai event aktivitas yang sudah ada (`METADATA_ARSIP_AKTIF_DIPERBARUI`) sehingga tanpa migrasi CHECK `event_type`. Nilai `BERKAS_ACTIVITY_EVENT_TYPES` tidak berubah.
 
 ### Status Berkas
 
@@ -374,7 +377,7 @@ Rules:
 - `OPEN` means the folder/berkas may receive future classified documents once a write flow exists.
 - `CLOSED` means final folder metadata has been filled and later phases may map the folder into archive lifecycle handling.
 - Closed folders must not accept new documents/items in runtime write helpers or future APIs.
-- Close-folder requires `Nomor SPM`, active retention, and inactive retention; `closed_at` is recorded using caller input or the server date, and `closed_by` plus calculated retention end dates are set server-side.
+- Close-folder requires `Nomor SPM` and a single `Masa Simpan Minimal` retention label (RP-01; previously active + inactive retention); `closed_at` is recorded using caller input or the server date, and `closed_by` plus the calculated `tanggal_jatuh_tempo` (stored in the existing `masa_aktif_berakhir` column) are set server-side. `retensi_inaktif` / `masa_inaktif_berakhir` remain nullable legacy columns and are written `null`.
 - `KEPALA_SUB_BAGIAN_UMUM` owns close-folder operation; future close-folder APIs must enforce this server-side through `dms_session` assigned roles, not only UI.
 - Folder-level `status_arsip` schema foundation exists after Phase 13L; after Phase 13M, runtime close/finalization sets `status_arsip='AKTIF'`.
 - Phase 13K accepts Option A: `berkas_arsip` becomes the canonical folder/archive parent for new runtime, `berkas_arsip_item` combines `WORKFLOW` and `MANUAL` source items, and `arsip.arsip` becomes legacy/transitional compatibility after de-transitionalization.
@@ -390,7 +393,7 @@ Rules:
 - Phase 13Q.2 records the stricter status-destruction confirmation preference: `Musnahkan Data` / `approve_destruction` requires exact typed confirmation `MUSNAHKAN DATA FILE`, and confirmation copy must state that status becomes `Dimusnahkan`, preview/download is blocked, physical files are not deleted in this phase, and metadata remains.
 - Phase 13Q.2 records filename preservation for folder item file access: `WORKFLOW` attachments should preserve safe original filename metadata from `dokumen_transaksi.lampiran_urls` where available, falling back only to safe attachment label plus logical-path extension; `MANUAL` attachments preserve existing manual archive responder filename semantics. Header sanitization must not expose logical paths, physical paths, storage roots, tokens, or signed-token internals.
 - Phase 13R adds read-only client-side CSV export for `/arsiparis/berkas` and `/arsiparis/berkas/$id` using existing safe folder-first DTOs. CSV exports are limited to user-facing metadata and must not include raw IDs, item keys, paths, URLs, tokens, storage roots, signed-token internals, raw attachment metadata, SQL details, env/session/cookie/secret values, or file content. Phase 13R does not add routes, DB queries, lifecycle/write behavior, schema/migration/package/env/storage changes, Supabase runtime changes, physical deletion, backfill, or de-transitionalization.
-- Phase 13S adds the user-facing `Tutup Berkas` form on `/arsiparis/berkas/$id` for `OPEN/null` berkas only. The form reuses the existing close API, sends `nomor_spm`, `retensi_aktif`, `retensi_inaktif`, and optional `closed_at`, refreshes detail after success, and close/finalize sets `status_berkas='CLOSED'` and `status_arsip='AKTIF'`.
+- Phase 13S adds the user-facing `Tutup Berkas` form on `/arsiparis/berkas/$id` for `OPEN/null` berkas only. The form reuses the existing close API, sends `nomor_spm`, `retensi_aktif`, `retensi_inaktif`, and optional `closed_at`, refreshes detail after success, and close/finalize sets `status_berkas='CLOSED'` and `status_arsip='AKTIF'`. (RP-01: the form now sends only `nomor_spm` + `retensi_aktif` as the single `Masa Simpan Minimal`; `closeBerkasMetadataSchema` is `.strict()` and rejects `retensi_inaktif`.)
 - Phase 13S preserves the Phase 13P.2 1:1 rule: after close, the Jenis Pembayaran no longer accepts new workflow/manual documents because the only matching berkas is closed. It does not change dropdown eligibility logic, lifecycle semantics, CSV export behavior, schema/migration/package/env/storage/Supabase runtime behavior, transitional `arsip.arsip` writes, or physical file deletion.
 - Phase 13S.1 makes the preferred close UX a modal/popup metadata form titled `Tutup Berkas`. The detail-page button and `Berkas Terbuka` list shortcut both reuse the existing close API and close metadata fields, preserve the 1:1 Jenis Pembayaran rule after close, and do not render close actions for `Pemberkasan Arsip Aktif` rows.
 - Phase 13T de-transitionalizes workflow `Pengklasifikasian Dokumen` only: selected `COMPLETED` workflow documents attach to an `OPEN` berkas as `WORKFLOW` `berkas_arsip_item` rows, remain `dokumen_transaksi.status='COMPLETED'`, and no longer create new `arsip.arsip` `WORKFLOW` rows during classification. Final archive metadata and lifecycle remain folder-level.
@@ -642,10 +645,11 @@ After document `COMPLETED`:
 - Folder close and final metadata remain separate from initial classification. Initial classification must not collect or require `Nomor SPM` or final retention metadata.
 - Future initial workflow classification should not immediately set workflow documents to `ARCHIVED`; it should keep them `COMPLETED` and attach them to an `OPEN` berkas until folder finalization.
 - Future close-folder API/UI work must require assigned `KEPALA_SUB_BAGIAN_UMUM` server-side; `ADMIN` must not be treated as the operational archive/folder role.
-- Phase 14I supersedes the older transitional `arsip.arsip` lifecycle authority. Current folder-first lifecycle is stored on `berkas_arsip.status_arsip`:
+- Phase 14I supersedes the older transitional `arsip.arsip` lifecycle authority. Current folder-first lifecycle is stored on `berkas_arsip.status_arsip`, and after RP-01 the active runtime flow is 2-stage after close:
 
 ```text
-AKTIF -> INAKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+AKTIF -> USUL_MUSNAH -> DIMUSNAHKAN
+        (cancel_proposal: USUL_MUSNAH -> AKTIF)
 ```
 
 Rules:
@@ -655,6 +659,7 @@ Rules:
 - New runtime archive writes must use folder-first `berkas_arsip` plus `berkas_arsip_item` and current source tables.
 - `DIMUSNAHKAN` must block preview/download/file access.
 - Destructive archive/file behavior must preserve authorization, audit logging, and safe file handling.
+- RP-01: `INAKTIF` is dropped from the runtime lifecycle flow (enum value + CHECK constraint kept, no migration). `propose_destruction` transitions `AKTIF -> USUL_MUSNAH` directly; `mark_inactive` is removed; `cancel_proposal` transitions `USUL_MUSNAH -> AKTIF` and logs the existing `METADATA_ARSIP_AKTIF_DIPERBARUI` activity event (no `event_type` CHECK migration). User-facing labels: "Usulkan Pembersihan" / "Bersihkan File" / "Batalkan Usulan"; the `approve_destruction` typed confirmation phrase is `BERSIHKAN FILE BERKAS` (previously `MUSNAHKAN DATA FILE`). The server-only physical-deletion helper phrase `HAPUS FILE FISIK ARSIP` is unchanged. "Umur Berkas" and the "Jatuh Tempo" badge are computed at read time (`today >= closed_at + masa_simpan`) — no scheduler.
 
 ### 5A. Manual Archive / Penambahan Dokumen
 
@@ -957,11 +962,13 @@ UI utama:
 - `/arsiparis`
 - `/arsiparis/inbox`
 - `/arsiparis/dokumen/$id`
-- `/arsiparis/berkas`
+- `/arsiparis/berkas` (Berkas Terbuka)
+- `/arsiparis/berkas/tertutup` (Berkas Tertutup — RP-01)
 - `/arsiparis/berkas/$id`
-- `/arsiparis/inaktif`
-- `/arsiparis/usul-musnah`
+- `/arsiparis/pembersihan` (Pembersihan Berkas — RP-01; renamed from `/arsiparis/usul-musnah`)
 - `/arsiparis/klasifikasi`
+
+RP-01 removes `/arsiparis/inaktif` and renames `/arsiparis/usul-musnah` -> `/arsiparis/pembersihan`; it adds `/arsiparis/berkas/tertutup`. Route generation is explicitly allowed for these three route changes; run the official generator (`@tanstack/router-plugin` via `pnpm dev`/`pnpm build`), do not hand-edit `src/routeTree.gen.ts`.
 
 API utama:
 

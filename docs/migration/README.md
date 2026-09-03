@@ -46,10 +46,10 @@ Read these first for current project truth and guardrails:
 
 Folder-first archive runtime is active. The current archive browser surfaces are:
 
-- `/arsiparis/berkas`
+- `/arsiparis/berkas` (Berkas Terbuka)
+- `/arsiparis/berkas/tertutup` (Berkas Tertutup — RP-01)
 - `/arsiparis/berkas/$id`
-- `/arsiparis/inaktif`
-- `/arsiparis/usul-musnah`
+- `/arsiparis/pembersihan` (Pembersihan Berkas — RP-01; renamed from `/arsiparis/usul-musnah`)
 
 Active archive API authority is:
 
@@ -88,6 +88,8 @@ These surfaces are not active runtime authority and must not be resurrected by f
 - legacy `/api/arsiparis/arsip/*` removed
 - `Laporan Klasifikasi` removed
 - global/sidebar `Cari Arsip` removed
+- `/arsiparis/inaktif` removed (RP-01; `INAKTIF` dropped from the runtime lifecycle flow, enum value + CHECK constraint kept)
+- `/arsiparis/usul-musnah` renamed -> `/arsiparis/pembersihan` (RP-01)
 - legacy `arsip.arsip` schema removed
 - `lampiran_snapshot` removed from active Drizzle schema
 - `canonical_arsip_id` bridge removed from active Drizzle schema
@@ -113,7 +115,7 @@ Do not rewrite old phase docs to pretend they were current all along. If a histo
 Future frontend redesign should start from current active surfaces:
 
 - Pegawai, PPK, PPSPM, Kepala Sub Bagian Umum, Penanggung Jawab Kinerja, and Admin role pages as documented in `AGENTS.md`.
-- Folder-first archive pages: `/arsiparis/berkas`, `/arsiparis/berkas/$id`, `/arsiparis/inaktif`, and `/arsiparis/usul-musnah`.
+- Folder-first archive pages: `/arsiparis/berkas`, `/arsiparis/berkas/tertutup`, `/arsiparis/berkas/$id`, and `/arsiparis/pembersihan`.
 - Local page filters and safe metadata-only CSV exports where already implemented.
 
 Do not restore removed pages, reports, search routes, legacy canonical archive detail, or legacy canonical APIs as part of visual redesign.
