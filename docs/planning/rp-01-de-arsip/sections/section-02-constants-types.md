@@ -72,10 +72,18 @@ CHECK constraint — target tanpa migrasi).
 
 ## Definition of Done
 
-- [ ] Tiga file diubah sesuai langkah.
-- [ ] Test stub section ini hijau.
-- [ ] `ARCHIVE_STATUS_VALUES` & `BERKAS_ACTIVITY_EVENT_TYPES` terbukti tak berubah
-      (test regression).
-- [ ] TS error yang muncul hanya di file yang memang ditangani section 05/06
-      (`inaktif/index.tsx`, `navigation.ts`, `arsiparis/index.tsx`) — dicatat, bukan
-      diperbaiki di sini.
+- [x] Tiga file src diubah sesuai langkah (`archive-status.ts` +
+      `BERKAS_RESTING_STATUS` + komentar; `routes.ts` grup KSBU remove/rename/add;
+      `berkas-arsip-activity.ts` 3 label).
+- [x] Test hijau — `tests/unit/arsiparis/rp01-de-arsip-constants.test.ts` (6 tests).
+- [x] `ARCHIVE_STATUS_VALUES` & `BERKAS_ACTIVITY_EVENT_TYPES` tak berubah
+      (2 regression test lulus).
+- [x] TS error hanya di `src/config/navigation.ts` (2 ref) & `src/routes/arsiparis/index.tsx`
+      (2 ref) — ditangani section 05 & 06f. `inaktif/index.tsx` tidak memakai
+      konstanta rute (dihapus section-05).
+
+## Deviasi dari rencana
+
+- Nama file test: `tests/unit/arsiparis/rp01-de-arsip-constants.test.ts` (baru,
+  fokus RP-01) alih-alih memperluas test navigasi yang ada. Test navigasi
+  (`roles-navigation.test.ts`) & label lain tetap ditangani section-09.
