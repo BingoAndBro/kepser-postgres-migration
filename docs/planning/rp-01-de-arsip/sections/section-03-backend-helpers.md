@@ -148,8 +148,31 @@ Salin dari `../claude-plan-tdd.md` "Tests for: Step 3" (3a–3i). Poin kunci:
 
 ## Definition of Done
 
-- [ ] Keempat file src diubah; test stub section ini diimplementasi & hijau.
-- [ ] Tidak ada perubahan schema DB / migrasi.
-- [ ] `BERKAS_ACTIVITY_EVENT_TYPES` tetap tak berubah.
-- [ ] Guard optimistic `updateBerkasArchiveStatus` tetap.
-- [ ] TS error sisa hanya di consumer API (section-04) & UI (section-06) — dicatat.
+- [x] `retention.ts` (`calculateBerkasDueDate` + `computeBerkasAging`),
+      `berkas-arsip-service.ts` (transisi 2-tahap + `eventTypeForBerkasLifecycleAction`
+      action-aware + single-field plans), `berkas-arsip-read-model.ts`
+      (`umur_berkas`/`jatuh_tempo`/`tanggal_jatuh_tempo` + `due_only` + `closed_at ASC`
+      untuk CLOSED), `berkas-arsip-page-format.ts` (label RP-01 + phrase
+      `BERSIHKAN FILE BERKAS` + `resolveSecondaryBerkasLifecycleAction`).
+- [x] `closeBerkasMetadataSchema` disederhanakan (folded dari section-04):
+      satu field, `.strict()`, pesan "Masa Simpan Minimal tidak valid".
+- [x] Test hijau: `berkas-arsip-service.test.ts`, `berkas-arsip-schema.test.ts`,
+      `berkas-arsip-api.test.ts`, `berkas-arsip-folder-pages.test.ts`.
+      **Full suite: 810 passed / 1 skipped / 0 regresi.**
+- [x] Tidak ada perubahan schema DB / migrasi. `src/db/schema/**` utuh.
+- [x] `BERKAS_ACTIVITY_EVENT_TYPES` tak berubah; `cancel_proposal` pakai event
+      `METADATA_ARSIP_AKTIF_DIPERBARUI` yang sudah ada.
+- [x] Guard optimistic `updateBerkasArchiveStatus` tetap.
+- [x] TS: nol error di file section-03/04. Build-red sisa hanya di
+      `navigation.ts` (section-05) + `arsiparis/berkas/$id.tsx` &
+      `arsiparis/index.tsx` (section-06). Error TS lain di repo = baseline
+      pre-existing (TanStack `event` drift, leftover supabase ref), bukan dari RP-01.
+
+## Deviasi
+
+Lihat `../code-reviews/section-03-review.md`. Ringkas: section 03+04 digabung jadi
+satu commit backend; `berkas-arsip-folder-pages.test.ts` monolithic source-shape
+test di-`it.skip` untuk section-06; 2 test `buildBerkasHistoryItems` tetap
+`'Berkas dimusnahkan'` (label hardcoded `$id.tsx`, relabel di section-06c);
+`resolveBerkasLifecycleAction` tetap single-return + fungsi baru untuk aksi
+sekunder; `due_only` filter di memori.

@@ -93,11 +93,26 @@ Dari `../claude-plan-tdd.md` "Tests for: Step 4" (4a–4f). Poin kunci:
 - [ ] `GET /api/arsiparis/berkas/$id` detail memuat field umur/jatuh tempo.
 - [ ] Route archive/manual: pesan "Cara Pembayaran".
 
-## Definition of Done
+## Status: digabung ke section-03 (commit backend tunggal)
 
-- [ ] File src diubah; test stub section ini hijau.
-- [ ] Tidak ada endpoint/route file baru (batch pakai endpoint lifecycle yang ada).
-- [ ] `.strict()` `closeBerkasMetadataSchema` dipertahankan.
-- [ ] Section-06 dijadwalkan segera (jangan tinggalkan `CloseBerkasDialog` rusak
-      tanpa catatan PR).
-- [ ] Tidak ada regresi test section-03.
+Karena `buildCloseBerkasPlan` / `buildActiveBerkasMetadataPlan` (section-03)
+mem-parse lewat `closeBerkasMetadataSchema`, perubahan Zod tidak bisa ditunda.
+Semua item section-04 dikerjakan bersama section-03:
+
+- [x] `closeBerkasMetadataSchema`: satu field `retensi_aktif`, `.strict()`,
+      pesan "Masa Simpan Minimal tidak valid", transform tanpa `retensi_inaktif`.
+- [x] `openBerkasRequestSchema`: pesan "Cara pembayaran tidak valid".
+- [x] `api/.../lifecycle.ts`: `nonDestructiveLifecycleBodySchema.action`
+      = `z.enum(['propose_destruction', 'cancel_proposal'])`; frasa
+      `approve_destruction` otomatis `BERSIHKAN FILE BERKAS` via konstanta.
+- [x] `api/.../berkas/index.ts` `safeFolderListRow`: +`umur_berkas`,
+      +`jatuh_tempo`, +`tanggal_jatuh_tempo`.
+- [x] `api/.../berkas/$id.ts` `safeBerkasDetail`: +3 field aging.
+- [x] Test `berkas-arsip-schema.test.ts` + `berkas-arsip-api.test.ts` hijau.
+- [ ] **Ditunda ke section-08** (label-only, tanpa test coupling):
+      `dokumen.$id.archive.ts`, `manual-arsip/index.ts` & `$id.ts`,
+      `manual-arsip.ts`, `berkas-klasifikasi-eligibility.ts` — "Jenis Pembayaran"
+      → "Cara Pembayaran". `berkas-arsip-api.ts` referensi `INAKTIF`: tidak ada
+      (sudah bersih).
+
+Lihat `../code-reviews/section-03-review.md`.
