@@ -30,7 +30,7 @@
 | **RP-03** | Aksi cepat beranda: urutkan prioritas dari yang terlama | `Draft` | Di dashboard PPK / PPSPM / KSBU, daftar "Perlu Tindakan" (maks 3) ambil 3 dokumen **terlama**, bukan 3 terbaru |
 | **RP-04** | Bug: dropdown "Pilih Jenis Permintaan" tak bisa dibuka | `Draft` | Setelah ganti Karakteristik Dokumen ke Non-Material lalu membuka dropdown Jenis Dokumen, dropdown Jenis Permintaan mati/tidak muncul |
 | **RP-05** | Ekspor massal dokumen terpilih (terfilter) ke ZIP | `Draft` | Dari halaman daftar/laporan, filter (mis. periode 1 bulan), tombol "Ekspor Semua File (ZIP)"; di dalam zip, tiap dokumen = satu folder berisi seluruh kelengkapannya |
-| RP-06 | *(kosong — untuk diisi)* | — | — |
+| **RP-06** | Bug: ekstensi file hilang setelah dokumen masuk berkas | `Dikerjakan` | Di Penambahan Dokumen (KSBU), upload + preview awal (status PENDING) berhasil; setelah dokumen masuk berkas (jadi FORMAL) nama file kehilangan ekstensi → preview gagal ("Preview hanya tersedia untuk file PDF") padahal file aslinya PDF dan download tetap berhasil sebagai PDF. **Akar masalah ditemukan & kode sudah diperbaiki** — lihat detail. |
 | **RP-07** | Fondasi Ekspor ZIP Bersama (RP-02 + RP-05) | `Disetujui` | Perakit ZIP streaming tunggal; struktur folder berlapis; batas 500 dokumen / skip file >250 MB; `DAFTAR_ISI.txt`; dialog konfirmasi |
 
 ---
@@ -568,15 +568,94 @@ RP-02 (ekspor satu berkas) dan RP-05 (ekspor massal dokumen laporan terfilter) s
 
 ---
 
-# RP-06 — *(judul)*
+# RP-06 — Bug: Ekstensi File Hilang Setelah Dokumen Masuk Berkas
 
-**Status:** `Draft`
+**Status:** `Dikerjakan` · **Jenis:** bug
+**Sumber:** dilaporkan pengguna 2026-09-05, alur "Penambahan Dokumen" di menu KSBU.
 
-*(Template — salin blok di bawah untuk tiap rencana baru.)*
+## Langkah reproduksi
 
-## Latar belakang
-## Perubahan yang diminta
-## Peta file terdampak
+1. Di menu KSBU → **Penambahan Dokumen**, isi kolom judul kelengkapan dokumen, lalu unggah file **PDF**.
+2. **Preview langsung setelah unggah (masih PENDING)** → berhasil, tampil sebagai PDF.
+3. Dokumen diproses masuk ke **berkas** (jadi file **FORMAL** — lihat RP-01 lifecycle: Terbuka → Tertutup).
+4. Buka kembali kelengkapan dokumen tsb dari berkas (`/arsiparis/berkas/$id`) → coba **Preview**.
+5. **Hasil:** gagal, muncul pesan *"Preview hanya tersedia untuk file PDF."* — padahal file aslinya PDF dan tidak pernah diganti. Badge status lampiran tetap menampilkan **tercentang/berhasil** (indikator "file sudah ada"), sehingga tampilannya kontradiktif: badge bilang file ada & valid, tapi preview menolak.
+6. **Download** kelengkapan yang sama → berhasil, dan file yang terunduh **memang PDF valid**. Jadi isi file di storage tidak rusak — masalahnya murni di deteksi format sisi klien untuk preview.
+
+## Akar masalah (dikonfirmasi dari kode, bukan lagi dugaan)
+
+Ada **dua jalur kode terpisah** yang sama-sama menentukan nama tampilan sebuah lampiran MANUAL (dipakai KSBU), dan cuma satu yang benar:
+
+1. **Jalur download/streaming** (`src/lib/manual-arsip.ts` — `resolveManualArsipAttachmentExtension` + `createManualArsipAttachmentFileResponse`) — mengambil ekstensi dari `manual_arsip_attachment.content_type` (dicocokkan ke daftar ekstensi yang diizinkan) dengan `original_filename` sebagai pengecekan silang, **bukan** dari `judul_lampiran`. **Ini yang dipakai endpoint download** → makanya download selalu benar jadi `.pdf`. (Koreksi: draf awal RP-06 ini sempat salah menyebut sumbernya `logical_path` — sudah diperbaiki setelah investigasi iterasi 2 di bawah.)
+2. **Jalur read-model / daftar lampiran** (`src/lib/archive/berkas-arsip-attachment-names.ts` — `resolveManualAttachmentNames`) — dipakai untuk membangun `previewTitle` yang ditampilkan di `/arsiparis/berkas/$id`. Fungsi ini **sama sekali tidak menerima `logical_path`** — sebelumnya cuma menerima `{ judul_lampiran, original_filename }`. Ia memprioritaskan `judul_lampiran` (judul yang diketik user, mis. "Bukti Manual") sebagai `previewTitle` **apa adanya, tanpa ekstensi**, karena memang tidak punya akses ke path fisik untuk tahu ekstensinya.
+
+Di `src/routes/arsiparis/berkas/$id.tsx` (±ln 1776), gate PDF-only untuk preview adalah:
+```ts
+isPdfLikeFilename(title) || isPdfLikeFilename(downloadHref) || isPdfLikeFilename(href)
+```
+`title` = `previewTitle` dari jalur (2) di atas — untuk item MANUAL dengan judul kelengkapan diisi user, nilainya seperti `"Bukti Manual"` (tanpa `.pdf`). `downloadHref`/`href` adalah URL API berbasis index (`/api/arsiparis/berkas/{id}/item/{key}/lampiran/{idx}/preview`), juga tidak mengandung ekstensi. Ketiga cek gagal → cabang PDF-only aktif → **preview ditolak walau file aslinya PDF**.
+
+Ini persis cocok dengan laporan: masalah muncul **khusus setelah "judul kelengkapan dokumen" diisi** ("saat saya buat kolom judul kelengkapan dokumen... ia bisa") — karena `judul_lampiran` yang diisi user itulah yang dipakai sebagai `previewTitle` tanpa ekstensi. Sebelum masuk berkas (masih di halaman upload/preview awal), preview memakai jalur lain (fetch blob asli via signed URL, bukan gate ekstensi nama file) sehingga tidak kena bug ini — cocok dengan langkah 2 di reproduksi.
+
+Sudah dikonfirmasi juga oleh test lama yang (tanpa sadar) mendokumentasikan bug ini: `tests/unit/arsiparis/berkas-arsip-attachment-names.test.ts` sebelumnya meng-assert `resolveManualAttachmentNames({ judul_lampiran: 'Bukti Manual', original_filename: 'manual.pdf' })` menghasilkan `previewTitle: 'Bukti Manual'` (tanpa ekstensi) — padahal `original_filename` jelas `.pdf`.
+
+## Perbaikan yang diterapkan
+
+### Iterasi 1 — Preview PDF-nya sudah bisa terbuka
+
+Menambahkan info ekstensi ke jalur read-model MANUAL supaya `resolveManualAttachmentNames` tidak lagi mengembalikan `previewTitle` tanpa ekstensi, sama seperti yang sudah dilakukan jalur WORKFLOW (`resolveWorkflowAttachmentNamesFromEntry` sudah punya `withSafeExtension`).
+
+### Iterasi 2 — nama file preview vs download beda (ditemukan setelah iterasi 1 diverifikasi user)
+
+Setelah iterasi 1, preview PDF sudah bisa terbuka, tapi user melaporkan **nama file yang tampil di preview berbeda dari nama file hasil download** — preview cuma menampilkan judul kelengkapan dokumen apa adanya (mis. `"Bukti Manual.pdf"`), sedangkan download menghasilkan nama formal lengkap (mis. `"Bukti_Manual_Dokumen_Manual_Pengadaan_2026-05-21.pdf"`).
+
+**Akar masalah lanjutan:** ternyata ada **jalur penamaan ketiga**. Nama file formal untuk lampiran MANUAL yang sesungguhnya dipakai endpoint download/preview (Content-Disposition) dibangun oleh `resolveManualArsipAttachmentPolicyFilename()` di `src/lib/manual-arsip.ts` — sebuah implementasi privat (tidak diekspor) dengan pola `"{judul_lampiran}_{nama_arsip_manual}_{kategori}_{tanggal}.{ext}"`. Iterasi 1 hanya menambahkan ekstensi ke `previewTitle`, tapi tidak menyamakan formatnya dengan builder asli ini — sehingga preview & download tetap punya nama berbeda meski sama-sama sudah berekstensi benar.
+
+**Perbaikan:** mengekstrak logika `resolveManualArsipAttachmentPolicyFilename` dari `manual-arsip.ts` menjadi modul murni bersama baru — `src/lib/archive/manual-arsip-attachment-filename.ts` (`buildManualArsipAttachmentFilename`) — lalu dipakai oleh **kedua** jalur: `manual-arsip.ts` (download/preview response yang sebenarnya) dan `berkas-arsip-attachment-names.ts` (read-model yang memberi nama ke UI daftar/preview di `/arsiparis/berkas/$id`). Ini menutup celah struktural yang berulang kali jadi sumber bug (tiga implementasi penamaan berbeda untuk hal yang sama) dengan satu sumber kebenaran tunggal.
+
+| File | Perubahan |
+|---|---|
+| `src/lib/archive/manual-arsip-attachment-filename.ts` | **Baru.** `buildManualArsipAttachmentFilename(attachment, document)` — logika penamaan formal (segmen judul + nama arsip + kategori + tanggal, resolusi ekstensi dari `content_type`/`original_filename`, truncation) dipindah verbatim dari `manual-arsip.ts`. Modul murni, tanpa import DB/auth. |
+| `src/lib/manual-arsip.ts` | `resolveManualArsipAttachmentPolicyFilename` sekarang tinggal memanggil `buildManualArsipAttachmentFilename(reference.attachment, reference)`. 5 fungsi privat + 6 konstanta yang duplikat (`sanitizeFilenameSegment`, `resolveManualArsipAttachmentExtension`, dst.) dihapus dari file ini karena sudah pindah ke modul bersama. Import `node:path` & `DOCUMENT_UPLOAD_EXTENSIONS_BY_MIME_TYPE` yang jadi tidak terpakai ikut dihapus. **Perilaku endpoint download/preview tidak berubah** (diverifikasi: 84 test di `manual-arsip-route.test.ts` tetap hijau tanpa diubah). |
+| `src/lib/archive/berkas-arsip-read-model.ts` | `ManualAttachmentNameReadRow` field `logical_path` (dari iterasi 1) diganti `content_type: string \| null`; query `listManualAttachmentsByManualArsipIds` select `content_type` alih-alih `logical_path`. `getAttachmentNames` sekarang meneruskan konteks dokumen manual (`manual_nama`, `manual_date`, `manual_category_name` dari `BerkasItemSourceReadRow`, sudah tersedia sebelumnya) ke `resolveManualAttachmentNames`. |
+| `src/lib/archive/berkas-arsip-attachment-names.ts` | `ManualAttachmentNamingRow` field `logical_path` diganti `content_type: string \| null` (wajib, bukan opsional — cocok kolom `NOT NULL` di DB). Tambah `ManualAttachmentNamingDocument`. `resolveManualAttachmentNames(row, document)` sekarang mengambil parameter kedua dan memanggil `buildManualArsipAttachmentFilename(row, document)`, lalu hasilnya disaring lewat `sanitizeBerkasAttachmentFilename` (guard nama sensitif tetap berlaku). |
+| `tests/unit/arsiparis/berkas-arsip-attachment-names.test.ts` | 3 test manual diperbarui: nama formal lengkap saat metadata lengkap, fallback ke segmen generik (`Arsip`/`Kategori`/`Tanggal`) saat metadata dokumen manual kosong, dan ekstensi sengaja dikosongkan (bukan ditebak) saat `content_type` & `original_filename` sama-sama tidak diketahui. |
+| `tests/unit/arsiparis/berkas-arsip-read-model.test.ts` | Fixture `manualAttachments` tambah `content_type: 'application/pdf'`; ekspektasi `attachments[0].previewTitle`/`downloadFilename` untuk item manual diperbarui jadi nama formal lengkap `"Bukti_Manual_Dokumen_Manual_Pengadaan_2026-05-21.pdf"` — **sekarang identik dengan pola nama yang dipakai endpoint download**. |
+
+### Iterasi 3 — ekspor ZIP berkas KSBU: file MANUAL keluar tanpa ekstensi (ditemukan setelah iterasi 2 diverifikasi user)
+
+Setelah iterasi 2, nama di preview & download sudah identik. User lalu melaporkan: **ekspor ZIP berkas** (RP-02, tombol "Ekspor ZIP" di `/arsiparis/berkas/$id`) menghasilkan file dengan "format tidak jelas" — **khusus untuk dokumen yang masuk lewat Penambahan Dokumen KSBU (MANUAL)**; dokumen WORKFLOW di ZIP yang sama aman. Padahal isi file yang diunggah tetap PDF.
+
+**Akar masalah:** ternyata ada **jalur penamaan keempat**, terpisah dari tiga yang sudah dibenahi di iterasi 1-2. Resolver untuk ekspor ZIP (`resolveManualItemAttachmentsForExport` di `src/lib/archive/berkas-arsip-file-access.ts`, dipakai `resolveBerkasArsipItemAttachments` → endpoint `export-zip.ts`) punya query `getManualAttachmentsForItem` sendiri yang **hanya select `logicalPath` + `judulLampiran`** dari DB — tanpa `content_type`, `original_filename`, atau metadata arsip manual (`nama`/`tanggal`/`category`) — lalu langsung memakai `judulLampiran` mentah sebagai `namaAman` (nama file di dalam ZIP), sama seperti bug awal RP-06 tapi di lokasi berbeda: **tanpa ekstensi sama sekali**. Karena file di dalam ZIP tidak berekstensi, Windows/aplikasi lain tidak tahu itu PDF — walau bytes isinya tetap PDF valid — sehingga tampak "format tidak jelas"/tidak bisa dibuka langsung. Ini persis kontras dengan WORKFLOW di ZIP yang sama, yang sudah lebih dulu benar (`resolveWorkflowItemAttachmentsForExport` memakai `resolveWorkflowAttachmentReference(...).downloadFilename`, formal & berekstensi) — cocok dengan laporan "dokumen lain aman".
+
+Sudah dikonfirmasi juga oleh test yang ada: `tests/unit/arsiparis/berkas-arsip-file-access-export.test.ts` sebelumnya meng-assert `namaAman: 'Lampiran Satu'` (tanpa ekstensi) untuk item MANUAL, persis di sebelah test WORKFLOW yang sudah benar meng-assert nama formal berekstensi — pola yang sama seperti test lama iterasi 1 yang tanpa sadar mendokumentasikan bug.
+
+**Perbaikan:** `getManualAttachmentsForItem` sekarang JOIN ke `manual_arsip` + `manual_arsip_category` dan ikut select `original_filename`, `content_type`, `manual_nama`/`tanggal`/`category_nama`; `resolveManualItemAttachmentsForExport` memakai **modul bersama yang sama** dari iterasi 2 (`buildManualArsipAttachmentFilename`, lewat `sanitizeBerkasAttachmentFilename`) untuk membangun `namaAman` — sehingga nama file di dalam ZIP sekarang identik dengan nama di preview/download.
+
+| File | Perubahan |
+|---|---|
+| `src/lib/archive/berkas-arsip-file-access.ts` | `BerkasArsipManualAttachmentExportRow` tambah `originalFilename`, `contentType`, `manualNama`, `manualTanggal`, `categoryNama`. `getManualAttachmentsForItem`: `innerJoin(manualArsip)` + `leftJoin(manualArsipCategory)`, select field baru. `resolveManualItemAttachmentsForExport`: `namaAman` dibangun lewat `buildManualArsipAttachmentFilename(...)` (impor dari modul bersama iterasi 2) + `sanitizeBerkasAttachmentFilename`, fallback ke `judulLampiran` mentah bila hasilnya kosong. |
+| `tests/unit/arsiparis/berkas-arsip-file-access-export.test.ts` | Test MANUAL diperbarui: fixture tambah `originalFilename`/`contentType`/`manualNama`/`manualTanggal`/`categoryNama`; ekspektasi `namaAman` jadi nama formal berekstensi (mis. `"Lampiran_Satu_Dokumen_Manual_Pengadaan_2026-05-30.pdf"`), sejajar dengan test WORKFLOW di file yang sama. |
+| `tests/unit/arsiparis/berkas-arsip-file-access.test.ts` | Fixture `getManualAttachmentsForItem` disesuaikan dengan field baru (nilai default `null`, tidak ada assertion `namaAman` di file ini — hanya perlu tetap memenuhi tipe repository). |
+
 ## Yang TIDAK termasuk
+
+- Perubahan alur unggah/preview untuk file non-PDF (docx/xlsx/gambar) — fokus RP-06 pada PDF sesuai laporan; ekstensi & nama non-PDF ikut terbawa otomatis oleh perbaikan yang sama (bukan gate khusus PDF), tapi tidak diuji eksplisit di luar test yang sudah ditambahkan.
+- Menyamakan lagi pola nama formal WORKFLOW (`buildDokumenFilename`: `{kelengkapan}_{leaf}_{kegiatan}_{tanggal}.ext`) dengan pola MANUAL (`{judul}_{nama}_{kategori}_{tanggal}.ext`) — keduanya sudah konsisten *secara internal* (preview = download = ZIP di masing-masing jalur), hanya polanya berbeda antar WORKFLOW vs MANUAL. Menyeragamkan dua pola ini lintas jenis sumber di luar scope RP-06.
+- RP-05 (ekspor ZIP laporan pegawai) — hanya menyentuh dokumen WORKFLOW (`dokumen_transaksi`), tidak pernah memuat lampiran MANUAL/KSBU, jadi tidak terdampak bug iterasi 3 maupun perbaikannya (dicek: `src/lib/export/laporan-zip-entries.ts` tidak menyentuh `manual_arsip*` sama sekali).
+
 ## Risiko & mitigasi
-## Urutan kerja
+
+| Risiko | Mitigasi |
+|---|---|
+| Ekstraksi ke modul bersama diam-diam mengubah perilaku download yang sudah berjalan | Logika dipindah verbatim (bukan ditulis ulang); 84 test `manual-arsip-route.test.ts` yang meng-assert Content-Disposition/filename download dijalankan ulang tanpa diubah dan tetap hijau. |
+| Kolom `manual_arsip_attachment.content_type`/`original_filename` untuk data lama (dev/seed) mungkin kosong/tidak dikenali | `buildManualArsipAttachmentFilename` sudah menangani: `content_type`/`original_filename` kosong → ekstensi **sengaja dikosongkan** (bukan ditebak `.pdf` secara serampangan) — sama seperti perilaku asli di `manual-arsip.ts` sebelum refactor. |
+| Test lama yang di-assert ulang mungkin menyembunyikan regresi lain | Test baru mencakup kasus nama formal lengkap, fallback segmen generik, dan ekstensi sengaja kosong — cakupan lebih luas dari test asli sebelum RP-06. |
+| Mungkin masih ada jalur penamaan lampiran MANUAL kelima yang belum ditemukan (pola berulang di RP-06: 4 lokasi berbeda ditemukan satu per satu lewat laporan user) | Sebelum menandai `Selesai`, grep menyeluruh `judulLampiran`/`judul_lampiran` dipakai langsung sebagai nama file (tanpa lewat `buildManualArsipAttachmentFilename`) di seluruh `src/` — lihat langkah "Sisa pekerjaan". |
+
+## Sisa pekerjaan sebelum `Selesai`
+
+1. **Jalankan test suite penuh** (`pnpm test`) — subset yang relevan (`berkas-arsip-attachment-names.test.ts`, `berkas-arsip-read-model.test.ts`, `berkas-arsip-file-access.test.ts`, `berkas-arsip-file-access-export.test.ts`, `berkas-export-zip.test.ts`, `manual-arsip-route.test.ts`, plus seluruh `tests/unit/arsiparis/` & `tests/unit/storage/`) sudah dijalankan di sesi ini dan hijau (583 test); jalankan suite lengkap sekali lagi untuk memastikan tidak ada dampak tak terduga di file lain.
+2. ~~Audit menyeluruh~~ **Sudah dilakukan** (mengingat pola berulang 4x di RP-06 ini): `grep -rn "judulLampiran\|judul_lampiran" src/` dijalankan di sesi ini. Satu pemakaian lain sebagai label ditemukan di `src/routes/arsiparis/penambahan-arsip.tsx` (±ln 594, 798, halaman "Daftar Manual Arsip" — beda dari `/arsiparis/berkas/$id`) — **aman**: `judul_lampiran` di situ cuma jadi teks judul modal preview, sedangkan gate PDF-nya sudah benar pakai `attachment.content_type` langsung (±ln 597), bukan parsing ekstensi dari nama file. Tidak ada lokasi kelima yang perlu diperbaiki.
+3. **Verifikasi manual**: unggah PDF di Penambahan Dokumen (KSBU) dengan judul kelengkapan diisi → tutup ke berkas → (a) Preview harus tampil PDF dengan nama sama seperti Download; (b) klik "Ekspor ZIP" di halaman berkas tsb, ekstrak hasil ZIP-nya, dan pastikan file lampiran MANUAL di dalamnya terbuka sebagai PDF dengan nama formal berekstensi `.pdf` — bukan lagi judul kelengkapan polos tanpa ekstensi.
+4. Setelah terverifikasi, ubah status jadi `Selesai` dan pindahkan ringkasan singkat ke `docs/penjelasan-proyek.md` (jejak bug + fix), sesuai konvensi di kepala dokumen ini.
