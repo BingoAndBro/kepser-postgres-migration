@@ -781,6 +781,12 @@ Rules:
 - Folder-first item labels, preview titles, and download filenames must preserve safe source attachment names from `WORKFLOW` `dokumen_transaksi.lampiran_urls` and `MANUAL` attachment metadata where safe. `WORKFLOW` download filenames should follow the existing dokumen persetujuan filename formatting behavior; `MANUAL` download filenames must preserve the existing Manual Archive attachment responder policy. Generic fallback names like `Lampiran 1` or `Lampiran` are allowed only when source metadata is missing or unsafe.
 - Folder-first file access and safe DTOs must never expose raw `lampiran_urls`, logical paths, physical paths, storage roots, signed URLs, file tokens, signed-token internals, cookies, session values, SQL details, or secrets.
 - Admin diagnostics/cleanup API responses should report safe counts/categories only and must not expose logical paths.
+- ZIP export (RP-07/RP-02/RP-05) must only bundle files the requesting session has already been authorized to access individually; it is not a new access surface. Endpoints re-authorize per document (RP-05) or per berkas (RP-02) server-side before resolving any attachment, and unauthorized ids supplied by the client are silently ignored rather than surfaced as a distinct error.
+- ZIP export folder/file names must be sanitized with the same helpers used for preview/download (`sanitizeStoragePathSegment`); generic fallback names are used when sanitization would otherwise produce an empty segment.
+- ZIP export is capped at 500 documents/items per export (rejected before any filesystem or streaming I/O, with a message naming the count) and skips individual files over 250 MB or missing on disk, recording each skip in `DAFTAR_ISI.txt` instead of failing the whole export.
+- `DAFTAR_ISI.txt` is always the first entry written to the archive and must never contain logical paths, physical paths, the storage root, or file access tokens — only sanitized folder/file names and skip reasons.
+- `DIMUSNAHKAN` blocks ZIP export of the affected berkas/items the same way it blocks preview/download.
+- `src/lib/export/document-zip.ts` is the single ZIP assembly module for this feature family; RP-02 and RP-05 endpoints must call it rather than reimplementing archive assembly.
 
 Path semantics:
 
@@ -909,6 +915,8 @@ API utama:
 - `/api/upload`
 - `/api/laporan/saya`
 - `/api/laporan/kegiatan`
+- `/api/laporan/saya.export-zip` (RP-05/RP-07)
+- `/api/laporan/kegiatan.export-zip` (RP-05/RP-07)
 
 ### PPK
 
@@ -984,6 +992,7 @@ API utama:
 - `/api/arsiparis/berkas/$id/items/$itemId/download/$lampiranIndex`
 - `/api/arsiparis/berkas/$id/close`
 - `/api/arsiparis/berkas/$id/lifecycle`
+- `/api/arsiparis/berkas/$id/export-zip` (RP-02/RP-07)
 - `/api/arsiparis/manual-arsip/categories`
 - `/api/arsiparis/manual-arsip`
 - `/api/arsiparis/manual-arsip/$id`

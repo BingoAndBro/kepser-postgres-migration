@@ -45,10 +45,25 @@ Salin penuh dari `../claude-plan-tdd.md`:
 
 ## Definition of Done
 
-- [ ] `pnpm install` sukses; `git diff -- package.json pnpm-lock.yaml` hanya memuat `archiver`/`@types/archiver`.
-- [ ] `buildZipPlan` murni, tanpa import `node:fs`/`node:stream` di jalur eksekusinya (hanya dipakai `streamDocumentZip`).
-- [ ] Semua checklist Step 1–4 di `claude-plan-tdd.md` hijau di `pnpm test`.
-- [ ] Regresi: seluruh test existing yang menyentuh `document-file-access.ts`/`berkas-arsip-file-access.ts`/preview/download tetap hijau tanpa diubah.
-- [ ] `AGENTS.md` memuat kebijakan ekspor ZIP + 3 route API baru sebelum section-02/03 mulai mengimplementasikan endpoint sungguhan.
-- [ ] Tidak ada perubahan ke `src/db/schema/**`, `drizzle/*.sql`, atau `src/routeTree.gen.ts` di section ini (route generation baru terjadi di section-02/03 saat file route benar-benar ada).
-- [ ] Section-02 dan section-03 bisa mulai tanpa perlu membaca ulang kode `document-zip.ts`/resolver — cukup kontrak fungsi yang diekspos (didokumentasikan di `claude-plan.md` Step 1–3).
+- [x] `pnpm install` sukses; `git diff -- package.json pnpm-lock.yaml` hanya memuat `archiver`/`@types/archiver`. Diinstal sebagai commit tersendiri (Step 0).
+- [x] `buildZipPlan` murni, tanpa import `node:fs`/`node:stream` di jalur eksekusinya (hanya dipakai `streamDocumentZip`).
+- [x] Semua checklist Step 1–4 di `claude-plan-tdd.md` hijau di `pnpm test`.
+- [x] Regresi: seluruh test existing yang menyentuh `document-file-access.ts`/`berkas-arsip-file-access.ts`/preview/download tetap hijau tanpa diubah.
+- [x] `AGENTS.md` memuat kebijakan ekspor ZIP + 3 route API baru sebelum section-02/03 mulai mengimplementasikan endpoint sungguhan.
+- [x] Tidak ada perubahan ke `src/db/schema/**`, `drizzle/*.sql`, atau `src/routeTree.gen.ts` di section ini (route generation baru terjadi di section-02/03 saat file route benar-benar ada).
+- [x] Section-02 dan section-03 bisa mulai tanpa perlu membaca ulang kode `document-zip.ts`/resolver — cukup kontrak fungsi yang diekspos di bawah.
+
+## Implementation Notes (aktual)
+
+Diimplementasikan sesuai rencana, dengan satu deviasi teknis penting dan beberapa keputusan desain yang tidak dirinci di plan asli:
+
+- **Deviasi — API `archiver` v8**: `archiver@8.0.0` (versi terbaru di npm saat implementasi) sudah menghapus factory function klasik `archiver('zip', options)` dan menjadi paket ESM-only yang mengekspor kelas (`ZipArchive`, `TarArchive`, `JsonArchive`, `Archiver`). `document-zip.ts` memakai `new ZipArchive({ zlib: { level: 9 } })`, bukan pemanggilan factory seperti tersirat di `claude-plan.md`. `Archiver` tetap `extends Transform` dan tetap punya `append`/`pipe`/`finalize()` (finalize mengembalikan `Promise`), jadi kontrak `streamDocumentZip` (append → pipe ke `PassThrough` → `Readable.toWeb()`) tidak berubah.
+- **Kontrak `buildZipPlan`/`streamDocumentZip` final** (lihat `src/lib/export/document-zip.ts`):
+  - `buildZipPlan(entries: DocumentZipEntry[], options: DocumentZipPlanOptions): DocumentZipPlan` — `DocumentZipPlan = { includedFolders, skipped, daftarIsiText }`. `skipped` pakai field `label` (bukan `folderPath`) karena dipakai juga untuk skip level-file (`"<folderPath>/<finalName>"`) oleh `streamDocumentZip`, bukan hanya level-folder.
+  - `streamDocumentZip(entries, options: DocumentZipStreamOptions, deps?): Promise<Response>` — `DocumentZipStreamOptions = DocumentZipPlanOptions & { filename: string }`. `deps` menerima `root`, `stat`, `createReadStream`, `createArchive` untuk injeksi test.
+  - `DAFTAR_ISI.txt` final (dengan skip hasil `fs.stat`) dihitung ulang oleh `streamDocumentZip` sendiri (bukan dipakai langsung dari `buildZipPlan`) karena kegagalan file baru diketahui setelah `stat`.
+  - Deteksi error `archiver` fatal-sebelum-byte-pertama: `streamDocumentZip` memeriksa flag `earlyError` tepat setelah memanggil `archive.finalize()` (event `error` dari EventEmitter bersifat sinkron dalam call-frame yang sama) — cukup untuk menangkap error validasi input archiver maupun error yang disimulasikan test double, tanpa perlu menunggu event stream asinkron yang bisa kehilangan byte pertama.
+- **Step 2** (`document-file-access.ts`): `resolveDocumentLampiranLogicalPathForExport({ documentId, lampiranIndex })` ditambah persis seperti direncanakan; `FileReferenceResult` diekspor (sebelumnya tipe privat).
+- **Step 3** (`berkas-arsip-file-access.ts`): `resolveBerkasArsipItemAttachments(berkasId, itemId, deps?)` mengembalikan `BerkasArsipItemAttachmentsResult = { ok: true; attachments: { logicalPath, namaAman }[] } | { ok: false; status; message }` (pola result eksplisit, bukan array kosong untuk representasikan error) — lebih konsisten dengan `FileReferenceResult` di `document-file-access.ts` dan membedakan tegas "berhasil tapi tanpa lampiran" dari "gagal resolusi (DIMUSNAHKAN/404)". Repository baru: `getManualAttachmentsForItem(manualArsipId)`.
+- **Test**: `tests/unit/export/document-zip.test.ts` (19 test), `tests/unit/storage/document-file-access-export.test.ts` (6 test, termasuk assert `exportResult` sama persis dengan hasil jalur token existing), `tests/unit/arsiparis/berkas-arsip-file-access-export.test.ts` (7 test). Total 32 test baru; regresi existing (`berkas-arsip-file-access.test.ts`, `internal-file-access.test.ts`) tetap hijau tanpa perilaku diubah — hanya mock repository di test existing yang ditambah method baru agar type-check.
+- **Commit**: 2 commit — `chore: add archiver dependency ...` (Step 0, isolated) dan satu commit gabungan untuk Step 1–5 (module + resolver + test + `AGENTS.md`).
