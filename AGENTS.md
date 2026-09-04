@@ -915,8 +915,8 @@ API utama:
 - `/api/upload`
 - `/api/laporan/saya`
 - `/api/laporan/kegiatan`
-- `/api/laporan/saya.export-zip` (RP-05/RP-07)
-- `/api/laporan/kegiatan.export-zip` (RP-05/RP-07)
+- `/api/laporan/saya/export-zip` (RP-05/RP-07)
+- `/api/laporan/kegiatan/export-zip` (RP-05/RP-07)
 
 ### PPK
 
