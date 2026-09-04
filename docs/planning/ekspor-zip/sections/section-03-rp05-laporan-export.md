@@ -53,12 +53,23 @@ Salin penuh dari `../claude-plan-tdd.md`:
 
 ## Definition of Done
 
-- [ ] Endpoint `POST /api/laporan/saya.export-zip` mengembalikan ZIP valid hanya untuk dokumen milik peminta, mengabaikan id yang tidak berhak.
-- [ ] Endpoint `POST /api/laporan/kegiatan.export-zip` mengembalikan ZIP valid untuk dokumen kegiatan yang dipimpin peminta (termasuk milik anggota tim lain), mengabaikan dokumen kegiatan lain.
-- [ ] Guard 500 dokumen ditegakkan dari `dokumen_ids.length` mentah **sebelum** query DB dijalankan (diverifikasi test: query tidak pernah dipanggil saat guard aktif).
-- [ ] `requireSameOrigin` aktif di kedua endpoint; tanpa sesi → `401`; body kosong → `400`.
-- [ ] Tidak ada baris baru di tabel activity manapun setelah ekspor sukses.
-- [ ] Tombol "Ekspor Semua File (ZIP)" berfungsi di kedua halaman, mengikuti `filtered`/`selectedDocuments` secara real-time, batas 500 menampilkan pesan "persempit filter" tanpa tombol lanjut.
-- [ ] `src/routeTree.gen.ts` diff hanya menambah 2 route ini (plus route section-02 bila regenerasi terjadi setelah keduanya ada).
-- [ ] Smoke test manual: ekspor dari `/pegawai/laporan/saya` dengan filter aktif, dan dari `/pegawai/laporan/kegiatan` sebagai Ketua Tim atas dokumen anggota tim lain — verifikasi struktur folder + `DAFTAR_ISI.txt` di kedua kasus.
-- [ ] `pnpm test` hijau (termasuk test baru section ini + tidak ada regresi ke test laporan existing).
+- [x] Endpoint `POST /api/laporan/saya.export-zip` mengembalikan ZIP valid hanya untuk dokumen milik peminta, mengabaikan id yang tidak berhak.
+- [x] Endpoint `POST /api/laporan/kegiatan.export-zip` mengembalikan ZIP valid untuk dokumen kegiatan yang dipimpin peminta (termasuk milik anggota tim lain), mengabaikan dokumen kegiatan lain.
+- [x] Guard 500 dokumen ditegakkan dari `dokumen_ids.length` mentah **sebelum** query DB dijalankan (diverifikasi test: `db.select` tidak pernah dipanggil saat guard aktif).
+- [x] `requireSameOrigin` aktif di kedua endpoint; tanpa sesi → `401`; body kosong → `400`.
+- [x] Tidak ada baris baru di tabel activity manapun setelah ekspor sukses — tidak ada endpoint yang menyentuh tabel activity apa pun (tidak ada import service mutasi).
+- [x] Tombol "Ekspor Semua File (ZIP)" berfungsi di kedua halaman, mengikuti `filtered`/`selectedDocuments` secara real-time, batas 500 menampilkan pesan "persempit filter" tanpa tombol lanjut.
+- [ ] **Belum dijalankan**: `src/routeTree.gen.ts` regenerasi (`pnpm dev`/`pnpm build`) — kedua route file sudah ada tapi belum terdaftar di route tree.
+- [ ] Smoke test manual: ekspor dari `/pegawai/laporan/saya` dengan filter aktif, dan dari `/pegawai/laporan/kegiatan` sebagai Ketua Tim atas dokumen anggota tim lain — belum dilakukan (perlu app berjalan).
+- [ ] **Belum dijalankan**: `pnpm test` — implementer diminta tidak menjalankan test/commit sendiri di sesi ini; user akan menjalankan `pnpm test` dan `git commit` secara manual.
+
+## Implementation Notes (aktual)
+
+- **Memoization per-dokumen (Step 2/Step 8)**: `src/lib/storage/document-file-access.ts` menambah 2 export tipis baru — `loadDocumentAccessContextForExport(documentId)` dan `resolveDocumentLampiranReferenceFromContext(context, lampiranIndex)` — membungkus fungsi privat existing (`loadDocumentAccessContext`/`resolveDocumentLampiranReference`) tanpa mengubah perilakunya. `resolveDocumentLampiranLogicalPathForExport` (section-01) sendiri tidak mendukung reuse context lintas index, jadi endpoint RP-05 memakai dua fungsi baru ini secara langsung (lewat helper bersama, lihat berikutnya) untuk memuat context sekali per dokumen dan dipakai ulang untuk semua `lampiranIndex` dokumen itu.
+- **Helper bersama baru** (tidak ada di daftar file plan asli, ditambahkan karena kedua endpoint section ini "struktur identik" per plan): `src/lib/export/laporan-zip-entries.ts` — `buildLaporanZipEntries(rows)` (resolusi entries + memoization di atas) dan `buildLaporanExportZipFilename`/`resolveKegiatanFilenamePart` (penamaan file ZIP). Menghindari duplikasi logika antara `saya.export-zip.ts` dan `kegiatan.export-zip.ts`.
+- **Kolom `jenis_dokumen_nama`**: plan tidak menyebutnya eksplisit, tapi `buildFormalFilename` butuh field ini untuk dokumen `is_non_material`. Ditambah `leftJoin(masterJenisDokumen, ...)` di kedua query (pola sama seperti `src/routes/api/dokumen.$id.ts`), karena `GET /api/laporan/saya`/`kegiatan` existing tidak men-select-nya.
+- **Ketua Tim bukan pemimpin kegiatan manapun**: endpoint `kegiatan.export-zip` mengembalikan ZIP kosong (hanya `DAFTAR_ISI.txt`, status 200) — bukan `403`/`404` — meniru persis `GET /api/laporan/kegiatan` existing yang mengembalikan `{ dokumen: [], isKetuaTim: false }`. Ini keputusan eksplisit yang diminta plan Step 9.
+- **`requesterRole` untuk kegiatan.export-zip**: dipakai `'PEGAWAI'` (bukan role terpisah "Ketua Tim" — role itu tidak ada di `ROLES` constants, kepemimpinan kegiatan adalah assignment terpisah, bukan role sesi).
+- **UI**: tombol + dialog dipakai bersama lewat komponen baru `src/components/laporan/ExportZipDialog.tsx` (tidak ada di daftar file plan, ditambahkan untuk menghindari duplikasi dialog antara `saya.tsx` dan `kegiatan.tsx`). Unduhan lewat `fetch` + `Blob` + `downloadZipBlob`/`extractContentDispositionFilename` baru di `src/lib/file-helpers.ts`.
+- **Test**: `tests/unit/laporan/export-zip.test.ts` — mock `buildLaporanZipEntries` dan `streamDocumentZip` (bukan DB `document-file-access.ts` mentah) supaya test endpoint fokus ke guard/otorisasi/query construction, bukan mengulang test resolver section-01. Plus describe block source-shape untuk UI (pola sama seperti section-02).
+- **Belum dijalankan oleh implementer**: route generation (`pnpm dev`/`pnpm build`), `pnpm test`, dan `git commit` — sesuai permintaan user di sesi ini, semua diserahkan ke user.

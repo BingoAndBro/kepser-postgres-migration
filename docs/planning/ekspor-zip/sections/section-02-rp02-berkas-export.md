@@ -47,10 +47,20 @@ Salin penuh dari `../claude-plan-tdd.md`:
 
 ## Definition of Done
 
-- [ ] Endpoint `GET /api/arsiparis/berkas/$id/export-zip` mengembalikan ZIP valid untuk berkas `CLOSED` non-`DIMUSNAHKAN`, struktur folder sesuai spec.
-- [ ] Guard `409`/`410`/`401`/`403`/`404`/`413` semua teruji.
-- [ ] Tidak ada baris baru di `berkas_arsip_activity` setelah ekspor — diverifikasi test.
-- [ ] Tombol "Ekspor ZIP" + dialog konfirmasi berfungsi di `/arsiparis/berkas/$id`, disabled untuk status yang tidak boleh diekspor.
-- [ ] `src/routeTree.gen.ts` diff hanya menambah route ini (plus route section-03 bila regenerasi terjadi setelah keduanya ada).
-- [ ] Smoke test manual: unduh ZIP nyata dari berkas dengan campuran item WORKFLOW+MANUAL, buka, verifikasi struktur folder + `DAFTAR_ISI.txt`.
-- [ ] `pnpm test` hijau (termasuk test baru section ini + tidak ada regresi ke test berkas existing).
+- [x] Endpoint `GET /api/arsiparis/berkas/$id/export-zip` mengembalikan ZIP valid untuk berkas `CLOSED` non-`DIMUSNAHKAN`, struktur folder sesuai spec.
+- [x] Guard `409`/`410`/`401`/`403`/`404`/`413` semua teruji.
+- [x] Tidak ada baris baru di `berkas_arsip_activity` setelah ekspor — diverifikasi test (spy `db.insert` yang throw jika dipanggil).
+- [x] Tombol "Ekspor ZIP" + dialog konfirmasi berfungsi di `/arsiparis/berkas/$id`, disabled untuk status yang tidak boleh diekspor.
+- [ ] **Belum dijalankan**: `src/routeTree.gen.ts` regenerasi (`pnpm dev`/`pnpm build`) — route file `src/routes/api/arsiparis/berkas/$id/export-zip.ts` sudah ada tapi belum terdaftar di route tree. Wajib dijalankan sebelum endpoint benar-benar bisa diakses.
+- [ ] Smoke test manual: unduh ZIP nyata dari berkas dengan campuran item WORKFLOW+MANUAL, buka, verifikasi struktur folder + `DAFTAR_ISI.txt` — belum dilakukan (perlu app berjalan).
+- [ ] **Belum dijalankan**: `pnpm test` — implementer diminta tidak menjalankan test/commit sendiri di sesi ini; user akan menjalankan `pnpm test` dan `git commit` secara manual.
+
+## Implementation Notes (aktual)
+
+- **Folder-name `id` untuk RP-02**: `claude-plan.md` tidak merinci nilai `id` yang dipakai `buildWorkflowDocumentFolderName`/`buildManualDocumentFolderName` untuk item berkas. Diputuskan memakai `item.item_id` (id `berkas_arsip_item`, sudah ada di `BerkasArsipDetailItemDto` yang aman diekspos), **bukan** `dokumen_id`/`manual_arsip_id` mentah (yang sengaja tidak diekspos di DTO publik sesuai kebijakan *Storage And File Rules*). `item_id` tetap unik per item dalam satu berkas, cukup untuk anti-tabrakan nama folder.
+- **Judul & tanggal folder**: dipakai `item.source_title` (field gabungan WORKFLOW/MANUAL yang sudah ada di read-model) untuk `judul`, dan `item.source_date ?? item.item_added_at ?? ''` untuk `tanggal` — menghindari perlu membaca `item.workflow`/`item.manual` sub-objek secara terpisah.
+- **Endpoint**: `src/routes/api/arsiparis/berkas/$id/export-zip.ts` memakai `getBerkasArsipDetail` (read-model yang sama dengan endpoint detail `$id.ts`) untuk metadata berkas + items, lalu `resolveBerkasArsipItemAttachments` per item.
+- **Nama file ZIP**: `Berkas_<nomor SPM disanitasi atau "Tanpa_Nomor_SPM">_<YYYY-MM-DD>.zip`.
+- **UI**: tombol "Ekspor ZIP" ditambah di panel "Aksi Kontrol Berkas" (`FolderActionPanel`) di `src/routes/arsiparis/berkas/$id.tsx`, selalu di-render (disabled + `title` tooltip untuk status `OPEN`/`DIMUSNAHKAN`, bukan disembunyikan) — dialog `ExportBerkasZipDialog` memicu unduhan lewat `window.location.href` (GET murni, tanpa fetch+blob) sesuai rencana. Helper murni `canExportBerkasZip`/`exportBerkasZipDisabledReason`/`buildBerkasExportZipUrl` diekspor untuk testing.
+- **Test**: `tests/unit/arsiparis/berkas-export-zip.test.ts` — 2 describe block: satu untuk endpoint (mock `getBerkasArsipDetail`/`resolveBerkasArsipItemAttachments`/`streamDocumentZip`/`db.insert`), satu untuk UI (pure-function assertions + source-shape `readFileSync` assertions, mengikuti pola existing `berkas-arsip-folder-pages.test.ts` karena halaman ini tidak punya RTL render test).
+- **Belum dijalankan oleh implementer**: route generation (`pnpm dev`/`pnpm build`), `pnpm test`, dan `git commit` — sesuai permintaan user di sesi ini, semua diserahkan ke user.
