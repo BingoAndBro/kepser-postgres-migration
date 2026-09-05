@@ -28,7 +28,7 @@
 | **RP-01** | De-arsip-kan istilah + sederhanakan lifecycle berkas | `Disetujui` | Buang bahasa kearsipan resmi; 4 tahap lifecycle → 2 tahap sesudah tutup; 2 field retensi → 1; tanpa scheduler |
 | **RP-02** | Ekspor satu berkas penuh ke ZIP | `Draft` | Unduh semua soft file dalam satu berkas sebagai satu `.zip` (dipakai KSBU untuk keperluan tahunan) |
 | **RP-03** | Aksi cepat beranda: urutkan prioritas dari yang terlama | `Draft` | Di dashboard PPK / PPSPM / KSBU, daftar "Perlu Tindakan" (maks 3) ambil 3 dokumen **terlama**, bukan 3 terbaru |
-| **RP-04** | Bug: dropdown "Pilih Jenis Permintaan" tak bisa dibuka | `Draft` | Setelah ganti Karakteristik Dokumen ke Non-Material lalu membuka dropdown Jenis Dokumen, dropdown Jenis Permintaan mati/tidak muncul |
+| **RP-04** | Bug: dropdown "Pilih Jenis Permintaan" tak bisa dibuka | `Selesai` | Setelah ganti Karakteristik Dokumen ke Non-Material lalu membuka dropdown Jenis Dokumen, dropdown Jenis Permintaan mati/tidak muncul |
 | **RP-05** | Ekspor massal dokumen terpilih (terfilter) ke ZIP | `Draft` | Dari halaman daftar/laporan, filter (mis. periode 1 bulan), tombol "Ekspor Semua File (ZIP)"; di dalam zip, tiap dokumen = satu folder berisi seluruh kelengkapannya |
 | **RP-06** | Bug: ekstensi file hilang setelah dokumen masuk berkas | `Dikerjakan` | Di Penambahan Dokumen (KSBU), upload + preview awal (status PENDING) berhasil; setelah dokumen masuk berkas (jadi FORMAL) nama file kehilangan ekstensi → preview gagal ("Preview hanya tersedia untuk file PDF") padahal file aslinya PDF dan download tetap berhasil sebagai PDF. **Akar masalah ditemukan & kode sudah diperbaiki** — lihat detail. |
 | **RP-07** | Fondasi Ekspor ZIP Bersama (RP-02 + RP-05) | `Disetujui` | Perakit ZIP streaming tunggal; struktur folder berlapis; batas 500 dokumen / skip file >250 MB; `DAFTAR_ISI.txt`; dialog konfirmasi |
@@ -351,7 +351,16 @@ const actionItems = [...waiting, ...revision].sort(byOldest).slice(0, 3)
 
 # RP-04 — Bug: Dropdown "Pilih Jenis Permintaan" Tidak Bisa Dibuka
 
-**Status:** `Draft` · **Jenis:** bug
+**Status:** `Selesai` · **Jenis:** bug
+
+## Implementasi (jejak)
+
+Opsi **B** dipakai (render kedua Select tetap ter-mount, sembunyikan lewat atribut HTML `hidden` alih-alih ternary yang meng-unmount):
+
+- `src/components/dokumen/form/StepJenisPermintaan.tsx`: blok "Pilih Jenis Permintaan" & "Pilih Jenis Dokumen" sekarang selalu di-render, masing-masing `hidden={isNonMaterial}` / `hidden={!isNonMaterial}`. `handleToggleNonMaterial` di `aju.tsx` sudah mereset kedua id sebelumnya, jadi tidak ada kebocoran state.
+- Audit `src/components/laporan/HierarchicalFilter.tsx` (langkah 5) menemukan pola sama: Select Kegiatan/Kategori/Detail dirender via `condition && <Select>`, rentan ter-unmount paksa saat popup-nya terbuka lalu field prasyaratnya (mis. Fungsi) berubah. Diperbaiki dengan pola yang sama (`hidden`, bukan unmount).
+- Opsi A/C/D tidak dipakai — B sudah cukup, tanpa risiko upgrade paket.
+- Test regresi berbasis rendering nyata (jsdom + interaksi popup Base UI) di-skip karena infra test proyek ini `environment: 'node'` tanpa `@testing-library/react` — menambahkannya di luar scope bug fix ini. Sebagai gantinya ditambahkan source-guard test yang menolak pola ternary-unmount muncul lagi: `tests/unit/dokumen/ajukan-dokumen-parity-source.test.ts` dan `tests/unit/laporan/hierarchical-filter-select-mount.test.ts`. **Repro manual lintas-browser tetap perlu dilakukan manusia** sebelum menutup RP ini sepenuhnya.
 
 ## Langkah reproduksi
 
