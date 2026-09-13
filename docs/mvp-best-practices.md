@@ -127,7 +127,7 @@ export const dokumenTransaksi = pgTable("dokumen_transaksi", {
   kegiatan_jenis_id: uuid("kegiatan_jenis_id").references(() => masterKegiatan.id),
   is_ketua_tim: boolean("is_ketua_tim").notNull().default(false),
   status: text("status").notNull().default("DRAFT"),
-  current_step: text("current_step"), // 'PPK' | 'BENDAHARA' | null
+  current_step: text("current_step"), // 'PPK' | 'PPSPM' | null
   revision_target: text("revision_target"), // 'USER' | 'PPK' | null
   lampiran_urls: jsonb("lampiran_urls").default("[]"),
   created_by: uuid("created_by").notNull().references(() => authUsers.id),

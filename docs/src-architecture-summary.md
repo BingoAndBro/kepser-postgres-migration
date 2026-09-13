@@ -18,8 +18,8 @@ Pada snapshot 2026-05-09, aplikasi ini adalah DMS berbasis TanStack Start dengan
 Secara domain, kode sudah terbagi mengikuti role utama:
 
 - `PEGAWAI`: ajukan dokumen, revisi, laporan
-- `PPK`: validasi, reject, resubmit ke Bendahara
-- `BENDAHARA`: approve/reject tahap akhir operasional
+- `PPK`: validasi, reject, resubmit ke Ppspm
+- `PPSPM`: approve/reject tahap akhir operasional
 - `ARSIPARIS`: pengarsipan, pencarian arsip, klasifikasi, usul musnah
 - `ADMIN`: master user dan master data
 
@@ -46,7 +46,7 @@ src/
 |   |-- api/                   # endpoint server
 |   |-- pegawai/               # halaman Pegawai
 |   |-- ppk/                   # halaman PPK
-|   |-- bendahara/             # halaman Bendahara
+|   |-- ppspm/             # halaman Ppspm
 |   |-- arsiparis/             # halaman Arsiparis
 |   `-- admin.*.tsx            # halaman admin master data
 `-- graphify-out/              # artefak cache tooling, bukan kode runtime utama
@@ -133,10 +133,10 @@ File utama:
 `fsm.ts` adalah titik pusat transisi status:
 
 - `DRAFT -> IN_PPK_VALIDATION`
-- `IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL`
+- `IN_PPK_VALIDATION -> IN_PPSPM_APPROVAL`
 - `IN_PPK_VALIDATION -> NEED_REVISION(USER)`
-- `IN_BENDAHARA_APPROVAL -> COMPLETED`
-- `IN_BENDAHARA_APPROVAL -> NEED_REVISION(PPK)`
+- `IN_PPSPM_APPROVAL -> COMPLETED`
+- `IN_PPSPM_APPROVAL -> NEED_REVISION(PPK)`
 - `NEED_REVISION -> RESUBMIT / RESUBMIT_PPK`
 - `COMPLETED -> ARCHIVED`
 
@@ -234,7 +234,7 @@ Keterkaitannya kuat dengan:
 
 - `lib/dokumen-helpers.ts`
 - `lib/storage-client.ts`
-- endpoint `/api/dokumen/*`, `/api/ppk/*`, `/api/bendahara/*`
+- endpoint `/api/dokumen/*`, `/api/ppk/*`, `/api/ppspm/*`
 
 ### Komponen auth
 
@@ -290,13 +290,13 @@ Fungsi utama:
 - daftar ditolak
 - daftar revisi untuk PPK
 - detail dokumen
-- halaman resubmit setelah ditolak Bendahara
+- halaman resubmit setelah ditolak Ppspm
 
-### Grup Bendahara
+### Grup Ppspm
 
 Folder utama:
 
-- `src/routes/bendahara/`
+- `src/routes/ppspm/`
 
 Fungsi utama:
 
@@ -388,16 +388,16 @@ Pola umum:
 - baca/tulis dokumen sering memakai admin client agar lolos RLS untuk operasi workflow
 - status diubah via `fsm.ts` atau helper status terkait
 
-### Bendahara
+### Ppspm
 
 Endpoint penting:
 
-- `bendahara/inbox.ts`
-- `bendahara/ditolak.ts`
-- `bendahara/selesai.ts`
-- `bendahara/dokumen/$id.ts`
-- `bendahara/dokumen/$id/approve.ts`
-- `bendahara/dokumen/$id/reject.ts`
+- `ppspm/inbox.ts`
+- `ppspm/ditolak.ts`
+- `ppspm/selesai.ts`
+- `ppspm/dokumen/$id.ts`
+- `ppspm/dokumen/$id/approve.ts`
+- `ppspm/dokumen/$id/reject.ts`
 
 ### Arsiparis
 
@@ -451,7 +451,7 @@ Ini adalah endpoint operasional untuk menjaga kebersihan storage.
 5. endpoint memvalidasi Zod, cek kelengkapan, buat record, pindah file pending, lalu jalankan FSM
 6. log aktivitas dicatat ke `log_aktivitas`
 
-### 3. Validasi PPK dan Bendahara
+### 3. Validasi PPK dan Ppspm
 
 1. halaman inbox per role memanggil endpoint list masing-masing
 2. detail page memanggil endpoint detail role masing-masing
@@ -465,7 +465,7 @@ Ini adalah endpoint operasional untuk menjaga kebersihan storage.
 Ada dua jalur revisi:
 
 - PPK menolak -> target revisi ke `USER`
-- Bendahara menolak -> target revisi ke `PPK`
+- Ppspm menolak -> target revisi ke `PPK`
 
 Komponen yang paling terlibat:
 
@@ -537,7 +537,7 @@ Pada snapshot historis ini, struktur aplikasi sudah cukup jelas secara domain: r
 - `src/routes/api/dokumen/submit.ts`
 - `src/routes/api/dokumen.$id.ts`
 - `src/routes/api/ppk/dokumen/$id/approve.ts`
-- `src/routes/api/bendahara/dokumen/$id/approve.ts`
+- `src/routes/api/ppspm/dokumen/$id/approve.ts`
 - `src/routes/api/arsiparis/dokumen.$id.archive.ts`
 
 Jika ingin memahami alur aplikasi dari awal sampai akhir, urutan baca yang paling efisien adalah:
@@ -550,4 +550,4 @@ Jika ingin memahami alur aplikasi dari awal sampai akhir, urutan baca yang palin
 6. `src/lib/dokumen-helpers.ts`
 7. `src/routes/pegawai/dokumen/aju.tsx`
 8. endpoint `src/routes/api/dokumen/*`
-9. endpoint `src/routes/api/ppk/*`, `bendahara/*`, `arsiparis/*`
+9. endpoint `src/routes/api/ppk/*`, `ppspm/*`, `arsiparis/*`

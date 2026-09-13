@@ -17,13 +17,13 @@ Touched pages:
 - `/ppk/revisi`
 - `/ppk/dokumen/$id`
 - `/ppk/dokumen/$id/resubmit`
-- `/bendahara`
-- `/bendahara/inbox`
-- `/bendahara/ditolak`
-- `/bendahara/selesai`
-- `/bendahara/dokumen/$id`
+- `/ppspm`
+- `/ppspm/inbox`
+- `/ppspm/ditolak`
+- `/ppspm/selesai`
+- `/ppspm/dokumen/$id`
 
-The `/bendahara` namespace remains unchanged for route/API compatibility. User-facing copy in the touched pages uses `PPSPM`.
+The `/ppspm` namespace remains unchanged for route/API compatibility. User-facing copy in the touched pages uses `PPSPM`.
 
 ## Files Changed
 
@@ -35,11 +35,11 @@ The `/bendahara` namespace remains unchanged for route/API compatibility. User-f
 - `src/routes/ppk/revisi.tsx`
 - `src/routes/ppk/dokumen/$id/index.tsx`
 - `src/routes/ppk/dokumen/$id/resubmit.tsx`
-- `src/routes/bendahara/index.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/ditolak.tsx`
-- `src/routes/bendahara/selesai.tsx`
-- `src/routes/bendahara/dokumen/$id.tsx`
+- `src/routes/ppspm/index.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/ditolak.tsx`
+- `src/routes/ppspm/selesai.tsx`
+- `src/routes/ppspm/dokumen/$id.tsx`
 - `docs/migration/phase-15g2-ppk-ppspm-page-integration.md`
 
 ## Visual Changes
@@ -72,7 +72,7 @@ Unchanged:
 - Redirect destinations after approve/reject/resubmit/kembalikan.
 - PPK validation endpoint and reject endpoint.
 - PPSPM approval endpoint and reject endpoint.
-- `AttachmentViewer` preview/download behavior and `apiType="ppk"` / `apiType="bendahara"` usage.
+- `AttachmentViewer` preview/download behavior and `apiType="ppk"` / `apiType="ppspm"` usage.
 - PPK `KEMBALIKAN` semantics and endpoint.
 - Auth/session/RBAC logic.
 - Storage/file-access logic.
@@ -83,7 +83,7 @@ Unchanged:
 
 - PPK validation remains for documents in `IN_PPK_VALIDATION`.
 - PPK reject still sends the existing `catatan` payload to the existing PPK reject endpoint.
-- PPSPM approval remains for documents in `IN_BENDAHARA_APPROVAL`.
+- PPSPM approval remains for documents in `IN_PPSPM_APPROVAL`.
 - PPSPM reject still sends the existing `catatan` payload to the existing PPSPM reject endpoint.
 - PPK resubmit still uses the existing PATCH-then-POST flow.
 - PPK `Kembalikan ke Pegawai` remains a separate action and was not merged into ordinary reject UI.
@@ -103,8 +103,8 @@ Unchanged:
 - `dms_active_role` remains UX-only state.
 - Server/API RBAC remains authoritative.
 - `ADMIN` remains dedicated and is not presented as a substitute for PPK or PPSPM.
-- Internal `BENDAHARA` enum/route/API compatibility is preserved.
-- User-facing label for `BENDAHARA` is `PPSPM`.
+- Internal `PPSPM` enum/route/API compatibility is preserved.
+- User-facing label for `PPSPM` is `PPSPM`.
 - Active runtime/package Supabase dependency retired, historical Supabase artifacts remain.
 
 Not restored:

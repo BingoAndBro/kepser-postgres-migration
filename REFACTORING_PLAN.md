@@ -122,11 +122,11 @@ Critical manual workflow checks:
 - Pegawai submit material document
 - Pegawai submit non-material document
 - PPK approve and reject
-- Bendahara approve and reject
+- Ppspm approve and reject
 - Pegawai revision resubmit
-- PPK resubmit after Bendahara rejection
+- PPK resubmit after Ppspm rejection
 - Arsiparis archive completed document
-- preview/download lampiran from Pegawai, PPK, Bendahara, Arsiparis views
+- preview/download lampiran from Pegawai, PPK, Ppspm, Arsiparis views
 
 Exit criteria:
 
@@ -179,7 +179,7 @@ Suggested shape:
 export const ROLES = {
   PEGAWAI: 'PEGAWAI',
   PPK: 'PPK',
-  BENDAHARA: 'BENDAHARA',
+  PPSPM: 'PPSPM',
   ARSIPARIS: 'ARSIPARIS',
   ADMIN: 'ADMIN',
 } as const
@@ -191,7 +191,7 @@ export type RoleName = typeof ROLES[keyof typeof ROLES]
 export const DOC_STATUS = {
   DRAFT: 'DRAFT',
   IN_PPK_VALIDATION: 'IN_PPK_VALIDATION',
-  IN_BENDAHARA_APPROVAL: 'IN_BENDAHARA_APPROVAL',
+  IN_PPSPM_APPROVAL: 'IN_PPSPM_APPROVAL',
   NEED_REVISION: 'NEED_REVISION',
   COMPLETED: 'COMPLETED',
   ARCHIVED: 'ARCHIVED',
@@ -213,7 +213,7 @@ Verification:
 - Search for high-risk magic strings still present in core files:
 
 ```bash
-rg "'(PEGAWAI|PPK|BENDAHARA|ARSIPARIS|ADMIN|DRAFT|IN_PPK_VALIDATION|IN_BENDAHARA_APPROVAL|NEED_REVISION|COMPLETED|ARCHIVED|TERSIMPAN)'" src
+rg "'(PEGAWAI|PPK|PPSPM|ARSIPARIS|ADMIN|DRAFT|IN_PPK_VALIDATION|IN_PPSPM_APPROVAL|NEED_REVISION|COMPLETED|ARCHIVED|TERSIMPAN)'" src
 ```
 
 Exit criteria:
@@ -416,7 +416,7 @@ Use current behavior unless intentionally changed with routing docs:
 ```typescript
 PEGAWAI: '/'
 PPK: '/ppk'
-BENDAHARA: '/bendahara'
+PPSPM: '/ppspm'
 ARSIPARIS: '/arsiparis'
 ADMIN: '/admin'
 ```
@@ -777,7 +777,7 @@ Manual checks by domain:
 - Auth: login, logout, inactive account handling, role switch.
 - Pegawai: list, submit material, submit non-material, revise, preview, download.
 - PPK: inbox, approve, reject, resubmit, preview, download.
-- Bendahara: inbox, approve, reject, finished list, preview, download.
+- Ppspm: inbox, approve, reject, finished list, preview, download.
 - Arsiparis: inbox, archive, active list, inactive list, usul musnah, search.
 - Admin: all master-data CRUD and user management.
 

@@ -47,7 +47,7 @@ No prototype source was copied or imported.
 - `src/components/dashboard/RoleDashboardPrimitives.tsx`
 - `src/routes/pegawai.tsx`
 - `src/routes/ppk/index.tsx`
-- `src/routes/bendahara/index.tsx`
+- `src/routes/ppspm/index.tsx`
 - `src/routes/arsiparis/index.tsx`
 - `src/routes/penanggung-jawab-kinerja/index.tsx`
 - `src/routes/admin.index.tsx`
@@ -74,9 +74,9 @@ PPK:
 
 PPSPM:
 
-- Visible UI uses PPSPM wording while internal route/role remains Bendahara.
+- Visible UI uses PPSPM wording while internal route/role remains Ppspm.
 - Added four cards: Menunggu Persetujuan, Disetujui, Dikembalikan, Total Nominal Menunggu.
-- Uses existing `/bendahara/inbox`, `/bendahara/selesai`, and `/bendahara/ditolak`.
+- Uses existing `/ppspm/inbox`, `/ppspm/selesai`, and `/ppspm/ditolak`.
 - Shows up to three waiting approval rows.
 - Nominal card is refined by Phase 15L.5A.1: it sums `nominal_realisasi` for documents waiting PPSPM approval by using existing workflow detail data, without adding API/backend fields.
 
@@ -134,7 +134,7 @@ Activity Log remains deferred.
 - Existing role guards remain authoritative.
 - `dms_session` remains the authorization boundary.
 - `dms_active_role` remains UX-only.
-- PPSPM keeps internal `BENDAHARA` route/role values.
+- PPSPM keeps internal `PPSPM` route/role values.
 - Folder-first archive authority remains `berkas_arsip` plus `berkas_arsip_item`.
 - Penanggung Jawab Kinerja remains metadata-only.
 - No preview/download/file-access behavior is added or changed.

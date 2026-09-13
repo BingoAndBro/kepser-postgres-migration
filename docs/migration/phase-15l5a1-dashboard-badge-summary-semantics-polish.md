@@ -50,7 +50,7 @@ Kepala Sub Bagian Umum dashboard summary cards are now lifecycle-focused:
 PPK and PPSPM dashboards use existing APIs only.
 
 - Waiting list APIs identify documents that have not been validated or approved.
-- Existing detail APIs (`/ppk/dokumen/:id` and `/bendahara/dokumen/:id`) provide `nominal_realisasi`.
+- Existing detail APIs (`/ppk/dokumen/:id` and `/ppspm/dokumen/:id`) provide `nominal_realisasi`.
 - The dashboard enriches waiting documents from those existing detail endpoints and sums `nominal_realisasi` client-side.
 - If no nominal values are available, the card shows `Rp 0`.
 - No API/backend field was added.
@@ -88,7 +88,7 @@ The interaction is visual-only and does not change layout, data, routing, or beh
 - `src/components/dashboard/RoleDashboardPrimitives.tsx`
 - `src/routes/pegawai.tsx`
 - `src/routes/ppk/index.tsx`
-- `src/routes/bendahara/index.tsx`
+- `src/routes/ppspm/index.tsx`
 - `src/routes/arsiparis/index.tsx`
 - `src/routes/penanggung-jawab-kinerja/index.tsx`
 - `src/routes/admin.index.tsx`
@@ -99,7 +99,7 @@ The interaction is visual-only and does not change layout, data, routing, or beh
 ## 7. Behavior Preserved
 
 - Existing role guards and server-side RBAC remain authoritative.
-- PPSPM remains internal `BENDAHARA` for route/role values.
+- PPSPM remains internal `PPSPM` for route/role values.
 - Folder-first archive authority remains `berkas_arsip` plus `berkas_arsip_item`.
 - Penanggung Jawab Kinerja remains metadata-only.
 - Dashboard quick actions remain link-only.

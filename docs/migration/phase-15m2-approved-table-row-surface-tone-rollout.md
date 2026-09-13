@@ -56,9 +56,9 @@ Implementation note:
 - `src/components/kinerja/KinerjaPagePrimitives.tsx`
 - `src/components/pegawai/PegawaiPagePrimitives.tsx`
 - `src/components/workflow/PpkPpspmPagePrimitives.tsx`
-- `src/routes/bendahara/ditolak.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/selesai.tsx`
+- `src/routes/ppspm/ditolak.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/selesai.tsx`
 - `src/routes/pegawai/dokumen/$id/revisi.tsx`
 - `src/routes/pegawai/dokumen/aju.tsx`
 - `src/routes/pegawai/dokumen/index.tsx`

@@ -26,7 +26,7 @@ Use `AGENTS.md` as the route/ownership map. The main active areas are:
 
 - Pegawai document submission, document list, detail, edit, revision, and reports.
 - PPK inbox, validation, rejection, revision, and document detail flows.
-- PPSPM-facing Bendahara namespace pages, while keeping internal role value `BENDAHARA`.
+- PPSPM-facing Ppspm namespace pages, while keeping internal role value `PPSPM`.
 - Kepala Sub Bagian Umum archive namespace under `/arsiparis`.
 - Penanggung Jawab Kinerja `Laporan Kinerja`.
 - Admin master-data and user-management pages.
@@ -75,7 +75,7 @@ File access must keep blocking `DIMUSNAHKAN`, including stale token/path access.
 
 Internal role values stay unchanged unless a later backend phase explicitly changes them.
 
-- `BENDAHARA` may display as `PPSPM` where UI requires it.
+- `PPSPM` may display as `PPSPM` where UI requires it.
 - Full PPSPM wording is `Pejabat Penandatangan Surat Perintah Membayar`.
 - `KEPALA_SUB_BAGIAN_UMUM` should display as `Kepala Sub Bagian Umum`.
 - `PENANGGUNG_JAWAB_KINERJA` should display as `Penanggung Jawab Kinerja`.

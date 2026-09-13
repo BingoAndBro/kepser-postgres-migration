@@ -59,7 +59,7 @@ Current API route:
 - `GET /api/arsiparis/search`
 - Source file: `src/routes/api/arsiparis/search.ts`
 - Auth boundary: requires local `dms_session`.
-- Role behavior: broad visibility for `ADMIN` or `KEPALA_SUB_BAGIAN_UMUM`; PPK/Bendahara/Pegawai receive role-filtered workflow-document visibility.
+- Role behavior: broad visibility for `ADMIN` or `KEPALA_SUB_BAGIAN_UMUM`; PPK/Ppspm/Pegawai receive role-filtered workflow-document visibility.
 
 Current data sources:
 

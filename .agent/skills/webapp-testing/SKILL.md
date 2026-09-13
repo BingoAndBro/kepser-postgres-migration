@@ -30,8 +30,8 @@ To enforce strict Test-Driven Development (TDD) and ensure the DMS (Document Man
 -   **Reference Example**: See `examples/drizzle_mock.ts`.
 
 ### 2. Supabase & Row Level Security (RLS)
--   **Simulate Roles**: The DMS relies heavily on RLS (Roles: PEGAWAI, PPK, BENDAHARA, ARSIPARIS, ADMIN). Integration tests must simulate requests from different authenticated user roles.
--   **Negative Testing**: Always include tests that attempt to bypass RLS (e.g., PEGAWAI trying to approve a document meant for BENDAHARA) to ensure the query returns empty or errors out.
+-   **Simulate Roles**: The DMS relies heavily on RLS (Roles: PEGAWAI, PPK, PPSPM, ARSIPARIS, ADMIN). Integration tests must simulate requests from different authenticated user roles.
+-   **Negative Testing**: Always include tests that attempt to bypass RLS (e.g., PEGAWAI trying to approve a document meant for PPSPM) to ensure the query returns empty or errors out.
 -   **Reference Example**: See `examples/supabase_rls_test.ts`.
 
 ### 3. TanStack Start (SSR & Frontend)

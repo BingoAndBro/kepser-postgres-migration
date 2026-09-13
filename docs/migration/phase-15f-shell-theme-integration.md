@@ -62,7 +62,7 @@ Current authority used:
 - Kept logout through the existing caller-owned logout flow.
 - Used Phase 15E `RoleBadge` for role/profile display consistency.
 - Preserved canonical role labels:
-  - `BENDAHARA` displays as `PPSPM`;
+  - `PPSPM` displays as `PPSPM`;
   - `KEPALA_SUB_BAGIAN_UMUM` displays as `Kepala Sub Bagian Umum`;
   - `ADMIN` remains a dedicated role display and is not presented as an operational substitute.
 

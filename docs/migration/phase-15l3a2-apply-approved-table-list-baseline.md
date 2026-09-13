@@ -14,7 +14,7 @@ Included:
 - Visual/presentation alignment for remaining workflow list pages.
 - Pegawai `/pegawai/revisi`.
 - PPK `/ppk/inbox`, `/ppk/tervalidasi`, `/ppk/ditolak`, and `/ppk/revisi`.
-- PPSPM `/bendahara/inbox`, `/bendahara/selesai`, and `/bendahara/ditolak`.
+- PPSPM `/ppspm/inbox`, `/ppspm/selesai`, and `/ppspm/ditolak`.
 - Narrow workflow list primitive additions for list-only header, date display, action affordance, and table header class reuse.
 - Focused source guard update.
 
@@ -68,9 +68,9 @@ No prototype source was copied or imported.
 - `src/routes/ppk/tervalidasi.tsx`
 - `src/routes/ppk/ditolak.tsx`
 - `src/routes/ppk/revisi.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/selesai.tsx`
-- `src/routes/bendahara/ditolak.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/selesai.tsx`
+- `src/routes/ppspm/ditolak.tsx`
 - `tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 - `docs/migration/phase-15l3a2-apply-approved-table-list-baseline.md`
 
@@ -81,9 +81,9 @@ No prototype source was copied or imported.
 - `/ppk/tervalidasi`
 - `/ppk/ditolak`
 - `/ppk/revisi`
-- `/bendahara/inbox`
-- `/bendahara/selesai`
-- `/bendahara/ditolak`
+- `/ppspm/inbox`
+- `/ppspm/selesai`
+- `/ppspm/ditolak`
 
 ## 7. Role-Specific Behavior Preserved
 
@@ -91,9 +91,9 @@ No prototype source was copied or imported.
 - PPK inbox still uses existing search, function filter, date filters, reset behavior, and opens `/ppk/dokumen/$id`.
 - PPK validated/rejected/revision lists still use their existing data sources and navigation.
 - PPK revision list still opens `/ppk/dokumen/$id/resubmit`.
-- PPSPM inbox still uses `/bendahara/inbox`, the existing function filter, and opens `/bendahara/dokumen/$id`.
+- PPSPM inbox still uses `/ppspm/inbox`, the existing function filter, and opens `/ppspm/dokumen/$id`.
 - PPSPM completed/rejected lists still use existing data sources and navigation.
-- Internal `/bendahara` route namespace remains unchanged while user-facing visible terminology remains PPSPM.
+- Internal `/ppspm` route namespace remains unchanged while user-facing visible terminology remains PPSPM.
 
 ## 8. Mobile Card Behavior
 
@@ -129,7 +129,7 @@ Passed:
 - `git status --short --branch`
 - `git branch --show-current`
 - Required source/document/prototype inspection.
-- `git grep -n "table\|thead\|tbody\|Dokumen\|inbox\|tervalidasi\|ditolak\|revisi\|selesai\|StatusBadge\|EmptyState\|LoadingState\|ErrorState\|pagination\|filter\|search" -- src/routes/pegawai src/routes/ppk src/routes/bendahara src/components tests`
+- `git grep -n "table\|thead\|tbody\|Dokumen\|inbox\|tervalidasi\|ditolak\|revisi\|selesai\|StatusBadge\|EmptyState\|LoadingState\|ErrorState\|pagination\|filter\|search" -- src/routes/pegawai src/routes/ppk src/routes/ppspm src/components tests`
 - `pnpm test tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 - `pnpm test tests/unit/components/ui-foundation.test.ts`
 - `pnpm test tests/unit/dokumen`
@@ -158,9 +158,9 @@ Then verify:
 4. Check `/ppk/tervalidasi`.
 5. Check `/ppk/ditolak`.
 6. Check `/ppk/revisi`.
-7. Check `/bendahara/inbox`.
-8. Check `/bendahara/selesai`.
-9. Check `/bendahara/ditolak`.
+7. Check `/ppspm/inbox`.
+8. Check `/ppspm/selesai`.
+9. Check `/ppspm/ditolak`.
 10. Confirm all target list pages feel consistent with approved `/pegawai/dokumen`.
 11. Confirm filters/search still work.
 12. Confirm detail navigation still works.

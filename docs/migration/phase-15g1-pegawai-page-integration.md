@@ -66,7 +66,7 @@ The additional active Non-Material edit page `/pegawai/dokumen/$id/edit` was ins
 - No auth/session/RBAC logic was changed.
 - No storage/file-access logic was changed.
 - `AttachmentViewer`, `AttachmentEditor`, and upload/download helpers remain the behavior owners for preview, download, pending upload, cleanup, and resubmit.
-- Material workflow remains `DRAFT -> IN_PPK_VALIDATION -> IN_BENDAHARA_APPROVAL -> COMPLETED`.
+- Material workflow remains `DRAFT -> IN_PPK_VALIDATION -> IN_PPSPM_APPROVAL -> COMPLETED`.
 - User-facing approval step copy uses `PPSPM`.
 - Non-Material remains `TERSIMPAN`, has no PPK/PPSPM approval flow, and has no nominal realisasi.
 - Pegawai pages continue to use dokumen terminology rather than archive/berkas terminology.

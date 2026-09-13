@@ -57,7 +57,7 @@ No prototype source was copied or imported.
 
 - `src/routes/pegawai/dokumen/$id/index.tsx`
 - `src/routes/ppk/dokumen/$id/index.tsx`
-- `src/routes/bendahara/dokumen/$id.tsx`
+- `src/routes/ppspm/dokumen/$id.tsx`
 - `src/components/dokumen/AttachmentViewer.tsx`
 - `tests/unit/dokumen/cross-role-detail-parity-source.test.ts`
 - `docs/migration/phase-15l3b-cross-role-document-detail-visual-parity.md`
@@ -96,11 +96,11 @@ No prototype source was copied or imported.
 
 ## 9. PPSPM-Specific Notes
 
-- PPSPM detail keeps the internal `/bendahara` route namespace.
+- PPSPM detail keeps the internal `/ppspm` route namespace.
 - User-facing visible copy uses `PPSPM`.
 - PPSPM approve/reject handlers and payloads remain:
-  - `POST /api/bendahara/dokumen/:id/approve`
-  - `POST /api/bendahara/dokumen/:id/reject` with `{ catatan }`
+  - `POST /api/ppspm/dokumen/:id/approve`
+  - `POST /api/ppspm/dokumen/:id/reject` with `{ catatan }`
 - Existing completed/rejected navigation remains intact.
 
 ## 10. Attachment/Preview/Download Behavior Preserved
@@ -192,7 +192,7 @@ Then verify:
 9. Confirm approve/reject behavior and confirmations are unchanged.
 10. Confirm preview/download still works.
 11. Login/switch as PPSPM.
-12. Open `/bendahara/dokumen/$id`.
+12. Open `/ppspm/dokumen/$id`.
 13. Confirm visible label is PPSPM where relevant.
 14. Confirm approve/reject behavior and confirmations are unchanged.
 15. Confirm preview/download still works.

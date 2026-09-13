@@ -54,8 +54,8 @@ Representative redesigned role/page surfaces:
 - `src/components/workflow/PpkPpspmPagePrimitives.tsx`
 - `src/routes/ppk/inbox.tsx`
 - `src/routes/ppk/dokumen/$id/index.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/dokumen/$id.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/dokumen/$id.tsx`
 - `src/components/archive/ArchivePagePrimitives.tsx`
 - `src/routes/arsiparis/berkas/index.tsx`
 - `src/routes/arsiparis/berkas/$id.tsx`

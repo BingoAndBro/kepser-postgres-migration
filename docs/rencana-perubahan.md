@@ -47,7 +47,7 @@
 3. **Lifecycle disederhanakan** dari `AKTIF → INAKTIF → USUL_MUSNAH → DIMUSNAHKAN` (4 tahap) menjadi **2 tahap sesudah tutup**: `Usul Pembersihan → File Dibersihkan`. Status `INAKTIF` dibuang dari alur.
 4. **Form Tutup Berkas** dari 2 field retensi (aktif + inaktif) menjadi **1 field**: "Masa Simpan Minimal".
 5. **Tidak ada scheduler.** "Jatuh Tempo" dihitung saat halaman/endpoint dibaca (`hari ini ≥ closed_at + masa_simpan`), bukan job latar. Perpindahan state tetap butuh klik manusia + konfirmasi.
-6. **Identifier internal dipertahankan** (nama tabel/kolom/enum/route `/arsiparis`). Hanya **label tampilan** yang diganti — pola yang sudah dipakai (`BENDAHARA` tampil "PPSPM"). Nilai enum lama (`INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`, `retensi_inaktif`) dibiarkan ada di DB agar **tanpa migrasi**.
+6. **Identifier internal dipertahankan** (nama tabel/kolom/enum/route `/arsiparis`). Hanya **label tampilan** yang diganti — pola yang sudah dipakai (`PPSPM` tampil "PPSPM"). Nilai enum lama (`INAKTIF`, `USUL_MUSNAH`, `DIMUSNAHKAN`, `retensi_inaktif`) dibiarkan ada di DB agar **tanpa migrasi**.
 
 ## Model target
 
@@ -317,7 +317,7 @@ const actionItems = [...waiting, ...revision].sort(byOldest).slice(0, 3)
 | File | Jenis | Yang berubah |
 |---|---|---|
 | `src/routes/ppk/index.tsx` | B | `const actionItems = [...waiting, ...revision].slice(0, 3)` (±ln 62) → `.sort(byOldest).slice(0, 3)`. Opsional: meta umur di `DashboardActionRow`. |
-| `src/routes/bendahara/index.tsx` | B | `waiting.slice(0, 3)` (±ln 109) → `[...waiting].sort(byOldest).slice(0, 3)`. |
+| `src/routes/ppspm/index.tsx` | B | `waiting.slice(0, 3)` (±ln 109) → `[...waiting].sort(byOldest).slice(0, 3)`. |
 | `src/routes/arsiparis/index.tsx` | B/L | `recentDocuments = classificationQueue.slice(0, 3)` (±ln 104) → `.sort(byOldest).slice(0, 3)`; judul seksi (±ln 181) "Daftar Dokumen Terbaru" → "Perlu Diklasifikasikan (Terlama)"; deskripsi disesuaikan. |
 | `src/components/dashboard/RoleDashboardPrimitives.tsx` | B/L *(opsional)* | Bila mau helper umur bersama (`formatWaitingAge`) atau prop `meta` sudah cukup — tidak wajib. |
 | `src/lib/utils/format.ts` | B *(opsional)* | Helper `formatRelativeAge(date)` bila meta umur dipakai di beberapa tempat. |
@@ -326,7 +326,7 @@ const actionItems = [...waiting, ...revision].sort(byOldest).slice(0, 3)
 
 ## Yang TIDAK termasuk
 
-- Perubahan urutan/paginasi di halaman inbox penuh (`/ppk/inbox`, `/bendahara/inbox`, `/arsiparis/inbox`) dan API-nya.
+- Perubahan urutan/paginasi di halaman inbox penuh (`/ppk/inbox`, `/ppspm/inbox`, `/arsiparis/inbox`) dan API-nya.
 - Perubahan `ORDER BY` di endpoint `*/inbox`.
 - Dashboard **Pegawai**, **Admin**, **Penanggung Jawab Kinerja** (tidak punya antrean prioritas serupa).
 - Badge/indikator "terlambat" berbasis SLA (bisa jadi RP terpisah).
@@ -342,7 +342,7 @@ const actionItems = [...waiting, ...revision].sort(byOldest).slice(0, 3)
 ## Urutan kerja
 
 1. Tambah helper `byOldest` (inline atau di `format.ts`).
-2. Ubah 3 file dashboard (`ppk`, `bendahara`, `arsiparis`).
+2. Ubah 3 file dashboard (`ppk`, `ppspm`, `arsiparis`).
 3. Sesuaikan judul/deskripsi seksi KSBU.
 4. Tambah/perc-update test.
 5. Cek manual: buat beberapa dokumen dengan `created_at` berbeda → pastikan 3 teratas = terlama.

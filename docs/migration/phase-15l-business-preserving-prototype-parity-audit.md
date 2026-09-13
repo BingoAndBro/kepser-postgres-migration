@@ -76,7 +76,7 @@ The prototype was reviewed structurally. No prototype file was copied, imported,
 - Route groups:
   - `src/routes/pegawai/**`
   - `src/routes/ppk/**`
-  - `src/routes/bendahara/**`
+  - `src/routes/ppspm/**`
   - `src/routes/arsiparis/**`
   - `src/routes/penanggung-jawab-kinerja/**`
   - `src/routes/admin*`
@@ -115,7 +115,7 @@ Priority meanings: P0 is the first parity slice, P1 is high value after P0, P2 i
 | Laporan Saya | Richer summary, active filters, grouping, and drill-down presentation | Flat report table/cards with existing filters | Less analytical presentation | Add client grouping and drill-down using safe existing report DTOs; add DTO fields only if proven necessary | Frontend + existing API | No | Medium risk | P2 | Yes |
 | Laporan Kegiatan | Richer activity grouping, summaries, and contextual drill-down | Flat report table/cards with existing data | Less grouped and less contextual | Add presentation grouping and safe detail navigation using existing report data | Frontend + existing API | No | Medium risk | P2 | Yes |
 | PPK dashboard/inbox/detail | Metrics, queue emphasis, richer detail sections, and consistent feedback | Entry-card dashboard, functional inbox/detail, real approve/reject actions, dialogs, and direct redirects | Dashboard lacks real metrics; mutation feedback remains inconsistent | Add accurate metrics, richer sections, and toast/success feedback while preserving PPK semantics | Frontend + existing API | No | Medium risk | P1 | Yes |
-| PPSPM dashboard/inbox/detail | Metrics, queue emphasis, richer detail sections, and consistent feedback | Entry-card dashboard, functional inbox/detail, real approve/reject actions, dialogs, and direct redirects | Same interaction gap as PPK | Add accurate metrics, richer sections, and feedback while preserving PPSPM approval semantics and internal `BENDAHARA` value | Frontend + existing API | No | Medium risk | P1 | Yes |
+| PPSPM dashboard/inbox/detail | Metrics, queue emphasis, richer detail sections, and consistent feedback | Entry-card dashboard, functional inbox/detail, real approve/reject actions, dialogs, and direct redirects | Same interaction gap as PPK | Add accurate metrics, richer sections, and feedback while preserving PPSPM approval semantics and internal `PPSPM` value | Frontend + existing API | No | Medium risk | P1 | Yes |
 | Kepala Sub Bagian Umum dashboard | Stronger operational summary and activity presentation | Existing archive-role dashboard has real entry points and some counts | Summary and activity presentation are less complete | Enrich dashboard using folder-first authorized data; do not restore global archive search or legacy reports | Frontend + existing API | No | Medium risk | P1 | Yes |
 | Pengklasifikasian Dokumen | Guided selection, clearer sections, confirmation, and polished success feedback | Functional list/detail classification flow with existing folder-first API and redirect | Missing guided interaction and consistent feedback | Add sectioning, confirmation, and toast/landing feedback using existing classification API | Frontend + existing API | No | Medium risk | P1 | Yes |
 | Penambahan Dokumen | Guided multi-stage document addition with progress and review | Functional large-form/modal surface using manual document and folder-first APIs | Less guided and harder to scan | Present existing fields as a wizard/sections with review and success state; preserve all required metadata and attachment rules | Frontend + existing API | No | Medium risk | P1 | Yes |
@@ -285,7 +285,7 @@ All decisions below assume that existing business behavior remains authoritative
 - `dms_active_role` remains UX-only.
 - Server/API RBAC remains authoritative.
 - `ADMIN` remains a dedicated system/config role, not a universal operational workflow actor.
-- Internal `BENDAHARA` values may remain; user-facing label remains PPSPM.
+- Internal `PPSPM` values may remain; user-facing label remains PPSPM.
 - Primary archive-role display remains Kepala Sub Bagian Umum.
 - Profile remains Profile, not Settings.
 - New archive document-addition UI uses Penambahan Dokumen, not Penambahan Arsip.

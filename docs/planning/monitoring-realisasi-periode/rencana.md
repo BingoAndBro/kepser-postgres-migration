@@ -68,7 +68,7 @@ data yang sehat.
 
 Dua permintaan klien untuk halaman **Monitoring Nominal Realisasi**
 (`src/components/kinerja/MonitoringRealisasiView.tsx`, dipakai bersama oleh tiga route: PPK,
-Bendahara, dan Penanggung Jawab Kinerja):
+Ppspm, dan Penanggung Jawab Kinerja):
 
 1. **Drill-down kurang satu level.** Hari ini hanya Fungsi → Kegiatan → dokumen. Hierarki master
    sudah diperluas di branch `workflow/ubah-alur-v1` menjadi Fungsi → Kegiatan → **Komponen** →
@@ -144,7 +144,7 @@ filter `isActive`.
 
 `monitoringRealisasiNavigation.ts` dapat `komponenId`, `periode`, `tahun`, `triwulan`, `dari`,
 `sampai`; `periodeScope` di-spread ke setiap `go()`; `onSelectKomponen` baru; `onSelectKegiatan`
-membuang `komponenId` saat kegiatan berganti. Tiga route wrapper (`ppk`, `bendahara`,
+membuang `komponenId` saat kegiatan berganti. Tiga route wrapper (`ppk`, `ppspm`,
 `penanggung-jawab-kinerja`) diubah bersamaan.
 
 ## Bagian D — Level Komponen di view
@@ -186,7 +186,7 @@ Seluruh langkah di bawah dijalankan oleh pemilik proyek, bukan oleh saya.
 
 1. `pnpm test` — suite hijau, termasuk test yang diubah.
 2. `pnpm build` — route generation bersih.
-3. Walkthrough aplikasi (PPK, Bendahara, Penanggung Jawab Kinerja): default triwulan berjalan,
+3. Walkthrough aplikasi (PPK, Ppspm, Penanggung Jawab Kinerja): default triwulan berjalan,
    ganti mode periode, navigasi `‹`/`›`, drill-down sampai Komponen dengan periode bertahan,
    dokumen non-material di keranjang "Tanpa Komponen", mode Kustom, empty-state periode kosong,
    share URL.

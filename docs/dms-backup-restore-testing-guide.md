@@ -500,7 +500,7 @@ Buka salah satu atau beberapa route:
 ```text
 /pegawai/dokumen
 /ppk/inbox
-/bendahara/selesai
+/ppspm/selesai
 /arsiparis
 /admin
 ```

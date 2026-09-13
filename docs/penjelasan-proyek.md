@@ -46,7 +46,7 @@ Seluruh proses pertanggungjawaban dokumen di satuan kerja ini **masih dijalankan
 | **Pegawai** | `PEGAWAI` | Mengajukan dokumen pertanggungjawaban, mengunggah lampiran kelengkapan, merevisi jika ditolak, melihat laporan miliknya. |
 | **Ketua Tim** | *capability*, bukan role — dari tabel `ketua_tim_assignments` | Pegawai yang ditunjuk sebagai penanggung jawab kegiatan tertentu; dokumennya masuk "Laporan Kegiatan" dan terlihat oleh anggota tim. |
 | **PPK** (Pejabat Pembuat Komitmen) | `PPK` | Validasi tahap pertama: menerima/menolak dokumen, memberi catatan revisi, meneruskan ke PPSPM, menangani pengembalian dari PPSPM. |
-| **PPSPM** (Pejabat Penandatangan Surat Perintah Membayar) | `BENDAHARA` *(nilai kode tetap `BENDAHARA`, label tampilan `PPSPM`)* | Persetujuan tahap akhir operasional: menyetujui/menolak, sehingga dokumen menjadi `COMPLETED`. |
+| **PPSPM** (Pejabat Penandatangan Surat Perintah Membayar) | `PPSPM` *(nilai kode tetap `PPSPM`, label tampilan `PPSPM`)* | Persetujuan tahap akhir operasional: menyetujui/menolak, sehingga dokumen menjadi `COMPLETED`. |
 | **Kepala Sub Bagian Umum** | `KEPALA_SUB_BAGIAN_UMUM` *(identifier & namespace route `/arsiparis` dipertahankan untuk kompatibilitas)* | Mengelompokkan dokumen ke dalam **berkas** (per cara pembayaran), menutup berkas + Nomor SPM, membersihkan soft file berkas lama untuk menghemat penyimpanan, master klasifikasi dokumen. **Bukan** kearsipan resmi — lihat PB-6. |
 | **Penanggung Jawab Kinerja** | `PENANGGUNG_JAWAB_KINERJA` | Hanya satu menu: **Laporan Kinerja** (metadata-only) untuk dokumen berstatus final. |
 | **Admin** | `ADMIN` | Kelola user & role, kelola seluruh data master. Akun terpisah/*dedicated* — tidak boleh digabung ke role operasional. |
@@ -80,7 +80,7 @@ Catatan penting:
 
 ## PB-1.1 — Pegawai tidak tahu dokumennya ada di tahap mana
 
-- **Solusi yang dipakai.** Setiap dokumen punya kolom **`status`** dengan nilai baku (`DRAFT`, `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, `NEED_REVISION`, `COMPLETED`, `TERSIMPAN`, `ARCHIVED`) plus **`current_step`** (`PPK` / `BENDAHARA` / `null`). Transisi status hanya boleh lewat **FSM terpusat** (`src/lib/fsm.ts`) sehingga status selalu konsisten di semua endpoint. Halaman **"Dokumen Diajukan"** (`/pegawai/dokumen`) menampilkan daftar dokumen milik user beserta badge status, dan halaman detail (`/pegawai/dokumen/$id`) menampilkan status + timeline.
+- **Solusi yang dipakai.** Setiap dokumen punya kolom **`status`** dengan nilai baku (`DRAFT`, `IN_PPK_VALIDATION`, `IN_PPSPM_APPROVAL`, `NEED_REVISION`, `COMPLETED`, `TERSIMPAN`, `ARCHIVED`) plus **`current_step`** (`PPK` / `PPSPM` / `null`). Transisi status hanya boleh lewat **FSM terpusat** (`src/lib/fsm.ts`) sehingga status selalu konsisten di semua endpoint. Halaman **"Dokumen Diajukan"** (`/pegawai/dokumen`) menampilkan daftar dokumen milik user beserta badge status, dan halaman detail (`/pegawai/dokumen/$id`) menampilkan status + timeline.
 - **Use case.** Pegawai membuka "Dokumen Diajukan" → melihat "RL-012 SAKERNAS — *Sedang Divalidasi PPK*" tanpa perlu menelepon siapa pun.
 - **Pengguna.** Pegawai (pemilik dokumen); PPK/PPSPM/Kepala Sub Bagian Umum melihat status yang sama dari sudut pandang inbox mereka.
 - **Keterkaitan.** Status inilah yang memberi makna pada **inbox per-role di PB-2**, pada **audit trail di PB-3**, dan menjadi syarat masuk **pemberkasan di PB-6** (`COMPLETED` → bisa diklasifikasikan).
@@ -109,7 +109,7 @@ Catatan penting:
 
 - **Solusi yang dipakai.** **Inbox per-role berbasis status**:
   - PPK: `/ppk/inbox` menampilkan dokumen `IN_PPK_VALIDATION`.
-  - PPSPM: `/bendahara/inbox` menampilkan dokumen `IN_BENDAHARA_APPROVAL`.
+  - PPSPM: `/ppspm/inbox` menampilkan dokumen `IN_PPSPM_APPROVAL`.
   - Kepala Sub Bagian Umum: `/arsiparis/inbox` menampilkan dokumen `COMPLETED` yang belum diklasifikasikan.
   Masing-masing API (`/api/ppk/inbox`, dst.) memfilter berdasarkan status **dan** mengecek role di server.
 - **Use case.** PPK login → langsung melihat "12 dokumen menunggu validasi" — tidak perlu bertanya berkas mana yang jadi tanggung jawabnya hari ini (langsung menjawab *North Star*).
@@ -121,7 +121,7 @@ Catatan penting:
 - **Solusi yang dipakai.** **FSM tunggal** (`src/lib/fsm.ts`) sebagai satu-satunya sumber sah transisi. Alur material:
 
   ```
-  DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_BENDAHARA_APPROVAL ──▶ COMPLETED ──▶ ARCHIVED
+  DRAFT ──▶ IN_PPK_VALIDATION ──▶ IN_PPSPM_APPROVAL ──▶ COMPLETED ──▶ ARCHIVED
                  │                        │
                  ▼ (PPK reject)           ▼ (PPSPM reject)
           NEED_REVISION             NEED_REVISION
@@ -129,7 +129,7 @@ Catatan penting:
   ```
 
   FSM juga memvalidasi **siapa aktor yang berhak** melakukan tiap aksi (`SUBMIT`, `APPROVE`, `REJECT`, `RESUBMIT`, `RESUBMIT_PPK`, `KEMBALIKAN`, `ARCHIVE`, `SKIP`). Tidak ada endpoint yang boleh meng-`UPDATE` status secara manual di luar FSM.
-- **Use case.** PPSPM tidak bisa menyetujui dokumen yang belum lewat PPK, karena dokumen itu tidak akan pernah berstatus `IN_BENDAHARA_APPROVAL`.
+- **Use case.** PPSPM tidak bisa menyetujui dokumen yang belum lewat PPK, karena dokumen itu tidak akan pernah berstatus `IN_PPSPM_APPROVAL`.
 - **Pengguna.** Semua aktor workflow; developer (sebagai invariant arsitektur — "FSM is the legal source for workflow transitions").
 - **Keterkaitan.** Menjadi fondasi **PB-1.1** (arti status) dan **PB-6** (`COMPLETED` sebagai pintu masuk arsip). Perbedaan Material vs Non-Material dijelaskan di **PB-5.1**.
 
@@ -146,7 +146,7 @@ Catatan penting:
 
 - **Solusi yang dipakai.** Dua jalur revisi eksplisit:
   - **Pegawai**: halaman `/pegawai/dokumen/$id/revisi` + `AttachmentEditor.tsx` untuk mengganti lampiran, lalu `RESUBMIT` → dokumen kembali ke `IN_PPK_VALIDATION`.
-  - **PPK**: halaman `/ppk/dokumen/$id/resubmit` untuk memperbaiki setelah ditolak PPSPM, lalu `RESUBMIT_PPK` → dokumen **langsung** ke `IN_BENDAHARA_APPROVAL` (tidak mengulang validasi PPK).
+  - **PPK**: halaman `/ppk/dokumen/$id/resubmit` untuk memperbaiki setelah ditolak PPSPM, lalu `RESUBMIT_PPK` → dokumen **langsung** ke `IN_PPSPM_APPROVAL` (tidak mengulang validasi PPK).
   - Aksi khusus **`KEMBALIKAN`** (`/api/ppk/kembalikan/$id`) untuk kasus PPK perlu mengembalikan ke pegawai, dibedakan dari `reject` biasa.
 - **Use case.** Dokumen ditolak PPSPM karena salah kode akun → PPK betulkan sendiri → kirim ulang tanpa membebani pegawai dan tanpa mengulang antrian PPK.
 - **Pengguna.** Pegawai, PPK.
@@ -154,8 +154,8 @@ Catatan penting:
 
 ## PB-2.5 — Daftar hasil kerja (tervalidasi/ditolak/selesai) tidak terpelihara
 
-- **Solusi yang dipakai.** Halaman turunan per-role: PPK punya `/ppk/tervalidasi` & `/ppk/ditolak` & `/ppk/revisi`; PPSPM punya `/bendahara/ditolak` & `/bendahara/selesai`. Semua adalah *view* berbasis query status + filter/sort.
-- **Use case.** PPSPM ingin melihat semua dokumen yang sudah ia selesaikan bulan ini → buka `/bendahara/selesai`.
+- **Solusi yang dipakai.** Halaman turunan per-role: PPK punya `/ppk/tervalidasi` & `/ppk/ditolak` & `/ppk/revisi`; PPSPM punya `/ppspm/ditolak` & `/ppspm/selesai`. Semua adalah *view* berbasis query status + filter/sort.
+- **Use case.** PPSPM ingin melihat semua dokumen yang sudah ia selesaikan bulan ini → buka `/ppspm/selesai`.
 - **Pengguna.** PPK, PPSPM.
 - **Keterkaitan.** Sumber datanya sama dengan **PB-7** (pelaporan), hanya beda sudut pandang & filter.
 
@@ -302,7 +302,7 @@ Penambahan Dokumen  ────────┘        (get-or-create per cara p
 
 ## Tabel penamaan (label tampilan vs identifier internal)
 
-> **Prinsip biaya:** ganti **label tampilan** = murah & aman (pola yang sudah dipakai: `BENDAHARA` tampil "PPSPM"). Ganti **identifier internal** = perlu migrasi DB + menyentuh banyak test. Sejak **RP-01**: **label baru sudah berlaku, identifier internal dibiarkan.**
+> **Prinsip biaya:** ganti **label tampilan** = murah & aman (pola yang sudah dipakai: `PPSPM` tampil "PPSPM"). Ganti **identifier internal** = perlu migrasi DB + menyentuh banyak test. Sejak **RP-01**: **label baru sudah berlaku, identifier internal dibiarkan.**
 
 | Konsep | Label tampilan (berlaku) | Identifier internal (tetap) |
 |---|---|---|
@@ -406,7 +406,7 @@ Penambahan Dokumen  ────────┘        (get-or-create per cara p
 | Layanan dokumen | `src/lib/dokumen-helpers.ts`, `src/lib/dokumen/queries.ts`, `src/lib/dokumen/mutations.ts` |
 | Submit & lampiran (Pegawai) | `src/routes/pegawai/dokumen/*`, `src/routes/api/dokumen/*`, `src/routes/api/upload.ts` |
 | Validasi PPK | `src/routes/ppk/*`, `src/routes/api/ppk/*` (`approve`, `reject`, `resubmit`, `kembalikan`) |
-| Persetujuan PPSPM | `src/routes/bendahara/*`, `src/routes/api/bendahara/*` |
+| Persetujuan PPSPM | `src/routes/ppspm/*`, `src/routes/api/ppspm/*` |
 | Pemberkasan (berkas + item) | `src/routes/arsiparis/berkas*`, `src/lib/archive/berkas-arsip-*.ts`, `src/routes/api/arsiparis/berkas/**`, `src/db/schema/arsip/berkas-arsip.ts` |
 | Status berkas & lifecycle | `src/lib/constants/archive-status.ts`, `src/lib/archive/berkas-arsip-service.ts`, `src/routes/api/arsiparis/berkas/$id/lifecycle.ts`, `src/config/navigation.ts` |
 | Penambahan dokumen manual | `src/db/schema/arsip/manual-arsip.ts`, `src/routes/api/arsiparis/manual-arsip/*`, `src/routes/arsiparis/penambahan-arsip.tsx` |

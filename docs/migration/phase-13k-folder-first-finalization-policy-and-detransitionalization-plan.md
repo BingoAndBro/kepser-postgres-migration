@@ -167,7 +167,7 @@ No later phase should infer that historical `arsip.arsip` data can be blindly de
 - Server/API RBAC is authoritative.
 - `KEPALA_SUB_BAGIAN_UMUM` owns archive/folder operations.
 - `ADMIN` is not a substitute for `KEPALA_SUB_BAGIAN_UMUM`.
-- `BENDAHARA` remains the internal enum; `PPSPM` is display label only.
+- `PPSPM` remains the internal enum; `PPSPM` is display label only.
 - No Supabase fallback may be reintroduced.
 - File access must not expose physical storage paths, storage roots, file tokens, signed token internals, raw attachment metadata, SQL details, env values, session/cookie values, or secrets.
 

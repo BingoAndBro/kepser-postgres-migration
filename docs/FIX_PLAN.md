@@ -76,7 +76,7 @@ CREATE POLICY "approver_read_arsip" ON "arsip"
     OR EXISTS (
       SELECT 1 FROM "public"."user_roles" ur
       JOIN "public"."roles" r ON r.id = ur.role_id
-      WHERE ur.user_id = auth.uid() AND r.nama IN ('PPK', 'BENDAHARA', 'ARSIPARIS', 'ADMIN')
+      WHERE ur.user_id = auth.uid() AND r.nama IN ('PPK', 'PPSPM', 'ARSIPARIS', 'ADMIN')
     )
   );
 
@@ -195,7 +195,7 @@ export async function approveDokumenWithLog(
     newCurrentStep: string | null
     newRevisionTarget: string | null
     stepUrutan: number
-    aksi: 'PPK_APPROVE' | 'BENDAHARA_APPROVE'
+    aksi: 'PPK_APPROVE' | 'PPSPM_APPROVE'
   }
 ): Promise<{ error?: string }> {
   // 1. Status update dengan optimistic lock
@@ -233,7 +233,7 @@ export async function approveDokumenWithLog(
       .from('dokumen_transaksi')
       .update({
         status: params.currentStatus,
-        current_step: params.currentStatus === 'IN_PPK_VALIDATION' ? 'PPK' : 'BENDAHARA',
+        current_step: params.currentStatus === 'IN_PPK_VALIDATION' ? 'PPK' : 'PPSPM',
         revision_target: null,
         updated_at: new Date().toISOString(),
       })
@@ -263,7 +263,7 @@ export async function rejectDokumenWithLog(
     revisionTarget: 'USER' | 'PPK'
     revisionNotes: string
     stepUrutan: number
-    aksi: 'PPK_REJECT' | 'BENDAHARA_REJECT'
+    aksi: 'PPK_REJECT' | 'PPSPM_REJECT'
   }
 ): Promise<{ error?: string }> {
   // 1. Status update dengan optimistic lock
@@ -324,8 +324,8 @@ export async function rejectDokumenWithLog(
 - `src/lib/dokumen-helpers.ts` - add `approveDokumenWithLog` and `rejectDokumenWithLog`
 - `src/routes/api/ppk/dokumen/$id/approve.ts` - use `approveDokumenWithLog`
 - `src/routes/api/ppk/dokumen/$id/reject.ts` - use `rejectDokumenWithLog`
-- `src/routes/api/bendahara/dokumen/$id/approve.ts` - use `approveDokumenWithLog`
-- `src/routes/api/bendahara/dokumen/$id/reject.ts` - use `rejectDokumenWithLog`
+- `src/routes/api/ppspm/dokumen/$id/approve.ts` - use `approveDokumenWithLog`
+- `src/routes/api/ppspm/dokumen/$id/reject.ts` - use `rejectDokumenWithLog`
 
 ---
 
@@ -379,8 +379,8 @@ await insertLog(admin, {
 **Files to update:**
 - `src/routes/api/ppk/dokumen/$id/approve.ts`
 - `src/routes/api/ppk/dokumen/$id/reject.ts`
-- `src/routes/api/bendahara/dokumen/$id/approve.ts`
-- `src/routes/api/bendahara/dokumen/$id/reject.ts`
+- `src/routes/api/ppspm/dokumen/$id/approve.ts`
+- `src/routes/api/ppspm/dokumen/$id/reject.ts`
 - `src/routes/api/dokumen/submit.ts`
 
 ---
@@ -456,12 +456,12 @@ export function createAuthClient(request: Request): ReturnType<typeof createServ
 - `src/routes/api/ppk/dokumen/$id/approve.ts`
 - `src/routes/api/ppk/dokumen/$id/reject.ts`
 - `src/routes/api/ppk/resubmit/$id.ts`
-- `src/routes/api/bendahara/inbox.ts`
-- `src/routes/api/bendahara/selesai.ts`
-- `src/routes/api/bendahara/ditolak.ts`
-- `src/routes/api/bendahara/dokumen/$id.ts`
-- `src/routes/api/bendahara/dokumen/$id/approve.ts`
-- `src/routes/api/bendahara/dokumen/$id/reject.ts`
+- `src/routes/api/ppspm/inbox.ts`
+- `src/routes/api/ppspm/selesai.ts`
+- `src/routes/api/ppspm/ditolak.ts`
+- `src/routes/api/ppspm/dokumen/$id.ts`
+- `src/routes/api/ppspm/dokumen/$id/approve.ts`
+- `src/routes/api/ppspm/dokumen/$id/reject.ts`
 - `src/routes/api/upload.ts`
 
 ---

@@ -72,7 +72,7 @@ Required wording and behavior preserved:
 - Destroyed-file UX phrase remains exactly `Data file sudah dimusnahkan`.
 - Archive destruction copy must not describe `Dimusnahkan` as access blocking only; `Musnahkan Data` physically deletes associated files while preserving metadata where designed.
 - Use `Profile`, not `Settings`, for account/profile behavior.
-- User-facing `BENDAHARA` display remains `PPSPM`.
+- User-facing `PPSPM` display remains `PPSPM`.
 - User-facing archive-role display remains `Kepala Sub Bagian Umum`.
 - User-facing `ADMIN` display remains `Admin Sistem`.
 - Laporan Kinerja remains metadata-only.

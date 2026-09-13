@@ -61,9 +61,9 @@ No prototype source was copied or imported.
 - `src/routes/ppk/tervalidasi.tsx`
 - `src/routes/ppk/ditolak.tsx`
 - `src/routes/ppk/revisi.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/selesai.tsx`
-- `src/routes/bendahara/ditolak.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/selesai.tsx`
+- `src/routes/ppspm/ditolak.tsx`
 - `tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 - `docs/migration/phase-15l3a-cross-role-document-list-visual-parity.md`
 
@@ -90,7 +90,7 @@ No prototype source was copied or imported.
 - PPK validated/rejected/revision data loading and navigation are unchanged.
 - PPSPM inbox function filter and detail navigation are unchanged.
 - PPSPM completed/rejected data loading and navigation are unchanged.
-- Internal Bendahara route/namespace remains unchanged while visible wording remains PPSPM where user-facing.
+- Internal Ppspm route/namespace remains unchanged while visible wording remains PPSPM where user-facing.
 
 ## 9. Mobile Card Behavior
 
@@ -120,7 +120,7 @@ Expected none.
 - `git status --short --branch`
 - `git branch --show-current`
 - Required source/document/prototype inspection.
-- `git grep -n "table\|thead\|tbody\|Dokumen Diajukan\|inbox\|tervalidasi\|ditolak\|revisi\|selesai\|StatusBadge\|EmptyState\|LoadingState\|ErrorState\|pagination\|filter\|search" -- src/routes/pegawai src/routes/ppk src/routes/bendahara src/components`
+- `git grep -n "table\|thead\|tbody\|Dokumen Diajukan\|inbox\|tervalidasi\|ditolak\|revisi\|selesai\|StatusBadge\|EmptyState\|LoadingState\|ErrorState\|pagination\|filter\|search" -- src/routes/pegawai src/routes/ppk src/routes/ppspm src/components`
 - `pnpm test tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 - `pnpm test tests/unit/components/ui-foundation.test.ts`
 - `pnpm test tests/unit/components/attachment-viewer-source.test.ts`
@@ -150,7 +150,7 @@ Then verify:
 4. Login/switch as PPK.
 5. Check `/ppk/inbox`, `/ppk/tervalidasi`, `/ppk/ditolak`, `/ppk/revisi`.
 6. Login/switch as PPSPM.
-7. Check `/bendahara/inbox`, `/bendahara/selesai`, `/bendahara/ditolak`.
+7. Check `/ppspm/inbox`, `/ppspm/selesai`, `/ppspm/ditolak`.
 8. Confirm lists feel visually consistent.
 9. Confirm filters/search still work.
 10. Confirm detail navigation still works.

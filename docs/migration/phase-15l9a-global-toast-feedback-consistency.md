@@ -31,7 +31,7 @@ The provider remains mounted once in `src/components/layout/AppLayout.tsx` aroun
 - Pegawai document submit validation summary copy in `src/routes/pegawai/dokumen/aju.tsx`.
 - Pegawai saved document edit success/failure in `src/routes/pegawai/dokumen/$id/edit.tsx`.
 - PPK approve/reject workflow action success/failure in `src/routes/ppk/dokumen/$id/index.tsx`.
-- PPSPM approve/reject workflow action success/failure in `src/routes/bendahara/dokumen/$id.tsx`.
+- PPSPM approve/reject workflow action success/failure in `src/routes/ppspm/dokumen/$id.tsx`.
 - Folder-first archive lifecycle, close berkas, metadata update, and folder detail preview/download click feedback in `src/routes/arsiparis/berkas/$id.tsx`.
 - Profile avatar upload/remove and logout failure feedback in `src/routes/profile.tsx`.
 - Admin master-data save/delete feedback and old success-banner removal for:

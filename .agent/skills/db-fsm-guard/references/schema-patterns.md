@@ -14,7 +14,7 @@
 export const STATUS_DOKUMEN = [
   'DRAFT',
   'IN_PPK_VALIDATION',
-  'IN_BENDAHARA_APPROVAL',
+  'IN_PPSPM_APPROVAL',
   'NEED_REVISION',
   'COMPLETED',
   'ARCHIVED',
@@ -26,7 +26,7 @@ export const REVISION_TARGET = ['USER', 'PPK'] as const
 export type RevisionTarget = typeof REVISION_TARGET[number]
 
 // Current approval step
-export const CURRENT_STEP = ['PPK', 'BENDAHARA'] as const
+export const CURRENT_STEP = ['PPK', 'PPSPM'] as const
 export type CurrentStep = typeof CURRENT_STEP[number]
 ```
 
@@ -128,7 +128,7 @@ export const kegiatan = pgTable('kegiatan', {
 })
 ```
 
-**RLS:** Creator can SELECT/UPDATE own. PPK/BENDAHARA can SELECT all.
+**RLS:** Creator can SELECT/UPDATE own. PPK/PPSPM can SELECT all.
 
 ---
 

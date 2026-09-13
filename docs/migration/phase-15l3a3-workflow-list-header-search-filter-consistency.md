@@ -16,7 +16,7 @@ Included:
 - Consistent search placeholders and result count placement.
 - Follow-up alignment so desktop table columns match the approved `/pegawai/dokumen` structure.
 - Follow-up toolbar refinement so the status filter sits immediately to the left of the total document count on `/pegawai/dokumen` and `/ppk/tervalidasi`.
-- Follow-up removal of the redundant function filter from `/bendahara/inbox` because the page already has metadata search.
+- Follow-up removal of the redundant function filter from `/ppspm/inbox` because the page already has metadata search.
 - Follow-up removal of redundant function/date filters from `/ppk/inbox`; the validation inbox uses search only.
 - Follow-up status filter addition on `/ppk/tervalidasi`.
 - Follow-up custom status select styling using the app select primitive so the trigger text, icon, and dropdown menu stay visually stable.
@@ -86,9 +86,9 @@ Desktop workflow list tables now follow the approved `/pegawai/dokumen` structur
 - `src/routes/ppk/tervalidasi.tsx`
 - `src/routes/ppk/ditolak.tsx`
 - `src/routes/ppk/revisi.tsx`
-- `src/routes/bendahara/inbox.tsx`
-- `src/routes/bendahara/selesai.tsx`
-- `src/routes/bendahara/ditolak.tsx`
+- `src/routes/ppspm/inbox.tsx`
+- `src/routes/ppspm/selesai.tsx`
+- `src/routes/ppspm/ditolak.tsx`
 - `src/components/workflow/PpkPpspmPagePrimitives.tsx`
 - `tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 
@@ -102,9 +102,9 @@ Desktop workflow list tables now follow the approved `/pegawai/dokumen` structur
 | `/ppk/tervalidasi` | `judul`, `fungsi_nama`, `kegiatan_nama` |
 | `/ppk/ditolak` | `judul`, `fungsi_nama`, `kegiatan_nama`, `revision_notes` |
 | `/ppk/revisi` | `judul`, `fungsi_nama`, `kegiatan_nama`, `revision_notes` |
-| `/bendahara/inbox` | `judul`, `fungsi_nama`, `kegiatan_nama` |
-| `/bendahara/selesai` | `judul`, `fungsi_nama`, `kegiatan_nama` |
-| `/bendahara/ditolak` | `judul`, `fungsi_nama`, `kegiatan_nama`, `revision_notes` |
+| `/ppspm/inbox` | `judul`, `fungsi_nama`, `kegiatan_nama` |
+| `/ppspm/selesai` | `judul`, `fungsi_nama`, `kegiatan_nama` |
+| `/ppspm/ditolak` | `judul`, `fungsi_nama`, `kegiatan_nama`, `revision_notes` |
 
 ## 8. Status Filter Decisions By Page
 
@@ -116,9 +116,9 @@ Desktop workflow list tables now follow the approved `/pegawai/dokumen` structur
 | `/ppk/tervalidasi` | Status dropdown shown per latest user direction. |
 | `/ppk/ditolak` | No status dropdown; fixed rejected-history page. |
 | `/ppk/revisi` | No status dropdown; action-specific PPK revision list. |
-| `/bendahara/inbox` | No status dropdown and no function filter; search covers the available metadata. |
-| `/bendahara/selesai` | No status dropdown; fixed completed-history page. |
-| `/bendahara/ditolak` | No status dropdown; fixed rejected-history page. |
+| `/ppspm/inbox` | No status dropdown and no function filter; search covers the available metadata. |
+| `/ppspm/selesai` | No status dropdown; fixed completed-history page. |
+| `/ppspm/ditolak` | No status dropdown; fixed rejected-history page. |
 
 ## 9. Behavior Preserved
 
@@ -129,7 +129,7 @@ Desktop workflow list tables now follow the approved `/pegawai/dokumen` structur
 - Existing approve, reject, resubmit, and revision actions are unchanged.
 - Existing status badge values and labels are unchanged.
 - Existing rejected/revision notes remain searchable where present.
-- Internal `/bendahara` route namespace remains unchanged while visible copy uses PPSPM.
+- Internal `/ppspm` route namespace remains unchanged while visible copy uses PPSPM.
 
 ## 10. API/Backend Changes
 
@@ -147,7 +147,7 @@ Passed:
 - `git status --short --branch`
 - `git branch --show-current`
 - Required source/document/prototype inspection.
-- `git grep -n "search\|Search\|filter\|Filter\|statusFilter\|setSearch\|query\|placeholder\|ditemukan\|Semua Status\|StatusBadge\|judul\|fungsi\|kegiatan\|catatan" -- src/routes/pegawai src/routes/ppk src/routes/bendahara src/components tests`
+- `git grep -n "search\|Search\|filter\|Filter\|statusFilter\|setSearch\|query\|placeholder\|ditemukan\|Semua Status\|StatusBadge\|judul\|fungsi\|kegiatan\|catatan" -- src/routes/pegawai src/routes/ppk src/routes/ppspm src/components tests`
 - `pnpm test tests/unit/dokumen/cross-role-list-parity-source.test.ts`
 - `pnpm test tests/unit/components/ui-foundation.test.ts`
 - `pnpm test tests/unit/dokumen`
@@ -176,9 +176,9 @@ Then verify:
 4. Check `/ppk/tervalidasi`: search works; status filter works and arrow icon is stable.
 5. Check `/ppk/ditolak`: search works including catatan; no status dropdown.
 6. Check `/ppk/revisi`: search works including catatan; no misleading status dropdown.
-7. Check `/bendahara/inbox`: search by judul, fungsi, kegiatan; no separate function filter is shown.
-8. Check `/bendahara/selesai`: search works; no status dropdown.
-9. Check `/bendahara/ditolak`: search works including catatan; no status dropdown.
+7. Check `/ppspm/inbox`: search by judul, fungsi, kegiatan; no separate function filter is shown.
+8. Check `/ppspm/selesai`: search works; no status dropdown.
+9. Check `/ppspm/ditolak`: search works including catatan; no status dropdown.
 10. Confirm desktop columns use the same structure as `/pegawai/dokumen`.
 11. Confirm `/pegawai/dokumen` status filter sits beside the total document count.
 12. Confirm placeholders are consistent.

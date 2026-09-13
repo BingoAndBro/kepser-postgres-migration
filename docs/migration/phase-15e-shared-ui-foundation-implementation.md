@@ -24,7 +24,7 @@ Shared UI components added under `src/components/ui/`:
 - `EmptyState.tsx`: pure presentational empty/no-results state with title, description, optional icon, optional action, and compact mode.
 - `LoadingState.tsx`: pure presentational loading wrapper using existing `Skeleton`, with `page`, `card`, and `list` variants that render placeholders only.
 - `ErrorState.tsx`: pure presentational safe error panel with title, caller-owned safe description, optional action, and variants.
-- `RoleBadge.tsx`: pure display badge for canonical role labels. `BENDAHARA` displays as `PPSPM`; `ADMIN` displays as `Admin Sistem` without implying operational substitution.
+- `RoleBadge.tsx`: pure display badge for canonical role labels. `PPSPM` displays as `PPSPM`; `ADMIN` displays as `Admin Sistem` without implying operational substitution.
 - `AppDialog.tsx`: small wrapper around existing Base UI-backed dialog primitives with title, optional description, size, trigger, content, and footer slots.
 - `ConfirmDialog.tsx`: wrapper built on `AppDialog` with `default`, `warning`, and `destructive` variants, pending/disabled states, and optional exact typed confirmation support.
 - `AppToast.tsx`: local React context/provider and viewport for caller-owned `success`, `error`, `info`, and `warning` messages. It is not wired globally in this phase.
@@ -43,7 +43,7 @@ Document statuses:
 
 - `DRAFT` -> `Draft`
 - `IN_PPK_VALIDATION` -> `Menunggu PPK`
-- `IN_BENDAHARA_APPROVAL` -> `Menunggu PPSPM`
+- `IN_PPSPM_APPROVAL` -> `Menunggu PPSPM`
 - `NEED_REVISION` -> `Perlu Revisi`
 - `COMPLETED` -> `Selesai`
 - `TERSIMPAN` -> `Tersimpan`
@@ -70,7 +70,7 @@ Roles:
 
 - `PEGAWAI` -> `Pegawai`
 - `PPK` -> `PPK`
-- `BENDAHARA` -> `PPSPM`
+- `PPSPM` -> `PPSPM`
 - `KEPALA_SUB_BAGIAN_UMUM` -> `Kepala Sub Bagian Umum`
 - `PENANGGUNG_JAWAB_KINERJA` -> `Penanggung Jawab Kinerja`
 - `ADMIN` -> `Admin Sistem`

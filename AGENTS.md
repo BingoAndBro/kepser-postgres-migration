@@ -218,7 +218,7 @@ Rules:
 - `dms_active_role` is UX-only state and is not authorization proof.
 - Server/API RBAC is authoritative.
 - Client-side role hiding is a UX hint only.
-- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `BENDAHARA`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
+- `ADMIN` is a dedicated role and must not be broadened into or combined with `PEGAWAI`, `PPK`, `PPSPM`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
 - Passwords use Argon2id.
 - Logout and password-change/reset session revocation behavior must remain server-authoritative.
 - Development seed password hashes use `DMS_DEV_SEED_PASSWORD_HASH` as a literal Argon2id PHC string beginning with `$argon2id$`; seed loading must not expand `$` segments.
@@ -270,7 +270,7 @@ Rules:
 Role yang dipakai aplikasi:
 
 ```ts
-type Role = 'PEGAWAI' | 'PPK' | 'BENDAHARA' | 'KEPALA_SUB_BAGIAN_UMUM' | 'ADMIN'
+type Role = 'PEGAWAI' | 'PPK' | 'PPSPM' | 'KEPALA_SUB_BAGIAN_UMUM' | 'ADMIN'
 ```
 
 After Phase 12E.1 this is extended to:
@@ -279,7 +279,7 @@ After Phase 12E.1 this is extended to:
 type Role =
   | 'PEGAWAI'
   | 'PPK'
-  | 'BENDAHARA'
+  | 'PPSPM'
   | 'KEPALA_SUB_BAGIAN_UMUM'
   | 'PENANGGUNG_JAWAB_KINERJA'
   | 'ADMIN'
@@ -287,7 +287,7 @@ type Role =
 
 Display label tambahan: `Penanggung Jawab Kinerja`.
 
-After Phase 13C, internal role enum/value `BENDAHARA` remains unchanged for DB values, RBAC, routes, API contracts, file paths, and workflow status semantics. User-facing display label for that role is `PPSPM`, with full wording `Pejabat Penandatangan Surat Perintah Membayar` where helpful.
+After Phase 13C, internal role enum/value `PPSPM` remains unchanged for DB values, RBAC, routes, API contracts, file paths, and workflow status semantics. User-facing display label for that role is `PPSPM`, with full wording `Pejabat Penandatangan Surat Perintah Membayar` where helpful.
 
 Canonical constants ada di:
 
@@ -309,7 +309,7 @@ Status dokumen yang saat ini dikenal kode:
 type StatusDokumen =
   | 'DRAFT'
   | 'IN_PPK_VALIDATION'
-  | 'IN_BENDAHARA_APPROVAL'
+  | 'IN_PPSPM_APPROVAL'
   | 'NEED_REVISION'
   | 'COMPLETED'
   | 'TERSIMPAN'
@@ -331,7 +331,7 @@ Canonical constants ada di:
 ### Current Step
 
 ```ts
-type CurrentStep = 'PPK' | 'BENDAHARA' | null
+type CurrentStep = 'PPK' | 'PPSPM' | null
 ```
 
 ### Revision Target
@@ -597,7 +597,7 @@ Alur approval material:
 ```text
 DRAFT
 -> IN_PPK_VALIDATION
--> IN_BENDAHARA_APPROVAL
+-> IN_PPSPM_APPROVAL
 -> COMPLETED
 -> ARCHIVED
 ```
@@ -607,9 +607,9 @@ Rules:
 - Material documents may use `nominal_realisasi`.
 - For material workflow documents, report metadata including `nominal_realisasi` is locked once status is `COMPLETED`.
 - PPK reject -> `NEED_REVISION`, `revision_target='USER'`.
-- Bendahara reject -> `NEED_REVISION`, `revision_target='PPK'`.
+- Ppspm reject -> `NEED_REVISION`, `revision_target='PPK'`.
 - PPK `KEMBALIKAN` handles PPK-targeted revision back to Pegawai and must not be conflated with ordinary reject.
-- `current_step` is `PPK`, `BENDAHARA`, or `null`.
+- `current_step` is `PPK`, `PPSPM`, or `null`.
 - `revision_target` is `USER`, `PPK`, or `null`.
 
 ### 4. Workflow Non-Material
@@ -622,7 +622,7 @@ DRAFT -> TERSIMPAN
 
 Rules:
 
-- Does not enter PPK/Bendahara approval.
+- Does not enter PPK/Ppspm approval.
 - Remains stored as document transaction.
 - Can appear in selected reports.
 - Does not have `nominal_realisasi`.
@@ -750,7 +750,7 @@ Rules:
 
 - `PENANGGUNG_JAWAB_KINERJA` has one main menu/page: Laporan Kinerja.
 - Laporan Kinerja is metadata-only and includes final document statuses `COMPLETED`, `TERSIMPAN`, and `ARCHIVED`.
-- Laporan Kinerja excludes `DRAFT`, `IN_PPK_VALIDATION`, `IN_BENDAHARA_APPROVAL`, and `NEED_REVISION`.
+- Laporan Kinerja excludes `DRAFT`, `IN_PPK_VALIDATION`, `IN_PPSPM_APPROVAL`, and `NEED_REVISION`.
 - Laporan Kinerja does not provide preview, download, signed URL, file URL, attachment content, export, or detail actions by default.
 - Server/API RBAC must require assigned `PENANGGUNG_JAWAB_KINERJA`; `dms_active_role` is not authorization proof.
 - `ADMIN` remains dedicated and is not automatically treated as `PENANGGUNG_JAWAB_KINERJA`.
@@ -867,7 +867,7 @@ src/
     dokumen/
     pegawai/
     ppk/
-    bendahara/
+    ppspm/
     arsiparis/
     penanggung-jawab-kinerja/
     admin.tsx
@@ -942,24 +942,24 @@ API utama:
 - `/api/ppk/resubmit/$id`
 - `/api/ppk/kembalikan/$id`
 
-### Bendahara
+### Ppspm
 
 UI utama:
 
-- `/bendahara`
-- `/bendahara/inbox`
-- `/bendahara/ditolak`
-- `/bendahara/selesai`
-- `/bendahara/dokumen/$id`
+- `/ppspm`
+- `/ppspm/inbox`
+- `/ppspm/ditolak`
+- `/ppspm/selesai`
+- `/ppspm/dokumen/$id`
 
 API utama:
 
-- `/api/bendahara/inbox`
-- `/api/bendahara/ditolak`
-- `/api/bendahara/selesai`
-- `/api/bendahara/dokumen/$id`
-- `/api/bendahara/dokumen/$id/approve`
-- `/api/bendahara/dokumen/$id/reject`
+- `/api/ppspm/inbox`
+- `/api/ppspm/ditolak`
+- `/api/ppspm/selesai`
+- `/api/ppspm/dokumen/$id`
+- `/api/ppspm/dokumen/$id/approve`
+- `/api/ppspm/dokumen/$id/reject`
 
 ### Kepala Sub Bagian Umum
 
@@ -1067,7 +1067,7 @@ Kalau menyentuh domain inti, baca file-file ini dulu:
 - `src/routes/api/dokumen/submit.ts`
 - `src/routes/api/dokumen.$id.ts`
 - `src/routes/api/ppk/dokumen/$id/approve.ts`
-- `src/routes/api/bendahara/dokumen/$id/approve.ts`
+- `src/routes/api/ppspm/dokumen/$id/approve.ts`
 - `src/routes/api/arsiparis/dokumen.$id.archive.ts`
 - `src/routes/api/files/access.ts`
 - `src/routes/api/admin/cleanup-orphan-files.ts`

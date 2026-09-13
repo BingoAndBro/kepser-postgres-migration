@@ -7,7 +7,7 @@ description: >
   document status transitions, Row-Level Security policies, Supabase Storage, or audit trail
   (log_aktivitas) writes. Use this skill whenever: writing or modifying Drizzle ORM schema files,
   creating server functions that query or mutate the database, implementing document workflow
-  transitions (DRAFT → IN_PPK_VALIDATION → IN_BENDAHARA_APPROVAL → COMPLETED → ARCHIVED),
+  transitions (DRAFT → IN_PPK_VALIDATION → IN_PPSPM_APPROVAL → COMPLETED → ARCHIVED),
   adding or updating Supabase RLS policies, working with Supabase Storage uploads/downloads,
   writing to the log_aktivitas audit trail, or creating Zod schemas for database-bound data.
   Even if the task seems simple like "add a column" or "update a status", always check this skill
@@ -49,12 +49,12 @@ Check this skill whenever you are about to:
 
 ```
 DRAFT ──────────────────→ IN_PPK_VALIDATION       (by: PEGAWAI, action: SUBMIT)
-IN_PPK_VALIDATION ──────→ IN_BENDAHARA_APPROVAL   (by: PPK, action: APPROVE)
+IN_PPK_VALIDATION ──────→ IN_PPSPM_APPROVAL   (by: PPK, action: APPROVE)
 IN_PPK_VALIDATION ──────→ NEED_REVISION           (by: PPK, action: REJECT, revision_target='USER')
-IN_BENDAHARA_APPROVAL ──→ COMPLETED               (by: BENDAHARA, action: APPROVE)
-IN_BENDAHARA_APPROVAL ──→ NEED_REVISION           (by: BENDAHARA, action: REJECT, revision_target='PPK')
+IN_PPSPM_APPROVAL ──→ COMPLETED               (by: PPSPM, action: APPROVE)
+IN_PPSPM_APPROVAL ──→ NEED_REVISION           (by: PPSPM, action: REJECT, revision_target='PPK')
 NEED_REVISION ──────────→ IN_PPK_VALIDATION       (by: PEGAWAI, action: RESUBMIT, when revision_target='USER')
-NEED_REVISION ──────────→ IN_BENDAHARA_APPROVAL   (by: PPK, action: RESUBMIT, when revision_target='PPK')
+NEED_REVISION ──────────→ IN_PPSPM_APPROVAL   (by: PPK, action: RESUBMIT, when revision_target='PPK')
 COMPLETED ──────────────→ ARCHIVED                 (by: ARSIPARIS, action: ARCHIVE)
 ```
 
@@ -96,7 +96,7 @@ await db.update(dokumenTransaksi)
 
 // WRONG — inline transition logic in a route handler
 if (doc.status === 'IN_PPK_VALIDATION') {
-  doc.status = 'IN_BENDAHARA_APPROVAL'  // ← VIOLATION: logic outside fsm.ts
+  doc.status = 'IN_PPSPM_APPROVAL'  // ← VIOLATION: logic outside fsm.ts
 }
 ```
 
@@ -250,7 +250,7 @@ CREATE POLICY "pegawai_insert_own" ON my_table
   FOR INSERT TO authenticated
   WITH CHECK ((SELECT auth.uid()) = created_by);
 
--- PPK/BENDAHARA/ARSIPARIS: can see records assigned to their step
+-- PPK/PPSPM/ARSIPARIS: can see records assigned to their step
 -- (Implement via role check in user_roles table)
 CREATE POLICY "approver_select" ON dokumen_transaksi
   FOR SELECT TO authenticated
@@ -259,7 +259,7 @@ CREATE POLICY "approver_select" ON dokumen_transaksi
       SELECT 1 FROM user_roles ur
       JOIN roles r ON ur.role_id = r.id
       WHERE ur.user_id = (SELECT auth.uid())
-      AND r.nama IN ('PPK', 'BENDAHARA', 'ARSIPARIS')
+      AND r.nama IN ('PPK', 'PPSPM', 'ARSIPARIS')
     )
   );
 

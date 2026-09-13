@@ -18,7 +18,7 @@ Deviasi kecil dari draf awal, ditemukan saat implementasi:
 
 Dokumen **non-material** (`is_non_material = true`) berhenti permanen di status `TERSIMPAN`
 (`buildLocalSubmitTransitionPlan`, `src/lib/dokumen/local-submit-write-bridge.ts:442`) — tanpa PPK,
-tanpa bendahara, tanpa arsiparis. Karena endpoint klasifikasi arsip mensyaratkan `status === 'COMPLETED'`
+tanpa ppspm, tanpa arsiparis. Karena endpoint klasifikasi arsip mensyaratkan `status === 'COMPLETED'`
 (`src/routes/api/arsiparis/dokumen.$id.archive.ts:101`), dokumen non-material **tidak pernah masuk berkas**,
 sehingga tidak pernah tersentuh mesin retensi/pemusnahan berkas. Akibatnya lampirannya menumpuk di storage
 tanpa batas, dan satu-satunya jalan keluar adalah hard delete oleh pemiliknya sendiri
@@ -254,9 +254,9 @@ Kegagalan sebagian **tidak** membatalkan yang berhasil.
 
 ---
 
-## Bagian H — Badge "File Dibersihkan" di sisi pegawai/PPK/bendahara
+## Bagian H — Badge "File Dibersihkan" di sisi pegawai/PPK/ppspm
 
-Hari ini **nol** permukaan pegawai/PPK/bendahara yang menampilkan keadaan ini: pegawai yang berkasnya
+Hari ini **nol** permukaan pegawai/PPK/ppspm yang menampilkan keadaan ini: pegawai yang berkasnya
 dimusnahkan kasubag tetap melihat daftar lampiran normal, mengklik, lalu dapat 410 mentah. Bagian ini
 menambalnya sekaligus melayani kasus non-material.
 
@@ -267,10 +267,10 @@ menambalnya sekaligus melayani kasus non-material.
   *"File dibersihkan oleh ketua tim"*.
 - Permukaan: `src/routes/pegawai/dokumen/$id/index.tsx`, `src/routes/pegawai/dokumen/index.tsx`,
   `src/routes/pegawai/laporan/{saya,kegiatan}.tsx`, `src/routes/ppk/dokumen/$id/index.tsx`,
-  `src/routes/bendahara/dokumen/$id.tsx`. Di daftar lampiran, nonaktifkan tombol unduh/pratinjau dan
+  `src/routes/ppspm/dokumen/$id.tsx`. Di daftar lampiran, nonaktifkan tombol unduh/pratinjau dan
   tampilkan pesan alih-alih membiarkan klik berujung error.
 - Tambahkan `lampiran_dibersihkan_at`/`_alasan` ke select + mapper API terkait
-  (`api/dokumen.$id.ts`, `api/laporan/{saya,kegiatan}.ts`, `api/ppk/dokumen/$id.ts`, `api/bendahara/dokumen/$id.ts`)
+  (`api/dokumen.$id.ts`, `api/laporan/{saya,kegiatan}.ts`, `api/ppk/dokumen/$id.ts`, `api/ppspm/dokumen/$id.ts`)
   dan ke tipe `DokumenRow`/`DokumenLaporanRow` (`src/lib/dokumen/types.ts`).
 
 **Kolom diisi untuk kedua jalur.** Saat berkas beralih ke `DIMUSNAHKAN`

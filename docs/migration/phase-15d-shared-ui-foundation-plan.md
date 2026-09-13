@@ -53,7 +53,7 @@ Existing layout components:
 
 Existing document and attachment components:
 
-- `AttachmentViewer.tsx`: current document attachment display/preview/download/edit wrapper for Pegawai, PPK, and PPSPM-facing Bendahara APIs.
+- `AttachmentViewer.tsx`: current document attachment display/preview/download/edit wrapper for Pegawai, PPK, and PPSPM-facing Ppspm APIs.
 - `AttachmentEditor.tsx`, `FileUploadButton.tsx`, `KelengkapanChecklist.tsx`, document form step components, `StepIndicator.tsx`, `ActivityLog.tsx`, and `ReviewSummary.tsx`: workflow-specific components that should mostly remain domain-specific for now.
 
 Existing report/filter components:
@@ -90,7 +90,7 @@ Other shared areas:
 | DestructiveActionModal | Page-local destruction dialogs exist. | Specialized configuration of `ConfirmDialog` for destructive domain actions. | Typed phrase, warning summary, pending summary, disabled until exact match. | Caller owns mutation and response handling. | Clear irreversible destructive copy; no ambiguous primary action. | Mobile keyboard must not hide confirm input/actions. | `Musnahkan Data` requires `MUSNAHKAN DATA FILE`; must state status becomes `Dimusnahkan`, associated physical files are deleted, preview/download/file access is unavailable after destruction, and metadata remains. | Destructive modal warning layout. | Separate physical deletion page/button, general Dimusnahkan list, wrong phrase, or copy that describes destruction as access blocking only. | High. | 15G.3 after `ConfirmDialog`. | Do not create as standalone until archive pages are touched. |
 | LifecycleActionDialog | Lifecycle confirmations are page-local; non-destructive paths use `window.confirm`. | Shared shell for archive folder lifecycle confirmations. | `to-inaktif`, `to-usul-musnah`, `to-dimusnahkan`; optional physical deletion summary. | Uses existing folder-first lifecycle API only through caller. | Status transition copy must be explicit; typed input only where required. | Works in list rows and detail pages. | Folder authority is `berkas_arsip`/`berkas_arsip_item`; no legacy canonical archive. | Timeline/action modal polish. | Restoring old lifecycle APIs or using `arsip.arsip`. | High. | 15G.3. | Keep page-local until archive slice starts. |
 | StatusBadge | Generic `Badge` exists; current shared `StatusBadge` is stale. | Canonical badge for document status, folder status, archive lifecycle, and optional source type via explicit kind. | `document`, `berkas`, `archiveLifecycle`, `source`; neutral/info/warning/success/destructive visuals. | Pure display; accepts only canonical values or safe fallback label. | Text not color-only; visible label; no abbreviation without title where needed. | Wrap or shrink safely in tables/cards. | Must include current statuses; no prototype-only statuses; `DIMUSNAHKAN` visibly blocks file access context. | Warm but readable colored pills. | `IN_REVIEW`, `Archived`, `Terbuka`/`Ditutup` as data authority, English canonical labels. | High. | 15E foundation. | First badge refactor candidate. |
-| RoleBadge | Absent; role badges are page-local. | Display canonical role labels. | Role color variants plus compact/full wording. | Pure display from `RoleName` constants. | Full label available via text/title; not color-only. | Wrap in user tables and profile chips. | `BENDAHARA` displays `PPSPM`; `KEPALA_SUB_BAGIAN_UMUM` displays `Kepala Sub Bagian Umum`; `ADMIN` remains dedicated. | Profile/admin role chip styling. | Lowercase prototype roles, `ADMIN` as substitute for operational roles. | Medium. | 15E foundation. | Should use existing role display constants. |
+| RoleBadge | Absent; role badges are page-local. | Display canonical role labels. | Role color variants plus compact/full wording. | Pure display from `RoleName` constants. | Full label available via text/title; not color-only. | Wrap in user tables and profile chips. | `PPSPM` displays `PPSPM`; `KEPALA_SUB_BAGIAN_UMUM` displays `Kepala Sub Bagian Umum`; `ADMIN` remains dedicated. | Profile/admin role chip styling. | Lowercase prototype roles, `ADMIN` as substitute for operational roles. | Medium. | 15E foundation. | Should use existing role display constants. |
 | PageHeader | Page-local headers exist. | Standard page title, subtitle, breadcrumbs/back slot, and action slot. | Default, compact, detail, with actions. | No fetching or navigation rules except caller-provided elements. | Heading level controlled by page; actions labelled. | Actions stack under title on mobile. | Uses current terminology: Profile, Penambahan Dokumen, Kepala Sub Bagian Umum, PPSPM. | Compact warm heading/action layout. | Prototype tab labels as route authority. | Low-medium. | 15F or first role slice. | Shell phase may need this before broad page work. |
 | BackButton | Page-local back links/buttons exist. | Consistent back affordance with caller-provided route/history behavior. | Link, button, icon-only, text. | No hardcoded route defaults. | `aria-label` for icon-only; visible text preferred. | Stable height; no layout shift. | Must not link to removed archive routes. | Chevron back treatment. | Prototype tab back behavior as router authority. | Low. | 15F. | Can be built with `Button` and TanStack `Link`. |
 | ResponsiveCardList | Repeated desktop tables and mobile cards. | Shared responsive wrapper/pattern for table-on-desktop and cards-on-mobile. | Empty/loading/error slots; row/card render props. | Caller provides safe DTOs and actions. | Table headers meaningful; card labels visible; keyboard action access. | Desktop horizontal overflow, mobile card stack, stable actions. | CSV/search remains caller/page-local; no raw IDs/paths/tokens in displayed data. | Prototype table-to-card list density and mobile cards. | Monolithic prototype list logic or mock data. | Medium. | 15G slices after state components. | Start with one low-risk list before broad reuse. |
@@ -160,7 +160,7 @@ Security and auth:
 - `dms_session` remains the auth boundary.
 - `dms_active_role` remains UX-only state and is not authorization proof.
 - Server/API RBAC remains authoritative.
-- `ADMIN` is dedicated and is not a substitute for `PEGAWAI`, `PPK`, `BENDAHARA`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
+- `ADMIN` is dedicated and is not a substitute for `PEGAWAI`, `PPK`, `PPSPM`, `KEPALA_SUB_BAGIAN_UMUM`, or `PENANGGUNG_JAWAB_KINERJA`.
 - Do not claim production ready, go-live approved, operational certification, security certification, compliance validation, fully secure, or full Supabase repository removal.
 - Correct Supabase wording: "Active runtime/package Supabase dependency retired, historical Supabase artifacts remain."
 
@@ -175,7 +175,7 @@ Archive and file access:
 
 Terminology:
 
-- Internal `BENDAHARA` remains unchanged; user-facing label is `PPSPM`.
+- Internal `PPSPM` remains unchanged; user-facing label is `PPSPM`.
 - Use `Kepala Sub Bagian Umum` as the primary user-facing label, not Arsiparis.
 - Use `Profile`, not Settings.
 - Use `Penambahan Dokumen`, not Penambahan Arsip.
@@ -222,7 +222,7 @@ Rejected for current DMS work:
 3. Phase 15G.1 Pegawai:
    Use shared states, badges, page headers, search/filter toolbar, attachment actions, and responsive list patterns on Pegawai document/list/detail/revision flows.
 4. Phase 15G.2 PPK/PPSPM:
-   Reuse confirmation, badge, attachment, list, and action patterns for PPK and PPSPM-facing Bendahara namespace pages while displaying PPSPM.
+   Reuse confirmation, badge, attachment, list, and action patterns for PPK and PPSPM-facing Ppspm namespace pages while displaying PPSPM.
 5. Phase 15G.3 Kepala Sub Bagian Umum / Archive:
    Apply folder-first archive visuals to `/arsiparis/berkas`, `/arsiparis/berkas/$id`, `/arsiparis/inaktif`, `/arsiparis/usul-musnah`, Pengklasifikasian Dokumen, and Penambahan Dokumen without restoring legacy canonical surfaces.
 6. Phase 15G.4 Penanggung Jawab Kinerja:

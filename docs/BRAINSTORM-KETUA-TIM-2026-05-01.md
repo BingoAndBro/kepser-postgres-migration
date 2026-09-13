@@ -85,7 +85,7 @@ Legend aksi: ✏️ Edit   👁️ Lihat   🗑️ Hapus
 │ 👥 Hak Akses:                                                │
 │   ☑ PEGAWAI (mandatory)                                      │
 │   ☑ PPK                                                      │
-│   ☐ BENDAHARA                                                │
+│   ☐ PPSPM                                                │
 │   ☐ ARSIPARIS                                                │
 │                                                              │
 │ ─────────────────────────────────────────────────────────   │
@@ -130,7 +130,7 @@ Legend aksi: ✏️ Edit   👁️ Lihat   🗑️ Hapus
 │ 👥 Hak Akses:                                                │
 │   ☑ PEGAWAI (selalu ada)                                     │
 │   ☐ PPK                                                      │
-│   ☐ BENDAHARA                                               │
+│   ☐ PPSPM                                               │
 │   ☐ ARSIPARIS                                                │
 │                                                              │
 │ 🏆 Kegiatan sebagai Ketua Tim: (opsional)                    │
