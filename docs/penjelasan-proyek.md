@@ -208,7 +208,8 @@ Catatan penting:
 - **Solusi yang dipakai.** Tabel **`master_klasifikasi_arsip`** berbentuk **hierarki induk–anak (leaf/parent)**. Hanya **node daun (leaf)** yang boleh dipakai untuk mengklasifikasikan dokumen (validasi backend "leaf-only"). Ada juga *delete-safety* (tidak bisa menghapus induk yang punya anak / yang sedang dipakai) dan status aktif/nonaktif.
 - **Use case.** Kepala Sub Bagian Umum memilih klasifikasi daun "Belanja Barang → Jasa Konsultansi" saat mengklasifikasikan berkas; klasifikasi induk tidak muncul sebagai pilihan akhir.
 - **Pengguna.** Kepala Sub Bagian Umum (mengelola & memakai). *Admin tidak punya akses mutasi operasional ke klasifikasi.*
-- **Keterkaitan.** Dipakai oleh **PB-6** (berkas 1:1 dengan **Cara Pembayaran** / klasifikasi daun) dan sebelumnya oleh Laporan Klasifikasi (kini dihapus — lihat **Lampiran E**).
+- **Keterkaitan.** Dipakai oleh **PB-6** (berkas 1:1 dengan **Cara Pembayaran** / klasifikasi daun, **per Tahun Anggaran** — lihat catatan di PB-6.2) dan sebelumnya oleh Laporan Klasifikasi (kini dihapus — lihat **Lampiran E**).
+- **Struktur untuk pembayaran revolving (UP/TUP/LS).** Klasifikasi daun bersifat evergreen dan dipakai ulang setiap tahun, misalnya `UP > UP-1 … UP-n`, `TUP > TUP-1 …`, `LS > …`. Jumlah anak per induk boleh bertambah dari tahun ke tahun (mis. 2026 hanya sampai UP-7, 2027 sampai UP-9) — cukup tambah anak baru saat dibutuhkan, tidak perlu membuat ulang setiap tahun anggaran.
 
 ---
 
@@ -267,14 +268,14 @@ Penambahan Dokumen  ────────┘        (get-or-create per cara p
 - **Solusi yang dipakai.** Dua pintu masuk yang bermuara sama:
   - **Pengklasifikasian Dokumen** (`/arsiparis/inbox` → `POST /api/arsiparis/dokumen/$id.archive`) — sumbernya dokumen workflow `COMPLETED` (sudah lewat Pegawai→PPK→PPSPM). Item `WORKFLOW`.
   - **Penambahan Dokumen** (`/arsiparis/penambahan-arsip`) — entri manual oleh KSBU, **tanpa** alur berjenjang. Mengumpulkan Nama Dokumen, kategori (`Pemeliharaan`/`Pengadaan`/`Lain-lain`), tanggal, cara pembayaran, nominal (> 0), `keterangan` wajib, lampiran opsional. Item `MANUAL` (tabel `manual_arsip*`).
-  KSBU memilih **cara pembayaran** (klasifikasi daun). Aturan **get-or-create**: belum ada berkas terbuka untuk klasifikasi itu → **buat berkas terbuka baru**; sudah ada → item **masuk ke berkas itu**. Dokumen workflow **tetap `COMPLETED`**, tidak berpindah ke `ARCHIVED`.
+  KSBU memilih **cara pembayaran** (klasifikasi daun) **dan Tahun Anggaran**. Aturan **get-or-create per (klasifikasi, tahun anggaran)**: belum ada berkas terbuka untuk kombinasi itu → **buat berkas terbuka baru**; sudah ada → item **masuk ke berkas itu**. Dokumen workflow **tetap `COMPLETED`**, tidak berpindah ke `ARCHIVED`.
 - **Use case.** Lima honor SAKERNAS yang selesai + satu bukti bayar service AC (manual) masuk ke satu berkas "Honor SAKERNAS 2026" yang masih terbuka.
 - **Pengguna.** Kepala Sub Bagian Umum.
 - **Keterkaitan.** Pintu workflow butuh status **`COMPLETED` (PB-2.2)**; klasifikasi dari **PB-4.3**; nominal item dari **PB-5**.
 
 ## PB-6.2 — Berkas tidak pernah "ditutup" dengan Nomor SPM
 
-- **Solusi yang dipakai.** Aksi **"Tutup Berkas"** (modal, `POST /api/arsiparis/berkas/$id/close`). Wajib mengisi **Nomor SPM** + **satu** field **Masa Simpan Minimal** (menggantikan pasangan retensi aktif + inaktif). Server mengisi `closed_at`/`closed_by`, menghitung `tanggal_jatuh_tempo = closed_at + masa_simpan`, lalu set `status_berkas = 'CLOSED'`. Berkas `CLOSED` **tidak menerima item baru**; cara pembayaran itu tidak bisa dipilih lagi untuk penambahan baru (aturan 1:1).
+- **Solusi yang dipakai.** Aksi **"Tutup Berkas"** (modal, `POST /api/arsiparis/berkas/$id/close`). Wajib mengisi **Nomor SPM** + **satu** field **Masa Simpan Minimal** (menggantikan pasangan retensi aktif + inaktif). Server mengisi `closed_at`/`closed_by`, menghitung `tanggal_jatuh_tempo = closed_at + masa_simpan`, lalu set `status_berkas = 'CLOSED'`. Berkas `CLOSED` **tidak menerima item baru**; kombinasi cara pembayaran + Tahun Anggaran itu tidak bisa dipilih lagi untuk penambahan baru di tahun yang sama (aturan 1:1 **per tahun anggaran** — lihat kolom `tahun_anggaran` di `berkas_arsip`, migrasi `0018_berkas_tahun_anggaran`). Tahun anggaran berikutnya, cara pembayaran yang sama bisa dipilih lagi dan membuka berkas baru.
 - **Use case.** Setelah semua item SAKERNAS masuk, KSBU menutup berkas dengan Nomor SPM + "Masa Simpan Minimal 5 Tahun". Berkas siap diunduh sebagai satu paket zip.
 - **Pengguna.** Kepala Sub Bagian Umum (server wajib verifikasi role; `ADMIN` bukan pengganti).
 - **Keterkaitan.** Nomor SPM = penanda "1 berkas = 1 SPM" & dasar penamaan paket unduhan; `closed_at` = dasar hitung **umur berkas** & **jatuh tempo** di PB-6.3.
