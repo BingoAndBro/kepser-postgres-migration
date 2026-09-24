@@ -24,7 +24,7 @@ Partial / bounded release handoff: local/LAN target is ready for human-controlle
 
 - Ini adalah human-controlled internal/local/LAN handoff yang bounded, bukan public production readiness, bukan go-live approval, bukan operational certification, bukan security certification, dan bukan compliance validation.
 - Active runtime/package Supabase dependency retired untuk clean local target.
-- Historical Supabase docs/tests/comments/.env-example references dan folder `supabase/` tetap ada sebagai traceability atau cleanup backlog.
+- Folder `supabase/` sudah dihapus pada cleanup 2026-09-24 (disetujui pemilik proyek). Historical Supabase docs dan beberapa test guard (`not.toContain('supabase')`) tetap ada sebagai traceability.
 - Jangan menulis atau menyimpulkan bahwa Supabase sudah fully removed from repository.
 - No old Supabase data/file recovery, migration, copy, download, backfill, sync, or fallback is expected.
 - Setelah 11H.3, recommended state adalah human-controlled maintenance/backlog governance.
@@ -197,13 +197,15 @@ Yang masih ada sebagai historical/cleanup backlog:
 - historical migration docs/specs
 - stale test references or expectations
 - source comments/type residue
-- `.env.example` Supabase key-name residue
-- retained `supabase/` folder and legacy artifacts
+
+Yang sudah dihapus pada cleanup 2026-09-24:
+
+- folder `supabase/` (migrasi SQL lama, edge function `arsip-retensi`, `.temp/`)
+- import tipe `ServerEventContext` dari `supabase-server` yang sudah tidak ada di `src/lib/guards.ts`
 
 Rules:
 
 - Do not reintroduce Supabase packages, helpers, runtime clients, storage fallback, or old file/data recovery.
-- Do not delete or modify `supabase/` unless a later human-approved cleanup phase explicitly allows it.
 - Do not claim Supabase is fully removed from repository.
 - Treat historical Supabase references as traceability unless the active runtime/package audit proves otherwise.
 

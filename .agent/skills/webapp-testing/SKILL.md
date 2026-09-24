@@ -29,10 +29,9 @@ To enforce strict Test-Driven Development (TDD) and ensure the DMS (Document Man
 -   **Rollback Transactions**: Wrap database operations in transactions that rollback at the end of the test to keep the test database clean.
 -   **Reference Example**: See `examples/drizzle_mock.ts`.
 
-### 2. Supabase & Row Level Security (RLS)
--   **Simulate Roles**: The DMS relies heavily on RLS (Roles: PEGAWAI, PPK, PPSPM, ARSIPARIS, ADMIN). Integration tests must simulate requests from different authenticated user roles.
--   **Negative Testing**: Always include tests that attempt to bypass RLS (e.g., PEGAWAI trying to approve a document meant for PPSPM) to ensure the query returns empty or errors out.
--   **Reference Example**: See `examples/supabase_rls_test.ts`.
+### 2. Role-Based Access
+-   **Simulate Roles**: The DMS enforces access per role in server routes (Roles: PEGAWAI, PPK, PPSPM, ARSIPARIS, ADMIN). Integration tests must simulate requests from different authenticated user roles.
+-   **Negative Testing**: Always include tests that attempt to bypass role checks (e.g., PEGAWAI trying to approve a document meant for PPSPM) to ensure the route returns 403 or empty results.
 
 ### 3. TanStack Start (SSR & Frontend)
 -   **Hydration Mismatches & Concurrency**: Ensure that data fetched on the server matches what the client expects.
