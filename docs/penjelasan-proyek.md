@@ -5,7 +5,7 @@
 >
 > **Pembanding permasalahan = proses kerja manual yang berjalan di kantor SEKARANG** (berbasis kertas, tanpa sistem informasi apa pun). Bukan dibandingkan dengan versi/kode aplikasi sebelumnya. Hal-hal yang bersifat teknis/kode (tumpukan teknologi, status branch, riwayat implementasi) dipindah ke **Lampiran** dan bukan bagian dari permasalahan bisnis.
 >
-> Sumber acuan: `AGENTS.md` (konstitusi proyek), `docs/specs/*`, `docs/ringkasan_arsitektur.md`, `docs/src-architecture-summary.md`.
+> Sumber acuan: `AGENTS.md` (konstitusi proyek), `arsip/docs-2026-09-25:docs/specs/*`, `docs/ringkasan_arsitektur.md`, `docs/src-architecture-summary.md`.
 
 ---
 
@@ -418,7 +418,7 @@ Penambahan Dokumen  ────────┘        (get-or-create per cara p
 | RBAC & navigasi | `src/components/layout/AppLayout.tsx`, `src/config/navigation.ts`, `src/lib/constants/roles.ts` |
 | Same-origin / keamanan | `src/lib/security/same-origin.ts` |
 | Storage / akses file | `src/lib/storage/*`, `src/lib/storage-client.ts`, `src/lib/file-helpers.ts`, `src/lib/utils/file.ts` |
-| Konstitusi & aturan | `AGENTS.md`, `docs/specs/*`, `docs/migration/README.md` |
+| Konstitusi & aturan | `AGENTS.md`, `arsip/docs-2026-09-25:docs/specs/*`, `arsip/docs-2026-09-25:docs/migration/README.md` |
 
 ---
 

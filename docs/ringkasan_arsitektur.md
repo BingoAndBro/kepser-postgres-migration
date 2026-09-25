@@ -49,7 +49,7 @@ Ini adalah jantung fungsional dari aplikasi Anda.
 ### 5. Aturan Main Aplikasi (`docs/` dan `.agent/skills/`)
 Meskipun bukan kode aplikasi, Anda sangat perlu tahu ini:
 *   `AGENTS.md`: Konstitusi proyek Anda! Jika ada perbedaan pendapat soal bisnis, semuanya harus tunduk pada file ini (menjelaskan tabel MVP, fungsi pegawai, fungsi PPK).
-*   `docs/specs/`: Cetak biru per-fitur (seperti `03-submit-flow`, `04-approve-flow`) di mana tim/agen menguji secara detil (*Test Verification* markdown).
+*   `arsip/docs-2026-09-25:docs/specs/`: Cetak biru per-fitur (seperti `03-submit-flow`, `04-approve-flow`) di mana tim/agen menguji secara detil (*Test Verification* markdown).
 *   `.agent/skills/`: Berisi prompt dan batasan panduan (seperti arahan UI/UX, Webapp testing) agar seluruh sistem stabil.
 
 ---

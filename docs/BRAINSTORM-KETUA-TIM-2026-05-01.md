@@ -2,7 +2,7 @@
 
 **Tanggal:** 2026-05-01
 **Branch:** feat/arsip-flow-spec-05
-**Status:** Di-convert ke SPEC 07 (`docs/specs/07-chairman-assignment/spec.md`)
+**Status:** Di-convert ke SPEC 07 (`arsip/docs-2026-09-25:docs/specs/07-chairman-assignment/spec.md`)
 
 ---
 

@@ -204,7 +204,7 @@ Penambahan Dokumen ────────┘     (get-or-create per Cara Pemba
 | File | Yang berubah |
 |---|---|
 | `AGENTS.md` | Bagian *Status Berkas*, *Arsip Lifecycle*, *Behavioral Rules 5 / 5A*, *Route And Ownership Map* (`/arsiparis/inaktif`, `/arsiparis/usul-musnah`), *Removed Or Deprecated Surfaces*. Wajib update sebelum/bersamaan kode (invariant "Update docs before behavior changes"). |
-| `docs/migration/README.md` | Daftar "Active archive surfaces" & "Removed surfaces". |
+| `arsip/docs-2026-09-25:docs/migration/README.md` | Daftar "Active archive surfaces" & "Removed surfaces". |
 | `docs/penjelasan-proyek.md` | Sinkronkan label PB-6 saat implementasi jadi (framing sudah diperbarui). |
 
 ## Yang TIDAK termasuk (non-scope RP-01)
@@ -228,7 +228,7 @@ Penambahan Dokumen ────────┘     (get-or-create per Cara Pemba
 
 ## Urutan kerja yang disarankan
 
-1. Update `AGENTS.md` + `docs/migration/README.md` (rencana → aturan).
+1. Update `AGENTS.md` + `arsip/docs-2026-09-25:docs/migration/README.md` (rencana → aturan).
 2. Konstanta + tipe (`archive-status.ts`, `routes.ts`, `berkas-arsip-activity.ts` label).
 3. Helper backend (`retention.ts`, `berkas-arsip-service.ts`, `read-model`, `page-format`) + test unit-nya.
 4. Zod + API routes (`close`, `lifecycle`, `berkas/index`, `berkas/$id`) + test.

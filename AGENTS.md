@@ -1,6 +1,8 @@
 # AGENTS.md - Project Constitution: DMS (Dynamic Document Workflow Management System)
 > File ini adalah hukum kerja repo. Semua perubahan schema, routing, workflow, security boundary, storage, dan data boundary harus mengacu ke file ini. Jika realita aplikasi berubah, update file ini dulu atau bersamaan dengan kode/dokumen terkait.
 
+> **Arsip dokumen:** `docs/migration/`, `docs/planning/`, `docs/specs/`, dan `use_cases/` dihapus dari branch ini pada 2026-09-25 dan disimpan di git tag `arsip/docs-2026-09-25`. Path berawalan `arsip/docs-2026-09-25:` di file ini dibuka dengan `git show arsip/docs-2026-09-25:<path>` (daftar isi: `git ls-tree -r --name-only arsip/docs-2026-09-25 -- docs/migration`).
+
 ---
 
 ## North Star
@@ -28,113 +30,113 @@ Partial / bounded release handoff: local/LAN target is ready for human-controlle
 - Jangan menulis atau menyimpulkan bahwa Supabase sudah fully removed from repository.
 - No old Supabase data/file recovery, migration, copy, download, backfill, sync, or fallback is expected.
 - Setelah 11H.3, recommended state adalah human-controlled maintenance/backlog governance.
-- Phase 14M moved historical migration docs into `docs/migration/_archive/`; Phase 15/frontend work must not treat `_archive` docs as current authority.
+- Phase 14M moved historical migration docs into `arsip/docs-2026-09-25:docs/migration/_archive/`; Phase 15/frontend work must not treat `_archive` docs as current authority.
 
 Referensi utama:
 
-- `docs/migration/phase-11h-final-release-classification.md`
-- `docs/migration/phase-11h-final-readiness-plan.md`
-- `docs/migration/phase-11h-final-supabase-audit.md`
-- `docs/migration/phase-11h-p1-security-gate-decision.md`
-- `docs/migration/phase-11g-rollback-release-handoff.md`
-- `docs/migration/phase-11g-security-review.md`
-- `docs/migration/deployment-target-contract.md`
-- `docs/migration/local-deployment-notes.md`
-- `docs/migration/open-decisions.md`
-- `docs/migration/phase-12g-manual-archive-schema.md`
-- `docs/migration/phase-12h-manual-archive-api-foundation.md`
-- `docs/migration/phase-12j2d-manual-archive-required-nominal.md`
-- `docs/migration/phase-12k-manual-archive-preview-download.md`
-- `docs/migration/phase-12l-manual-archive-edit-aktif-only.md`
-- `docs/migration/phase-12l2-canonical-archive-schema-foundation.md`
-- `docs/migration/phase-12l3-compatibility-read-backfill-plan.md`
-- `docs/migration/phase-12l4-report-only-db-compatibility-reader.md`
-- `docs/migration/phase-12l5-remediation-policy-for-compatibility-gaps.md`
-- `docs/migration/phase-12l7-workflow-archive-canonical-write-alignment.md`
-- `docs/migration/phase-12l9-manual-archive-retention-schema-foundation.md`
-- `docs/migration/phase-12l10-manual-archive-api-retention-validation.md`
-- `docs/migration/phase-12l11-manual-archive-ui-required-metadata.md`
-- `docs/migration/phase-12l14-manual-archive-create-canonical-write-alignment.md`
-- `docs/migration/phase-12l15-manual-archive-edit-canonical-sync.md`
-- `docs/migration/phase-12l16-existing-manual-archive-remediation-backfill-plan.md`
-- `docs/migration/phase-12l17-read-only-manual-archive-remediation-report-helper.md`
-- `docs/migration/phase-12l18-human-reviewed-manual-archive-canonicalization-helper.md`
-- `docs/migration/phase-12l19-manual-archive-canonicalization-dry-run.md`
-- `docs/migration/phase-12m1-unified-archive-query-service.md`
-- `docs/migration/phase-12m2-unified-archive-list-page-integration.md`
-- `docs/migration/phase-12m3-unified-archive-detail-policy.md`
-- `docs/migration/phase-12m4-unified-archive-detail-read-service.md`
-- `docs/migration/phase-12m5-unified-archive-detail-page-integration.md`
-- `docs/migration/phase-12m6-source-aware-detail-attachment-metadata.md`
-- `docs/migration/phase-12m6b-unified-detail-ui-label-dedup-cleanup.md`
-- `docs/migration/phase-12m6c-unified-detail-actor-display-name-resolution.md`
-- `docs/migration/phase-12m7-source-aware-preview-download-from-detail.md`
-- `docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`
-- `docs/migration/phase-12n1-unified-archive-lifecycle-policy-inventory.md`
-- `docs/migration/phase-12n2-unified-archive-lifecycle-helper-foundation.md`
-- `docs/migration/phase-12n3-unified-lifecycle-api-non-destructive.md`
-- `docs/migration/phase-12n4-destruction-approval-policy-and-safety-plan.md`
-- `docs/migration/phase-12n5-unified-approve-destruction-api-only.md`
-- `docs/migration/phase-12n6-unified-lifecycle-detail-buttons-non-destructive.md`
-- `docs/migration/phase-12n6b-unified-lifecycle-button-placement-redirect-ux.md`
-- `docs/migration/phase-12n7-destruction-approval-ui-plan.md`
-- `docs/migration/phase-12n8-unified-destruction-approval-ui.md`
-- `docs/migration/phase-12n9-archive-native-destruction-audit-planning.md`
-- `docs/migration/phase-12n10-physical-file-destruction-policy-implementation.md`
-- `docs/migration/phase-12n11-legacy-proposal-route-compatibility-cleanup-plan.md`
-- `docs/migration/phase-12n11b-legacy-proposal-route-removal-and-redirect-cleanup.md`
-- `docs/migration/phase-12o-unified-archive-aggregate-export.md`
-- `docs/migration/phase-12p-dev-manual-archive-data-storage-cleanup.md`
-- `docs/migration/phase-12q-unified-archive-classification-report.md`
-- `docs/migration/phase-12q1-classification-report-detail-drilldown.md`
-- `docs/migration/phase-12z-unified-archive-feature-handoff-closure.md`
-- `docs/migration/phase-13c-ppspm-display-rename.md`
-- `docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
-- `docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
-- `docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
-- `docs/migration/phase-13g-close-folder-helper-api-foundation.md`
-- `docs/migration/phase-13h-folder-berkas-api-foundation.md`
-- `docs/migration/phase-13i-pengklasifikasian-dokumen-open-berkas-integration.md`
-- `docs/migration/phase-13j-penambahan-dokumen-open-berkas-integration.md`
-- `docs/migration/phase-13k-folder-first-finalization-policy-and-detransitionalization-plan.md`
-- `docs/migration/phase-13l-berkas-status-arsip-schema-foundation.md`
-- `docs/migration/phase-13m-close-berkas-finalization-sets-aktif.md`
-- `docs/migration/phase-13n-folder-first-read-model-foundation.md`
-- `docs/migration/phase-13o-folder-first-archive-pages.md`
-- `docs/migration/phase-13p-folder-item-file-access-and-dimusnahkan-block.md`
-- `docs/migration/phase-13p2-open-berkas-visibility-and-jenis-pembayaran-eligibility.md`
-- `docs/migration/phase-13q-folder-lifecycle-transitions-and-visibility.md`
-- `docs/migration/phase-13q2-lifecycle-ux-placement-confirmation-and-filename-preservation.md`
-- `docs/migration/phase-13r-folder-first-csv-export.md`
-- `docs/migration/phase-13s-close-berkas-ui-form.md`
-- `docs/migration/phase-13s1-close-berkas-modal-and-list-shortcut.md`
-- `docs/migration/phase-13t-workflow-pengklasifikasian-detransitionalization.md`
-- `docs/migration/phase-13t1-folder-item-attachment-name-preservation-bugfix.md`
-- `docs/migration/phase-13t2-folder-attachment-name-runtime-hotfix.md`
-- `docs/migration/phase-13u-manual-penambahan-dokumen-detransitionalization.md`
-- `docs/migration/phase-13v-legacy-active-archive-route-cleanup.md`
-- `docs/migration/phase-13w-folder-first-inaktif-usul-musnah-pages.md`
-- `docs/migration/phase-13w1-lifecycle-redirects-and-destruction-modal.md`
-- `docs/migration/phase-13w2-detail-destruction-modal-ux.md`
-- `docs/migration/phase-13x-physical-file-destruction-policy-plan.md`
-- `docs/migration/phase-13y1-folder-first-physical-deletion-helper.md`
-- `docs/migration/phase-13y2-musnahkan-data-physical-deletion-integration.md`
-- `docs/migration/phase-13y3-document-file-access-destroyed-folder-awareness.md`
-- `docs/migration/phase-13y4-attachment-viewer-destroyed-file-ux.md`
-- `docs/migration/phase-13z-legacy-canonical-archive-cleanup-decision-plan.md`
-- `docs/migration/phase-14a-legacy-soft-deprecation-search-report-plan.md`
-- `docs/migration/phase-14b-remove-global-archive-search.md`
-- `docs/migration/phase-14c-local-archive-page-search-filters.md`
-- `docs/migration/phase-14d-folder-first-report-export-alignment.md`
-- `docs/migration/phase-14e-remove-laporan-klasifikasi-surface.md`
-- `docs/migration/phase-14f-inaktif-usul-musnah-csv-export.md`
-- `docs/migration/phase-14g-legacy-canonical-archive-removal-audit-plan.md`
-- `docs/migration/phase-14h-remove-legacy-canonical-runtime.md`
-- `docs/migration/phase-14i0-folder-first-storage-guards.md`
-- `docs/migration/phase-14i-drop-legacy-canonical-archive-schema.md`
-- `docs/migration/phase-14j-dev-db-migration-validation.md`
-- `docs/migration/phase-14j2-local-seed-hash-handling-hardening.md`
-- `docs/migration/phase-14k-final-folder-first-archive-regression-handoff.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11h-final-release-classification.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11h-final-readiness-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11h-final-supabase-audit.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11h-p1-security-gate-decision.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11g-rollback-release-handoff.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-11g-security-review.md`
+- `arsip/docs-2026-09-25:docs/migration/deployment-target-contract.md`
+- `arsip/docs-2026-09-25:docs/migration/local-deployment-notes.md`
+- `arsip/docs-2026-09-25:docs/migration/open-decisions.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12g-manual-archive-schema.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12h-manual-archive-api-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12j2d-manual-archive-required-nominal.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12k-manual-archive-preview-download.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l-manual-archive-edit-aktif-only.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l2-canonical-archive-schema-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l3-compatibility-read-backfill-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l4-report-only-db-compatibility-reader.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l5-remediation-policy-for-compatibility-gaps.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l7-workflow-archive-canonical-write-alignment.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l9-manual-archive-retention-schema-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l10-manual-archive-api-retention-validation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l11-manual-archive-ui-required-metadata.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l14-manual-archive-create-canonical-write-alignment.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l15-manual-archive-edit-canonical-sync.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l16-existing-manual-archive-remediation-backfill-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l17-read-only-manual-archive-remediation-report-helper.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l18-human-reviewed-manual-archive-canonicalization-helper.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12l19-manual-archive-canonicalization-dry-run.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m1-unified-archive-query-service.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m2-unified-archive-list-page-integration.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m3-unified-archive-detail-policy.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m4-unified-archive-detail-read-service.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m5-unified-archive-detail-page-integration.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m6-source-aware-detail-attachment-metadata.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m6b-unified-detail-ui-label-dedup-cleanup.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m6c-unified-detail-actor-display-name-resolution.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m7-source-aware-preview-download-from-detail.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12m8-unified-detail-file-access-smoke-review.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n1-unified-archive-lifecycle-policy-inventory.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n2-unified-archive-lifecycle-helper-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n3-unified-lifecycle-api-non-destructive.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n4-destruction-approval-policy-and-safety-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n5-unified-approve-destruction-api-only.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n6-unified-lifecycle-detail-buttons-non-destructive.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n6b-unified-lifecycle-button-placement-redirect-ux.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n7-destruction-approval-ui-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n8-unified-destruction-approval-ui.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n9-archive-native-destruction-audit-planning.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n10-physical-file-destruction-policy-implementation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n11-legacy-proposal-route-compatibility-cleanup-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12n11b-legacy-proposal-route-removal-and-redirect-cleanup.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12o-unified-archive-aggregate-export.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12p-dev-manual-archive-data-storage-cleanup.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12q-unified-archive-classification-report.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12q1-classification-report-detail-drilldown.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-12z-unified-archive-feature-handoff-closure.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13c-ppspm-display-rename.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13d-pengklasifikasian-dokumen-terminology-flow.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13e-penambahan-dokumen-manual-flow.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13f-folder-berkas-data-model-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13g-close-folder-helper-api-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13h-folder-berkas-api-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13i-pengklasifikasian-dokumen-open-berkas-integration.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13j-penambahan-dokumen-open-berkas-integration.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13k-folder-first-finalization-policy-and-detransitionalization-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13l-berkas-status-arsip-schema-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13m-close-berkas-finalization-sets-aktif.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13n-folder-first-read-model-foundation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13o-folder-first-archive-pages.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13p-folder-item-file-access-and-dimusnahkan-block.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13p2-open-berkas-visibility-and-jenis-pembayaran-eligibility.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13q-folder-lifecycle-transitions-and-visibility.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13q2-lifecycle-ux-placement-confirmation-and-filename-preservation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13r-folder-first-csv-export.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13s-close-berkas-ui-form.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13s1-close-berkas-modal-and-list-shortcut.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13t-workflow-pengklasifikasian-detransitionalization.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13t1-folder-item-attachment-name-preservation-bugfix.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13t2-folder-attachment-name-runtime-hotfix.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13u-manual-penambahan-dokumen-detransitionalization.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13v-legacy-active-archive-route-cleanup.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13w-folder-first-inaktif-usul-musnah-pages.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13w1-lifecycle-redirects-and-destruction-modal.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13w2-detail-destruction-modal-ux.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13x-physical-file-destruction-policy-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13y1-folder-first-physical-deletion-helper.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13y2-musnahkan-data-physical-deletion-integration.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13y3-document-file-access-destroyed-folder-awareness.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13y4-attachment-viewer-destroyed-file-ux.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-13z-legacy-canonical-archive-cleanup-decision-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14a-legacy-soft-deprecation-search-report-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14b-remove-global-archive-search.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14c-local-archive-page-search-filters.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14d-folder-first-report-export-alignment.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14e-remove-laporan-klasifikasi-surface.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14f-inaktif-usul-musnah-csv-export.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14g-legacy-canonical-archive-removal-audit-plan.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14h-remove-legacy-canonical-runtime.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14i0-folder-first-storage-guards.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14i-drop-legacy-canonical-archive-schema.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14j-dev-db-migration-validation.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14j2-local-seed-hash-handling-hardening.md`
+- `arsip/docs-2026-09-25:docs/migration/phase-14k-final-folder-first-archive-regression-handoff.md`
 
 ---
 
@@ -194,7 +196,7 @@ Yang retired:
 
 Yang masih ada sebagai historical/cleanup backlog:
 
-- historical migration docs/specs
+- historical migration arsip/docs-2026-09-25:docs/specs
 - stale test references or expectations
 - source comments/type residue
 
@@ -426,7 +428,7 @@ Rules:
 - Phase 14J validates the cleaned migration chain on the disposable local development PostgreSQL target after a documented local Docker DB reset. `pnpm db:local:migrate` applies through 0009 successfully, folder-first archive/source tables are present, legacy canonical archive tables/columns are absent, and the targeted archive/manual/storage regression set passes. This is development validation only; no feature behavior, schema design, storage cleanup, package/env, Supabase artifact, or route behavior changed.
 - Phase 14J.2 hardens local development seed password-hash handling so `db:local:seed` loads `.env.migration` with dotenv expansion disabled, validates a present `DMS_DEV_SEED_PASSWORD_HASH` as an Argon2id PHC-shaped value before user inserts, skips development users when the hash is absent, and fails safely for invalid/empty values without printing the hash.
 - Phase 14K completes final folder-first archive regression and handoff for local/development after Phase 14 cleanup. Folder-first archive cleanup is implemented and targeted-tested for local/dev, the user has human-smoked the core login/workflow/classification flow, and this is not production/go-live/security certification. Active archive authority remains `berkas_arsip`, `berkas_arsip_item`, `dokumen_transaksi`, `manual_arsip`, and `manual_arsip_attachment`; removed legacy canonical archive runtime/schema surfaces must not be restored.
-- Phase 14L adds `docs/migration/README.md` as the navigation/index for migration docs. Phase 15 frontend work should read that active docs index before older phase docs. Historical docs are retained for traceability and may describe removed behavior; do not treat them as current authority without cross-checking the index and this file.
+- Phase 14L adds `arsip/docs-2026-09-25:docs/migration/README.md` as the navigation/index for migration docs. Phase 15 frontend work should read that active docs index before older phase docs. Historical docs are retained for traceability and may describe removed behavior; do not treat them as current authority without cross-checking the index and this file.
 - Phase 14I supersedes older Phase 12/13 transitional canonical archive notes: active Drizzle/runtime authority no longer exports or uses `arsip.arsip`, `arsip.arsip_usul_musnah`, `arsip.lampiran_snapshot`, `manual_arsip.canonical_arsip_id`, or `berkas_arsip_item.canonical_arsip_id`.
 - OPEN berkas must remain visible before finalization through folder-first read surfaces so users can see ongoing pemberkasan before the folder is closed/finalized.
 - A `DIMUSNAHKAN` folder must block preview/download for every item in that folder. After Phase 13Y.2, `Musnahkan Data` is intended to physically delete folder-first berkas files while preserving metadata and logical references. Physical deletion targets folder-first berkas items before any legacy `arsip.arsip` physical deletion expansion, and safe responses must not expose paths, roots, tokens, SQL, env values, cookies, sessions, raw rows, or secrets.
@@ -515,7 +517,7 @@ Active folder-first archive authority spans the Arsip tables above plus:
 - Phase 13H adds backend-only API route files for opening/get-creating a folder by `Jenis Pembayaran`, adding workflow/manual source items to an `OPEN` folder, and closing a non-empty `OPEN` folder. The routes require local `dms_session`, assigned `KEPALA_SUB_BAGIAN_UMUM`, and same-origin protection for unsafe `POST`; `ADMIN` is not a substitute. Phase 13H does not add UI, backfill, lifecycle mapping, canonical archive mutation, schema/migrations, package changes, storage/file changes, or Supabase fallback. Phase 13H.1 registered these routes through the generated route tree.
 - Phase 13I integrated the existing workflow `Pengklasifikasian Dokumen` route with folder/berkas writes while preserving transitional canonical workflow archive creation at that time. Phase 13T supersedes the workflow write behavior: after server-side `Jenis Pembayaran` validation, the route gets or creates the matching `OPEN` berkas and attaches the `COMPLETED` workflow document as a `WORKFLOW` item without creating a new `arsip.arsip` row and without transitioning the document to `ARCHIVED`. Duplicate item assignment must return a safe conflict response. This does not change manual creation, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
 - Phase 13J integrated the existing `Penambahan Dokumen` manual create runtime with folder/berkas writes while preserving transitional canonical Manual Archive creation at that time. Phase 13U supersedes the new manual write behavior: after server-side `Jenis Pembayaran` validation, the route creates the `manual_arsip` source row, gets or creates the matching `OPEN` berkas, and attaches the source as a `MANUAL` item without creating a new `arsip.arsip` row and without setting `manual_arsip.canonical_arsip_id`. Duplicate item assignment must return a safe conflict response. This does not change manual attachment upload/storage, preview/download responders, backfill, close-folder behavior, lifecycle mapping, schema/migrations, package changes, storage/file changes, or Supabase fallback.
-- Phase 13K locks the folder-first finalization policy as docs/planning only. Future `Pengklasifikasian Dokumen` should keep workflow documents `COMPLETED`, attach them to an `OPEN` berkas, and stop writing new canonical `arsip.arsip` rows only in a later implementation phase. Final archive metadata and lifecycle belong to `berkas_arsip`, not individual item archive rows.
+- Phase 13K locks the folder-first finalization policy as arsip/docs-2026-09-25:docs/planning only. Future `Pengklasifikasian Dokumen` should keep workflow documents `COMPLETED`, attach them to an `OPEN` berkas, and stop writing new canonical `arsip.arsip` rows only in a later implementation phase. Final archive metadata and lifecycle belong to `berkas_arsip`, not individual item archive rows.
 - Phase 13M updates close/finalize berkas behavior only: closing a non-empty `OPEN` berkas with valid final metadata sets `status_berkas='CLOSED'` and initial folder lifecycle `status_arsip='AKTIF'`. It does not backfill existing `CLOSED` rows, add lifecycle transitions, add folder-first pages, stop transitional `arsip.arsip` writes, change file access, implement `DIMUSNAHKAN` blocking, delete physical files, or change schema/migrations/packages/env/storage/Supabase behavior.
 - Phase 13N adds `src/lib/archive/berkas-arsip-read-model.ts` as a read-only folder-first helper/query foundation. It returns folder list/detail DTOs, item counts, source metadata, and safe warning labels without adding routes/UI, mutating data, changing file access, stopping transitional `arsip.arsip` writes, or using `arsip.arsip` as the primary authority for new folder-first reads.
 - Phase 13O adds read-only folder-first pages and API wrappers for active berkas archives. It points the Kepala Sub Bagian Umum active archive navigation to `/arsiparis/berkas` and does not add lifecycle mutation, file access, schema/migration, package/env, storage, or Supabase runtime changes. Phase 13V later changes `/arsiparis/aktif` from an old canonical active list into a compatibility redirect to `/arsiparis/berkas`; Phase 14H later removes that compatibility redirect and the old `/arsiparis/arsip/$id` canonical detail route from runtime registration.
